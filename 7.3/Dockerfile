@@ -3,11 +3,11 @@ ARG SPRYKER_PHP_VERSION=7.3.3
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.9
 
-ENV srcRoot /data
+ARG srcRoot=/data
 
 RUN mkdir -p ${srcRoot}
 
-ENV PHP_RUN_DEPS \
+ARG PHP_RUN_DEPS="\
     icu-libs \
     libbz2 \
     libxslt \
@@ -17,10 +17,10 @@ ENV PHP_RUN_DEPS \
     libwebp \
     libxpm \
     libjpeg-turbo \
-    gmp
+    gmp"
 
 
-ENV PHP_BUILD_DEPS \
+ARG PHP_BUILD_DEPS="\
     postgresql-dev \
     libpng-dev \
     libwebp-dev \
@@ -32,9 +32,9 @@ ENV PHP_BUILD_DEPS \
     bzip2-dev \
     autoconf \
     g++ \
-    make
+    make"
 
-ENV PHP_EXTENSIONS \
+ARG PHP_EXTENSIONS="\
     gd \
     gmp \
     intl \
@@ -45,10 +45,10 @@ ENV PHP_EXTENSIONS \
     bcmath \
     bz2 \
     sockets \
-    opcache 
+    opcache"
 
 
-ENV CFLAGS "-I/usr/src/php"
+ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
     shadow \
