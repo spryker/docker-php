@@ -3,7 +3,7 @@ ARG SPRYKER_PHP_VERSION=7.3.3
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.9
 
-ARG srcRoot=/data
+ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
 
