@@ -90,6 +90,7 @@ RUN chown spryker:spryker ${srcRoot}
 
 # Remove default FPM pool
 RUN rm /usr/local/etc/php-fpm.d/www.conf && \
+    rm /usr/local/etc/php-fpm.d/docker.conf && \
     rm /usr/local/etc/php-fpm.d/zz-docker.conf
 
 COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
