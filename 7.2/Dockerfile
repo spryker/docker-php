@@ -52,6 +52,7 @@ ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
     shadow \
+    procps \
     openssh \
     curl \
     bash \
