@@ -56,6 +56,7 @@ RUN apk update \
     openssh \
     curl \
     bash \
+    git \
     postgresql-client \
     mysql-client \
     ${PHP_RUN_DEPS} \
