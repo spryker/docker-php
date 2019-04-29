@@ -47,6 +47,7 @@ ARG PHP_EXTENSIONS="\
     bz2 \
     sockets \
     soap \
+    pcntl \
     opcache"
 
 
