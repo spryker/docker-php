@@ -39,9 +39,11 @@ before_install:
   - echo eyAiZXhwZXJpbWVudGFsIiA6IHRydWUsICJmZWF0dXJlcyIgOiB7ICJidWlsZGtpdCI6IHRydWUgfSB9Cg==|base64 -d|sudo tee /etc/docker/daemon.json
   - sudo apt-get install --only-upgrade docker-ce -y
 
+install:
+  - docker build --progress plain -t spryker/php:${SPRYKER_PHP_VERSION} -f ${SPRYKER_PHP_VERSION}/Dockerfile .
+
 script:
   - set -e
-  - docker build --progress plain -t spryker/php:${SPRYKER_PHP_VERSION} -f ${SPRYKER_PHP_VERSION}/Dockerfile .
   - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php -v
   - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php-fpm -t
   - docker run --user spryker -t spryker/php:${SPRYKER_PHP_VERSION} composer -V
