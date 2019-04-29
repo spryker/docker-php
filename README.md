@@ -27,10 +27,10 @@ Extends official PHP Docker images with extensions and tools to be able to run S
 
 | Tag     | PHP version     | Details     | Dockerfile     |
 | :------------- | :------------- | :------------- | :------------- |
-| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags) | 7.2.16 | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.2/Dockerfile) |
-| [spryker/php:7.3](https://hub.docker.com/r/spryker/php/tags)  | 7.3.3 | [![](https://images.microbadger.com/badges/image/spryker/php:7.3.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.3/Dockerfile) |
-| [spryker/php:7.2](https://hub.docker.com/r/spryker/php/tags)  | 7.2.16 | [![](https://images.microbadger.com/badges/image/spryker/php:7.2.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.2/Dockerfile) |
-| [spryker/php:7.1](https://hub.docker.com/r/spryker/php/tags)  | 7.1.27 | [![](https://images.microbadger.com/badges/image/spryker/php:7.1.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.1/Dockerfile) |
+| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags) | 7.2.17 | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.2/Dockerfile) |
+| [spryker/php:7.3](https://hub.docker.com/r/spryker/php/tags)  | 7.3.4 | [![](https://images.microbadger.com/badges/image/spryker/php:7.3.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.3/Dockerfile) |
+| [spryker/php:7.2](https://hub.docker.com/r/spryker/php/tags)  | 7.2.17 | [![](https://images.microbadger.com/badges/image/spryker/php:7.2.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.2/Dockerfile) |
+| [spryker/php:7.1](https://hub.docker.com/r/spryker/php/tags)  | 7.1.28 | [![](https://images.microbadger.com/badges/image/spryker/php:7.1.svg)](https://microbadger.com/images/spryker/php "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/7.1/Dockerfile) |
 
 
 ## How to use
@@ -95,7 +95,7 @@ INSTALLED EXTENSIONS
   [ ] odbc
   [x] opcache
   [x] openssl
-  [ ] pcntl
+  [x] pcntl
   [x] pcre
   [x] pdo
   [ ] pdo_dblib
@@ -142,7 +142,7 @@ INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
 PACKAGE VERSION STATE
 redis   4.3.0   stable
-xdebug  2.7.0   stable
+xdebug  2.7.1   stable
 ```
 ##### Run the following to get the report
 ```bash
