@@ -26,6 +26,7 @@ ARG PHP_BUILD_DEPS="\
     libwebp-dev \
     libjpeg-turbo-dev \
     libxpm-dev \
+    libxml2-dev \
     freetype-dev \
     gmp-dev \
     icu-dev \
