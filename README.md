@@ -20,7 +20,6 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * OpenSSH
   * Composer
   * `hirak/prestissimo`
-  * `aws/aws-sdk-php`
 
 > Note: Provided images require additional configuration for development, staging and production use.
 
@@ -118,7 +117,7 @@ INSTALLED EXTENSIONS
   [x] simplexml
   [ ] skeleton
   [ ] snmp
-  [ ] soap
+  [x] soap
   [x] sockets
   [x] sodium
   [x] spl
