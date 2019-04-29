@@ -49,7 +49,7 @@ script:
   - docker run --user spryker -t spryker/php:${SPRYKER_PHP_VERSION} composer -V
   - >
     docker run -t spryker/php:${SPRYKER_PHP_VERSION} bash -c '
-    docker-php-source extract
+    docker-php-source extract;
     echo "INSTALLED EXTENSIONS";
     echo "====================";
     for ext in `ls /usr/src/php/ext`; do echo " " `php -r "if (extension_loaded(\"$ext\" !== \"opcache\" ? \"$ext\" : \"Zend OPcache\")) { echo \"[x] $ext\"; } else { echo \"[ ] $ext\"; }"`; done;
