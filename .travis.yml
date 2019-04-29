@@ -46,12 +46,14 @@ script:
   - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php-fpm -t
   - docker run --user spryker -t spryker/php:${SPRYKER_PHP_VERSION} composer -V
   - >
+    docker run -t spryker/php:${SPRYKER_PHP_VERSION} bash -c '
     docker-php-source extract
     echo "INSTALLED EXTENSIONS";
     echo "====================";
-    for ext in `ls /usr/src/php/ext`; do echo ' ' `php -r "if (extension_loaded('$ext' !== 'opcache' ? '$ext' : 'Zend OPcache')) { echo '[x] $ext'; } else { echo '[ ] $ext'; }"`; done;
+    for ext in `ls /usr/src/php/ext`; do echo " " `php -r "if (extension_loaded(\"$ext\" !== \"opcache\" ? \"$ext\" : \"Zend OPcache\")) { echo \"[x] $ext\"; } else { echo \"[ ] $ext\"; }"`; done;
     echo "";
     pear list -c pecl
+    '
   - docker images spryker/php
 
 notifications:
