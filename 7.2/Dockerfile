@@ -1,5 +1,5 @@
-# syntax = docker/dockerfile:experimental
-ARG SPRYKER_PHP_VERSION=7.2.16
+# syntax = docker/dockerfile:1.0.2-experimental
+ARG SPRYKER_PHP_VERSION=7.2.17
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.9
 
@@ -15,7 +15,7 @@ ARG PHP_RUN_DEPS="\
     freetype \
     libxpm \
     libwebp \
-    libxpm \
+    libxml2 \
     libjpeg-turbo \
     gmp"
 
@@ -26,6 +26,7 @@ ARG PHP_BUILD_DEPS="\
     libwebp-dev \
     libjpeg-turbo-dev \
     libxpm-dev \
+    libxml2-dev \
     freetype-dev \
     gmp-dev \
     icu-dev \
@@ -45,19 +46,24 @@ ARG PHP_EXTENSIONS="\
     bcmath \
     bz2 \
     sockets \
+    soap \
+    pcntl \
     opcache"
 
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
-    shadow \
-    procps \
-    openssh \
-    curl \
     bash \
-    postgresql-client \
+    curl \
+    git \
+    graphviz \
+    netcat-openbsd \
     mysql-client \
+    openssh \
+    postgresql-client \
+    procps \
+    shadow \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
@@ -84,10 +90,10 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
-# Create a special user 'spryker'
-RUN addgroup spryker
-RUN adduser -h /home/spryker -s /bin/sh -G www-data -D spryker
-RUN chown spryker:spryker ${srcRoot}
+# Create application user 'spryker'
+RUN addgroup spryker && \
+    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+    chown spryker:spryker ${srcRoot}
 
 # Remove default FPM pool
 RUN rm /usr/local/etc/php-fpm.d/www.conf && \
@@ -104,8 +110,9 @@ COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
 WORKDIR /data
 
 USER spryker
-
 ENV COMPOSER_MEMORY_LIMIT=-1
-RUN composer global require hirak/prestissimo aws/aws-sdk-php
+RUN /usr/bin/install -d -m 777 /var/tmp/opcache && \
+    composer global require hirak/prestissimo && \
+    rm -rf /home/spryker/.composer/cache
 
 USER root
