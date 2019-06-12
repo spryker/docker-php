@@ -48,7 +48,8 @@ ARG PHP_EXTENSIONS="\
     sockets \
     soap \
     pcntl \
-    opcache"
+    opcache \
+    zip"
 
 
 ARG CFLAGS="-I/usr/src/php"
