@@ -17,6 +17,7 @@ ARG PHP_RUN_DEPS="\
     libwebp \
     libxml2 \
     libjpeg-turbo \
+    libzip \
     gmp"
 
 
@@ -31,6 +32,7 @@ ARG PHP_BUILD_DEPS="\
     gmp-dev \
     icu-dev \
     bzip2-dev \
+    libzip-dev \
     autoconf \
     g++ \
     make"
@@ -48,7 +50,8 @@ ARG PHP_EXTENSIONS="\
     sockets \
     soap \
     pcntl \
-    opcache"
+    opcache \
+    zip"
 
 
 ARG CFLAGS="-I/usr/src/php"

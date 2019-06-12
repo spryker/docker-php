@@ -135,7 +135,7 @@ INSTALLED EXTENSIONS
   [x] xmlwriter
   [ ] xsl
   [ ] zend_test
-  [ ] zip
+  [x] zip
   [x] zlib
 
 INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
