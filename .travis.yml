@@ -44,7 +44,7 @@ install:
 
 script:
   - set -e
-  - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php -v
+  - docker run -t spryker/php:${SPRYKER_PHP_VERSION} bash -c '${PHP_BIN} -v'
   - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php-fpm -t
   - docker run --user spryker -t spryker/php:${SPRYKER_PHP_VERSION} composer -V
   - >
