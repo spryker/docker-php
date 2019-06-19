@@ -115,7 +115,7 @@ WORKDIR /data
 
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
-ENV PHP_BIN=/usr/bin/php
+ENV PHP_BIN=/usr/local/bin/php
 RUN /usr/bin/install -d -m 777 /var/tmp/opcache && \
     composer global require hirak/prestissimo && \
     rm -rf /home/spryker/.composer/cache
