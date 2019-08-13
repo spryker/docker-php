@@ -137,12 +137,12 @@ INSTALLED EXTENSIONS
   [ ] zend_test
   [x] zip
   [x] zlib
-
-INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
+Installed packages, channel pecl.php.net:
 =========================================
-PACKAGE VERSION STATE
-redis   4.3.0   stable
-xdebug  2.7.1   stable
+Package Version State
+decimal 1.3.0   stable
+redis   5.0.2   stable
+xdebug  2.7.2   stable
 ```
 ##### Run the following to get the report
 ```bash
