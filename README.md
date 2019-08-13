@@ -138,9 +138,9 @@ INSTALLED EXTENSIONS
   [x] zip
   [x] zlib
 
-Installed packages, channel pecl.php.net:
+INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
-Package Version State
+PACKAGE VERSION STATE
 decimal 1.3.0   stable
 redis   5.0.2   stable
 xdebug  2.7.2   stable
