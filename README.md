@@ -137,6 +137,7 @@ INSTALLED EXTENSIONS
   [ ] zend_test
   [x] zip
   [x] zlib
+
 Installed packages, channel pecl.php.net:
 =========================================
 Package Version State
