@@ -68,6 +68,7 @@ RUN apk update \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing mpdecimal \
     && rm -rf /var/lib/apt/lists/ \
     && \
     docker-php-ext-configure gd \
@@ -79,9 +80,9 @@ RUN apk update \
       --with-xpm-dir=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f  redis xdebug \
+    pecl install -o -f  redis decimal xdebug \
     && rm -rf /tmp/pear \
-    && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
+    && docker-php-ext-enable ${PHP_EXTENSIONS} redis decimal \
     && apk del --no-cache .php-build-deps \
     # Related to https://github.com/docker-library/php/issues/240
     && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
@@ -118,4 +119,3 @@ RUN /usr/bin/install -d -m 777 /var/tmp/opcache && \
     rm -rf /home/spryker/.composer/cache
 
 USER root
-
