@@ -9,7 +9,9 @@
 
 Extends official PHP Docker images with extensions and tools to be able to run Spryker on.
 
-* Based on: Official PHP images and `Alpine 3.9`
+* Based on: Official PHP images
+  * `Alpine 3.10`
+  * `Debian "buster"`
 * Users: `root`, `spryker`
 * Working directory: `/data`
 * Includes:
@@ -17,7 +19,7 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * PostgreSQL client
   * MySQL client
   * CURL
-  * OpenSSH
+  * OpenSSH client
   * Composer
   * `hirak/prestissimo`
 
