@@ -10,13 +10,34 @@ matrix:
   include:
     - os: linux
       env:
-        - SPRYKER_PHP_VERSION=7.1
-    - os: linux
-      env:
         - SPRYKER_PHP_VERSION=7.2
+        - SPRYKER_TAG=7.2-alpine
+        - SPRYKER_DISTRO=alpine
     - os: linux
       env:
-        - SPRYKER_PHP_VERSION=7.3
+          - SPRYKER_PHP_VERSION=7.3
+          - SPRYKER_TAG=7.3-alpine
+          - SPRYKER_DISTRO=alpine
+    - os: linux
+      env:
+          - SPRYKER_PHP_VERSION=7.4
+          - SPRYKER_TAG=7.4-alpine
+          - SPRYKER_DISTRO=alpine
+    - os: linux
+      env:
+          - SPRYKER_PHP_VERSION=7.2
+          - SPRYKER_TAG=7.2-debian
+          - SPRYKER_DISTRO=debian
+    - os: linux
+      env:
+          - SPRYKER_PHP_VERSION=7.3
+          - SPRYKER_TAG=7.3-debian
+          - SPRYKER_DISTRO=debian
+    - os: linux
+      env:
+          - SPRYKER_PHP_VERSION=7.4
+          - SPRYKER_TAG=7.4-debian
+          - SPRYKER_DISTRO=debian
 
 cache:
   apt: true
@@ -40,15 +61,15 @@ before_install:
   - sudo apt-get install --only-upgrade docker-ce -y
 
 install:
-  - docker build --progress plain -t spryker/php:${SPRYKER_PHP_VERSION} -f ${SPRYKER_PHP_VERSION}/Dockerfile .
+  - docker build --progress plain -t spryker/php:${SPRYKER_TAG} -f ${SPRYKER_DISTRO}/${SPRYKER_PHP_VERSION}/Dockerfile .
 
 script:
   - set -e
-  - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php -v
-  - docker run -t spryker/php:${SPRYKER_PHP_VERSION} php-fpm -t
-  - docker run --user spryker -t spryker/php:${SPRYKER_PHP_VERSION} composer -V
+  - docker run -t spryker/php:${SPRYKER_TAG} php -v
+  - docker run -t spryker/php:${SPRYKER_TAG} php-fpm -t
+  - docker run --user spryker -t spryker/php:${SPRYKER_TAG} composer -V
   - >
-    docker run -t spryker/php:${SPRYKER_PHP_VERSION} bash -c '
+    docker run -t spryker/php:${SPRYKER_TAG} bash -c '
     docker-php-source extract;
     echo "INSTALLED EXTENSIONS";
     echo "====================";
