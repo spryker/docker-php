@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.2.28
+ARG SPRYKER_PHP_VERSION=7.3.15
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm
+FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
 ENV srcRoot /data
 

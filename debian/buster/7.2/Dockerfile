@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.4.3
+ARG SPRYKER_PHP_VERSION=7.2.28
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm
+FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
 ENV srcRoot /data
 
@@ -74,10 +74,11 @@ RUN apt-get update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype=/usr \
-      --with-jpeg=/usr \
-      --with-webp=/usr \
-      --with-xpm=/usr \
+      --with-freetype-dir=/usr \
+      --with-jpeg-dir=/usr \
+      --with-png-dir=/usr \
+      --with-webp-dir=/usr \
+      --with-xpm-dir=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
     pecl install -o -f redis xdebug \
