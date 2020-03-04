@@ -39,12 +39,6 @@ matrix:
           - SPRYKER_TAG=7.3-alpine3.9
           - SPRYKER_DISTRO=alpine/3.9
     - os: linux
-      name: Alpine 3.9, PHP 7.4
-      env:
-          - SPRYKER_PHP_VERSION=7.4
-          - SPRYKER_TAG=7.4-alpine3.9
-          - SPRYKER_DISTRO=alpine/3.9
-    - os: linux
       name: Debian "buster", PHP 7.2
       env:
           - SPRYKER_PHP_VERSION=7.2
