@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.3.11
+ARG SPRYKER_PHP_VERSION=7.3.15
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.9
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.10
 
 ENV srcRoot /data
 
@@ -60,6 +60,7 @@ RUN apk update \
     bash \
     curl \
     git \
+    unzip \
     graphviz \
     netcat-openbsd \
     mysql-client \
@@ -67,6 +68,7 @@ RUN apk update \
     postgresql-client \
     procps \
     shadow \
+    coreutils \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
@@ -81,7 +83,7 @@ RUN apk update \
       --with-xpm-dir=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f  redis xdebug \
+    pecl install -o -f redis xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
     && apk del --no-cache .php-build-deps \
@@ -90,13 +92,7 @@ RUN apk update \
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
-
-# Create application user 'spryker'
-RUN addgroup spryker && \
-    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
-    chown spryker:spryker ${srcRoot}
+RUN /usr/bin/install -d -m 777 /var/run/opcache
 
 # Remove default FPM pool
 RUN rm /usr/local/etc/php-fpm.d/www.conf && \
@@ -113,9 +109,17 @@ COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
 
 WORKDIR /data
 
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+
+# Create application user 'spryker'
+RUN addgroup spryker && \
+    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+    chown spryker:spryker ${srcRoot}
+
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
-RUN /usr/bin/install -d -m 777 /var/tmp/opcache && \
+RUN mkdir -p /home/spryker/.composer && \
     composer global require hirak/prestissimo && \
     rm -rf /home/spryker/.composer/cache
 
