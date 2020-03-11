@@ -68,7 +68,6 @@ RUN apk update \
     postgresql-client \
     procps \
     shadow \
-    coreutils \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
