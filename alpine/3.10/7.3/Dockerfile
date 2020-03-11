@@ -92,6 +92,15 @@ RUN apk update \
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
+ENV NEWRELIC_ENABLED=0
+ENV NEWRELIC_LICENSE=''
+ENV NEWRELIC_APPNAME='Spryker'
+RUN curl -L 'https://download.newrelic.com/php_agent/release/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx && \
+  export NR_INSTALL_USE_CP_NOT_LN=1 && \
+  export NR_INSTALL_SILENT=1 && \
+  /tmp/newrelic-php5-*/newrelic-install install && \
+  rm -rf /tmp/newrelic-php5-* /tmp/nrinstall*
+
 RUN /usr/bin/install -d -m 777 /var/run/opcache
 
 # Remove default FPM pool
@@ -106,6 +115,7 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/newrelic.ini /usr/local/etc/php/conf.d/
 
 WORKDIR /data
 
