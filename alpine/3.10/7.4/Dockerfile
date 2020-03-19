@@ -91,6 +91,10 @@ RUN apk update \
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
+RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-alpine_amd64-php-$version.so \
+    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
+
 RUN /usr/bin/install -d -m 777 /var/run/opcache
 
 # Remove default FPM pool
@@ -101,6 +105,7 @@ RUN rm /usr/local/etc/php-fpm.d/www.conf && \
 # Add FPM configs
 COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
 COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
+COPY context/php/conf.d/blackfire.ini.dist /usr/local/etc/php/conf.d/
 
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
