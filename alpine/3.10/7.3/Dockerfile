@@ -119,8 +119,7 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
-COPY context/php/conf.d/blackfire.ini.dist /usr/local/etc/php/conf.d/
-COPY context/php/conf.d/newrelic.ini.dist /usr/local/etc/php/conf.d/
+COPY context/php/disabled /usr/local/etc/php/disabled
 
 WORKDIR /data
 
