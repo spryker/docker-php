@@ -86,6 +86,10 @@ RUN apt-get update \
     && apt-get remove -y $PHP_BUILD_DEPS \
     && apt-get clean
 
+RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-linux_amd64-php-$version.so \
+    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
+
 RUN /usr/bin/install -d -m 777 /var/run/opcache
 
 # Remove default FPM pool
@@ -100,6 +104,7 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/blackfire.ini.dist /usr/local/etc/php/conf.d/
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
