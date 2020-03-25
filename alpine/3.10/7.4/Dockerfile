@@ -105,7 +105,7 @@ RUN rm /usr/local/etc/php-fpm.d/www.conf && \
 # Add FPM configs
 COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
 COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
-COPY context/php/conf.d/blackfire.ini.dist /usr/local/etc/php/conf.d/
+COPY context/php/disabled /usr/local/etc/php/disabled
 
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
