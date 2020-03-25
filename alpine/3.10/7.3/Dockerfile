@@ -18,6 +18,7 @@ ARG PHP_RUN_DEPS="\
     libxml2 \
     libjpeg-turbo \
     libzip \
+    libc6-compat \
     gmp"
 
 
@@ -92,19 +93,25 @@ RUN apk update \
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
+# Blackfire
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-alpine_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
+# New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
-RUN curl -L 'https://download.newrelic.com/php_agent/release/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx && \
-  export NR_INSTALL_USE_CP_NOT_LN=1 && \
-  export NR_INSTALL_SILENT=1 && \
-  /tmp/newrelic-php5-*/newrelic-install install && \
-  rm -rf /tmp/newrelic-php5-* /tmp/nrinstall*
+RUN curl -L 'https://download.newrelic.com/php_agent/release/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx \
+  && export NR_INSTALL_USE_CP_NOT_LN=1 \
+  && export NR_INSTALL_SILENT=1 \
+  && /tmp/newrelic-php5-*/newrelic-install install \
+  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+  && rm /usr/local/etc/php/conf.d/newrelic.ini \
+  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
+# Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
 
 # Remove default FPM pool
