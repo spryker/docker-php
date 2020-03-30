@@ -93,6 +93,9 @@ RUN apk update \
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
+ARG BLACKFIRE_AGENT_SOCKET
+ENV BLACKFIRE_AGENT_SOCKET=${BLACKFIRE_AGENT_SOCKET:-'tcp://blackfire:8707'}
+
 # Blackfire
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-alpine_amd64-php-$version.so \
@@ -102,7 +105,7 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
-RUN curl -L 'https://download.newrelic.com/php_agent/release/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx \
+RUN curl -L 'https://download.newrelic.com/php_agent/archive/9.7.0.258/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
   && /tmp/newrelic-php5-*/newrelic-install install \
