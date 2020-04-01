@@ -80,11 +80,10 @@ RUN apk update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype-dir=/usr \
-      --with-jpeg-dir=/usr \
-      --with-png-dir=/usr \
-      --with-webp-dir=/usr \
-      --with-xpm-dir=/usr \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
