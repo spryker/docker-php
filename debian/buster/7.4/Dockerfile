@@ -53,6 +53,9 @@ ARG PHP_EXTENSIONS="\
     opcache \
     zip"
 
+ARG PHP_PECL_EXTENSIONS="\
+    apcu \
+    redis"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt-get update \
@@ -74,22 +77,21 @@ RUN apt-get update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype=/usr \
-      --with-jpeg=/usr \
-      --with-webp=/usr \
-      --with-xpm=/usr \
+      --with-freetype-dir=/usr \
+      --with-jpeg-dir=/usr \
+      --with-png-dir=/usr \
+      --with-webp-dir=/usr \
+      --with-xpm-dir=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f redis xdebug \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
     && apt-get remove -y $PHP_BUILD_DEPS \
     && apt-get clean
 
-ARG BLACKFIRE_AGENT_SOCKET
-ENV BLACKFIRE_AGENT_SOCKET=${BLACKFIRE_AGENT_SOCKET:-'tcp://blackfire:8707'}
-
 # Blackfire
+ENV BLACKFIRE_AGENT_SOCKET=''
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-linux_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
@@ -98,7 +100,7 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
-RUN curl -L 'https://download.newrelic.com/php_agent/archive/9.7.0.258/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx \
+RUN curl -L 'https://download.newrelic.com/php_agent/archive/9.7.0.258/newrelic-php5-9.7.0.258-linux.tar.gz' | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
   && /tmp/newrelic-php5-*/newrelic-install install \

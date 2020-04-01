@@ -18,6 +18,7 @@ ARG PHP_RUN_DEPS="\
     libxml2 \
     libjpeg-turbo \
     libzip \
+    libc6-compat \
     gmp"
 
 
@@ -53,6 +54,9 @@ ARG PHP_EXTENSIONS="\
     opcache \
     zip"
 
+ARG PHP_PECL_EXTENSIONS="\
+    apcu \
+    redis"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
@@ -76,25 +80,24 @@ RUN apk update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype=/usr \
-      --with-jpeg=/usr \
-      --with-webp=/usr \
-      --with-xpm=/usr \
+      --with-freetype-dir=/usr \
+      --with-jpeg-dir=/usr \
+      --with-png-dir=/usr \
+      --with-webp-dir=/usr \
+      --with-xpm-dir=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f redis xdebug \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
-    && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
+    && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps \
     # Related to https://github.com/docker-library/php/issues/240
     && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
-ARG BLACKFIRE_AGENT_SOCKET
-ENV BLACKFIRE_AGENT_SOCKET=${BLACKFIRE_AGENT_SOCKET:-'tcp://blackfire:8707'}
-
 # Blackfire
+ENV BLACKFIRE_AGENT_SOCKET=''
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-alpine_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
@@ -123,11 +126,11 @@ RUN rm /usr/local/etc/php-fpm.d/www.conf && \
 # Add FPM configs
 COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
 COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
-COPY context/php/disabled /usr/local/etc/php/disabled
 
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/disabled /usr/local/etc/php/disabled
 
 WORKDIR /data
 

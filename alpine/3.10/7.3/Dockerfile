@@ -96,9 +96,6 @@ RUN apk update \
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
-ARG BLACKFIRE_AGENT_SOCKET
-ENV BLACKFIRE_AGENT_SOCKET=${BLACKFIRE_AGENT_SOCKET:-'tcp://blackfire:8707'}
-
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
