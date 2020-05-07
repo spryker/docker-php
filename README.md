@@ -179,7 +179,7 @@ xdebug  2.9.4   stable
 ```
 ##### Run the following to get the report
 ```bash
-$ docker run -i --rm aldi:latest bash -s<<'EOF'
+$ docker run -i --rm spryker/php:latest bash -s<<'EOF'
     docker-php-source extract
     echo "Installed extensions";
     echo "====================";
