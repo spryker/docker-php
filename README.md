@@ -70,10 +70,24 @@ service1:
     image: spryker/php:7.2-debian
 ```
 
+### Enable NewRelic
+```dockerfile
+FROM spryker/php:7.3
+
+RUN mv /usr/local/etc/php/disabled/newrelic.ini /usr/local/etc/php/conf.d
+```
+
+### Enable Blackfire
+```dockerfile
+FROM spryker/php:7.3
+
+RUN mv /usr/local/etc/php/disabled/blackfire.ini /usr/local/etc/php/conf.d
+```
+
 ## PHP extensions
 
 ```
-INSTALLED EXTENSIONS
+Installed extensions
 ====================
   [x] bcmath
   [x] bz2
@@ -151,19 +165,29 @@ INSTALLED EXTENSIONS
   [x] zip
   [x] zlib
 
-INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
+Disabled extensions
+====================
+ [ ] blackfire
+ [ ] newrelic
+
+Installed packages, channel pecl.php.net:
 =========================================
-PACKAGE VERSION STATE
-redis   5.1.1   stable
-xdebug  2.9.2   stable
+Package Version State
+apcu    5.1.18  stable
+redis   5.2.1   stable
+xdebug  2.9.4   stable
 ```
 ##### Run the following to get the report
 ```bash
 $ docker run -i --rm spryker/php:latest bash -s<<'EOF'
     docker-php-source extract
-    echo "INSTALLED EXTENSIONS";
+    echo "Installed extensions";
     echo "====================";
     for ext in `ls /usr/src/php/ext`; do echo ' ' `php -r "if (extension_loaded('$ext' !== 'opcache' ? '$ext' : 'Zend OPcache')) { echo '[x] $ext'; } else { echo '[ ] $ext'; }"`; done
+    echo "";
+    echo "Disabled extensions";
+    echo "====================";
+    for f in /usr/local/etc/php/disabled/*.ini; do echo " [ ] $(basename $f | sed -e 's/\.ini$//')"; done
     echo "";
     pear list -c pecl
 EOF
