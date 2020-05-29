@@ -74,14 +74,14 @@ service1:
 ```dockerfile
 FROM spryker/php:7.3
 
-RUN mv /usr/local/etc/php/disabled/newrelic.ini /usr/local/etc/php/conf.d
+RUN mv /usr/local/etc/php/disabled/newrelic.ini /usr/local/etc/php/conf.d/90-newrelic.ini
 ```
 
 ### Enable Blackfire
 ```dockerfile
 FROM spryker/php:7.3
 
-RUN mv /usr/local/etc/php/disabled/blackfire.ini /usr/local/etc/php/conf.d
+RUN mv /usr/local/etc/php/disabled/blackfire.ini /usr/local/etc/php/conf.d/90-blackfire.ini
 ```
 
 ## PHP extensions
