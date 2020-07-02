@@ -63,6 +63,7 @@ RUN apt-get update \
     bash \
     curl \
     git \
+    gnupg2 \
     unzip \
     graphviz \
     netcat-openbsd \

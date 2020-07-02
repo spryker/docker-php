@@ -106,7 +106,7 @@ ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
 RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/5.1.16/tideways-php-5.1.16-alpine.tar.gz \
     && tar xvzf tideways-php-5.1.16-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-7.3.so /usr/local/lib/php/extensions/no-debug-non-zts-20180731/tideways.so
+    && cp ./build/dist/tideways-php-alpine-7.3.so /usr/local/lib/php/extensions/no-debug-non-zts-20190902/tideways.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
