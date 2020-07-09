@@ -169,6 +169,7 @@ Disabled extensions
 ====================
  [ ] blackfire
  [ ] newrelic
+ [ ] tideways
 
 Installed packages, channel pecl.php.net:
 =========================================
