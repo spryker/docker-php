@@ -63,6 +63,7 @@ RUN apt-get update \
     bash \
     curl \
     git \
+    gnupg2 \
     unzip \
     graphviz \
     netcat-openbsd \
@@ -108,6 +109,15 @@ RUN curl -L 'https://download.newrelic.com/php_agent/archive/9.7.0.258/newrelic-
   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+
+# Tideways
+RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \
+    curl -sS 'https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg' | apt-key add - && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -yq install tideways-php && \
+    apt-get autoremove --assume-yes && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
