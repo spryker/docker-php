@@ -1,7 +1,11 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.4.3
+ARG SPRYKER_PHP_VERSION=7.4.8
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
+
+ARG BLACKFIRE_VERSION=1.36.0
+ARG NEWRELIC_VERSION=9.12.0.268
+ARG TIDEWAYS_VERSION=latest
 
 ENV srcRoot /data
 
@@ -92,15 +96,15 @@ RUN apt-get update \
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-linux_amd64-php-$version.so \
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
-RUN curl -L 'https://download.newrelic.com/php_agent/archive/9.7.0.258/newrelic-php5-9.7.0.258-linux.tar.gz' | tar -C /tmp -zx \
+RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
   && /tmp/newrelic-php5-*/newrelic-install install \
@@ -132,7 +136,7 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
-COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
 # Install composer

@@ -3,6 +3,10 @@ ARG SPRYKER_PHP_VERSION=7.3.13
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.9
 
+ARG BLACKFIRE_VERSION=1.36.0
+ARG NEWRELIC_VERSION=9.12.0.268
+ARG TIDEWAYS_VERSION=5.1.18
+
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
@@ -92,28 +96,30 @@ RUN apk update \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps \
     # Related to https://github.com/docker-library/php/issues/240
-    && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
+    && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/v3.10/community gnu-libiconv
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/1.31.0/blackfire-php-alpine_amd64-php-$version.so \
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # Tideways
 ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
-RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/5.1.16/tideways-php-5.1.16-alpine.tar.gz \
-    && tar xvzf tideways-php-5.1.16-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-7.3.so $(php-config --extension-dir)/tideways.so
+ENV TIDEWAYS_CLI_ENABLED=0
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
+    && wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
-RUN curl -L 'https://download.newrelic.com/php_agent/archive/9.7.0.258/newrelic-php5-9.7.0.258-linux-musl.tar.gz' | tar -C /tmp -zx \
+RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
   && /tmp/newrelic-php5-*/newrelic-install install \
@@ -136,7 +142,7 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
-COPY context/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
 WORKDIR /data
