@@ -96,7 +96,7 @@ RUN apk update \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps \
     # Related to https://github.com/docker-library/php/issues/240
-    && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
+    && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/v3.10/community gnu-libiconv
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 

@@ -134,6 +134,9 @@ script:
         echo "";
         pear list -c pecl
     '
+  - >
+    iconv_test=$(docker run -t --rm spryker/php:${SPRYKER_TAG} sh -c 'php -r "echo iconv(\"UTF-8\", \"ASCII//TRANSLIT\", \"español\");"');
+    if [ -n "$iconv_test" ]; then echo $iconv_test; else echo 'ICONV test is FAILED.' $iconv_test; exit 1; fi
   - docker images spryker/php
 
 notifications:

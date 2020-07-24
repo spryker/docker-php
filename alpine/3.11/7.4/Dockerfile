@@ -23,6 +23,7 @@ ARG PHP_RUN_DEPS="\
     libjpeg-turbo \
     libzip \
     libc6-compat \
+    gnu-libiconv \
     gmp"
 
 
@@ -93,10 +94,9 @@ RUN apk update \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps \
-    # Related to https://github.com/docker-library/php/issues/240
-    && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
+    && apk del --no-cache .php-build-deps
 
+# Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
 # Blackfire
