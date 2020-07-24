@@ -186,7 +186,7 @@ Disabled extensions
 
 Installed packages, channel pecl.php.net:
 =========================================
-PACKAGE VERSION STATE
+Package version state
 apcu    5.1.18  stable
 redis   5.3.1   stable
 xdebug  2.9.6   stable

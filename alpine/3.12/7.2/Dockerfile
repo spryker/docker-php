@@ -1,10 +1,11 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=7.2.32
+
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.12
+
 ARG BLACKFIRE_VERSION=1.36.0
 ARG NEWRELIC_VERSION=9.12.0.268
 ARG TIDEWAYS_VERSION=5.1.18
-
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.12
 
 ENV srcRoot /data
 
@@ -101,7 +102,7 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
@@ -109,9 +110,10 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
 ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
 ENV TIDEWAYS_CLI_ENABLED=0
-RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
+    && wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-7.2.so $(php-config --extension-dir)/tideways.so
+    && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0

@@ -122,15 +122,15 @@ script:
   - docker run -t spryker/php:${SPRYKER_TAG} php-fpm -t
   - docker run --user spryker -t spryker/php:${SPRYKER_TAG} composer -V
   - >
-    docker run -i --rm spryker/php:${SPRYKER_TAG} bash -c '
+    docker run -t --rm spryker/php:${SPRYKER_TAG} bash -c '
         docker-php-source extract
         echo "Installed extensions";
         echo "====================";
-        for ext in `ls /usr/src/php/ext`; do echo ' ' `php -r "if (extension_loaded('$ext' !== 'opcache' ? '$ext' : 'Zend OPcache')) { echo '[x] $ext'; } else { echo '[ ] $ext'; }"`; done
+        for ext in `ls /usr/src/php/ext`; do echo " " `php -r "if (extension_loaded(\"$ext\" !== \"opcache\" ? \"$ext\" : \"Zend OPcache\")) { echo \"[x] $ext\"; } else { echo \"[ ] $ext\"; }"`; done
         echo "";
         echo "Disabled extensions";
         echo "====================";
-        for f in /usr/local/etc/php/disabled/*.ini; do disabled=$(basename $f | sed -e 's/\.ini$//'); echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")"; done
+        for f in /usr/local/etc/php/disabled/*.ini; do disabled=$(basename $f | sed -e "s/\.ini$//"); echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion(\"${disabled}\");")"; done
         echo "";
         pear list -c pecl
     '

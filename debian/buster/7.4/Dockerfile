@@ -96,7 +96,7 @@ RUN apt-get update \
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
