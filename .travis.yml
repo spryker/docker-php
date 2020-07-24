@@ -1,13 +1,48 @@
-language: minimal
+language: shell
 
 dist: xenial
-sudo: required
 
 os:
   - linux
 
-matrix:
+jobs:
   include:
+    - os: linux
+      name: Alpine 3.12, PHP 7.2
+      env:
+        - SPRYKER_PHP_VERSION=7.2
+        - SPRYKER_TAG=7.2-alpine3.12
+        - SPRYKER_DISTRO=alpine/3.12
+    - os: linux
+      name: Alpine 3.12, PHP 7.3
+      env:
+        - SPRYKER_PHP_VERSION=7.3
+        - SPRYKER_TAG=7.3-alpine3.12
+        - SPRYKER_DISTRO=alpine/3.12
+    - os: linux
+      name: Alpine 3.12, PHP 7.4
+      env:
+        - SPRYKER_PHP_VERSION=7.4
+        - SPRYKER_TAG=7.4-alpine3.12
+        - SPRYKER_DISTRO=alpine/3.12
+    - os: linux
+      name: Alpine 3.11, PHP 7.2
+      env:
+        - SPRYKER_PHP_VERSION=7.2
+        - SPRYKER_TAG=7.2-alpine3.11
+        - SPRYKER_DISTRO=alpine/3.11
+    - os: linux
+      name: Alpine 3.11, PHP 7.3
+      env:
+        - SPRYKER_PHP_VERSION=7.3
+        - SPRYKER_TAG=7.3-alpine3.11
+        - SPRYKER_DISTRO=alpine/3.11
+    - os: linux
+      name: Alpine 3.11, PHP 7.4
+      env:
+        - SPRYKER_PHP_VERSION=7.4
+        - SPRYKER_TAG=7.4-alpine3.11
+        - SPRYKER_DISTRO=alpine/3.11
     - os: linux
       name: Alpine 3.10, PHP 7.2
       env:
@@ -87,13 +122,17 @@ script:
   - docker run -t spryker/php:${SPRYKER_TAG} php-fpm -t
   - docker run --user spryker -t spryker/php:${SPRYKER_TAG} composer -V
   - >
-    docker run -t spryker/php:${SPRYKER_TAG} bash -c '
-    docker-php-source extract;
-    echo "INSTALLED EXTENSIONS";
-    echo "====================";
-    for ext in `ls /usr/src/php/ext`; do echo " " `php -r "if (extension_loaded(\"$ext\" !== \"opcache\" ? \"$ext\" : \"Zend OPcache\")) { echo \"[x] $ext\"; } else { echo \"[ ] $ext\"; }"`; done;
-    echo "";
-    pear list -c pecl
+    docker run -i --rm spryker/php:${SPRYKER_TAG} bash -c '
+        docker-php-source extract
+        echo "Installed extensions";
+        echo "====================";
+        for ext in `ls /usr/src/php/ext`; do echo ' ' `php -r "if (extension_loaded('$ext' !== 'opcache' ? '$ext' : 'Zend OPcache')) { echo '[x] $ext'; } else { echo '[ ] $ext'; }"`; done
+        echo "";
+        echo "Disabled extensions";
+        echo "====================";
+        for f in /usr/local/etc/php/disabled/*.ini; do disabled=$(basename $f | sed -e 's/\.ini$//'); echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")"; done
+        echo "";
+        pear list -c pecl
     '
   - docker images spryker/php
 
