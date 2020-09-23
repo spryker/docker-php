@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.2.32
+ARG SPRYKER_PHP_VERSION=7.2.33
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.12
 
@@ -143,6 +143,7 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 # Copy php.ini configuration
 COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
 WORKDIR /data
