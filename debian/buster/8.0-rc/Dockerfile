@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.0alpha3
+ARG SPRYKER_PHP_VERSION="8.0.0RC2"
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
@@ -58,8 +58,7 @@ ARG PHP_EXTENSIONS="\
     zip"
 
 ARG PHP_PECL_EXTENSIONS="\
-    apcu \
-    redis"
+    apcu"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt-get update \
@@ -90,6 +89,11 @@ RUN apt-get update \
     && \
     curl -A "Docker" -L -o /usr/local/bin/pickle https://github.com/FriendsOfPHP/pickle/releases/download/v0.6.0/pickle.phar && chmod +x /usr/local/bin/pickle \
     && echo xdebug && echo ${PHP_PECL_EXTENSIONS} | xargs -n1 -r pickle install --defaults \
+    && curl -A "Docker" -L -o /tmp/redis-5.3.2RC2.tgz https://pecl.php.net/get/redis-5.3.2RC2.tgz \
+    && mkdir -p /tmp/redis-5.3.2RC2 && tar zxvf /tmp/redis-5.3.2RC2.tgz -C /tmp/redis-5.3.2RC2/ \
+    && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/redis-5.3.2RC2/package.xml \
+    && pickle install --defaults /tmp/redis-5.3.2RC2/ \
+    && rm -rf /tmp/redis-5.3.2RC2/ \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
     && apt-get remove -y $PHP_BUILD_DEPS \
     && apt-get clean
