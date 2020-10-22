@@ -89,14 +89,22 @@ RUN apk update \
       --with-webp=/usr \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
-    && \
-    curl -A "Docker" -L -o /usr/local/bin/pickle https://github.com/FriendsOfPHP/pickle/releases/download/v0.6.0/pickle.phar && chmod +x /usr/local/bin/pickle \
-    && echo xdebug && echo ${PHP_PECL_EXTENSIONS} | xargs -n1 -r pickle install --defaults \
-    && curl -A "Docker" -L -o /tmp/redis-5.3.2RC2.tgz https://pecl.php.net/get/redis-5.3.2RC2.tgz \
-    && mkdir -p /tmp/redis-5.3.2RC2 && tar zxvf /tmp/redis-5.3.2RC2.tgz -C /tmp/redis-5.3.2RC2/ \
-    && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/redis-5.3.2RC2/package.xml \
-    && pickle install --defaults /tmp/redis-5.3.2RC2/ \
-    && rm -rf /tmp/redis-5.3.2RC2/ \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+    && curl -A "Docker" -L -o /tmp/pickle.zip https://github.com/FriendsOfPHP/pickle/archive/master.zip \
+    && unzip /tmp/pickle.zip -d /tmp/ && ln -sf /tmp/pickle-master/bin/pickle /usr/local/bin/pickle \
+    && chmod +x /usr/local/bin/pickle \
+    && cd /tmp/pickle-master/ && composer install --ignore-platform-reqs && cd - \
+    && echo ${PHP_PECL_EXTENSIONS} | xargs -n1 -r pickle install --defaults \
+    && curl -A "Docker" -L -o /tmp/redis-${REDIS_VERSION}.tgz https://pecl.php.net/get/redis-${REDIS_VERSION}.tgz \
+    && mkdir -p /tmp/redis-${REDIS_VERSION} && tar zxvf /tmp/redis-${REDIS_VERSION}.tgz -C /tmp/redis-${REDIS_VERSION}/ \
+    && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/redis-${REDIS_VERSION}/package.xml \
+    && pickle install --defaults /tmp/redis-${REDIS_VERSION}/ \
+    && rm -rf /tmp/redis-${REDIS_VERSION}/ \
+    && curl -A "Docker" -L -o /tmp/xdebug-${XDEBUG_VERSION}.tgz https://pecl.php.net/get/xdebug-${XDEBUG_VERSION}.tgz \
+    && mkdir -p /tmp/xdebug-${XDEBUG_VERSION} && tar zxvf /tmp/xdebug-${XDEBUG_VERSION}.tgz -C /tmp/xdebug-${XDEBUG_VERSION}/ \
+    && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/xdebug-${XDEBUG_VERSION}/package.xml \
+    && pickle install --defaults /tmp/xdebug-${XDEBUG_VERSION}/ \
+    && rm -rf /tmp/xdebug-${XDEBUG_VERSION}/ \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} redis \
     && apk del --no-cache php-build-deps \
     && rm /usr/local/bin/pickle
@@ -151,7 +159,7 @@ COPY context/php/disabled /usr/local/etc/php/disabled
 WORKDIR /data
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
