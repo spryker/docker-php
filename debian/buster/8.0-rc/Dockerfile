@@ -166,9 +166,5 @@ RUN addgroup spryker && \
 WORKDIR /data
 
 USER spryker
-ENV COMPOSER_MEMORY_LIMIT=-1
-RUN mkdir -p /home/spryker/.composer && \
-    composer global require hirak/prestissimo && \
-    rm -rf /home/spryker/.composer/cache
 
 USER root
