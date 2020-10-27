@@ -60,7 +60,8 @@ ARG PHP_EXTENSIONS="\
     zip"
 
 ARG PHP_PECL_EXTENSIONS="\
-    apcu"
+    apcu \
+    redis"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
@@ -95,11 +96,6 @@ RUN apk update \
     && chmod +x /usr/local/bin/pickle \
     && cd /tmp/pickle-master/ && composer install --ignore-platform-reqs && cd - \
     && echo ${PHP_PECL_EXTENSIONS} | xargs -n1 -r pickle install --defaults \
-    && curl -A "Docker" -L -o /tmp/redis-${REDIS_VERSION}.tgz https://pecl.php.net/get/redis-${REDIS_VERSION}.tgz \
-    && mkdir -p /tmp/redis-${REDIS_VERSION} && tar zxvf /tmp/redis-${REDIS_VERSION}.tgz -C /tmp/redis-${REDIS_VERSION}/ \
-    && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/redis-${REDIS_VERSION}/package.xml \
-    && pickle install --defaults /tmp/redis-${REDIS_VERSION}/ \
-    && rm -rf /tmp/redis-${REDIS_VERSION}/ \
     && curl -A "Docker" -L -o /tmp/xdebug-${XDEBUG_VERSION}.tgz https://pecl.php.net/get/xdebug-${XDEBUG_VERSION}.tgz \
     && mkdir -p /tmp/xdebug-${XDEBUG_VERSION} && tar zxvf /tmp/xdebug-${XDEBUG_VERSION}.tgz -C /tmp/xdebug-${XDEBUG_VERSION}/ \
     && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/xdebug-${XDEBUG_VERSION}/package.xml \
@@ -168,8 +164,6 @@ RUN addgroup spryker && \
 
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
-RUN mkdir -p /home/spryker/.composer && \
-    composer global require hirak/prestissimo && \
-    rm -rf /home/spryker/.composer/cache
+RUN mkdir -p /home/spryker/.composer
 
 USER root
