@@ -8,12 +8,6 @@ os:
 jobs:
   include:
     - os: linux
-      name: Alpine 3.12, PHP 7.2
-      env:
-        - SPRYKER_PHP_VERSION=7.2
-        - SPRYKER_TAG=7.2-alpine3.12
-        - SPRYKER_DISTRO=alpine/3.12
-    - os: linux
       name: Alpine 3.12, PHP 7.3
       env:
         - SPRYKER_PHP_VERSION=7.3
@@ -25,12 +19,6 @@ jobs:
         - SPRYKER_PHP_VERSION=7.4
         - SPRYKER_TAG=7.4-alpine3.12
         - SPRYKER_DISTRO=alpine/3.12
-    - os: linux
-      name: Alpine 3.11, PHP 7.2
-      env:
-        - SPRYKER_PHP_VERSION=7.2
-        - SPRYKER_TAG=7.2-alpine3.11
-        - SPRYKER_DISTRO=alpine/3.11
     - os: linux
       name: Alpine 3.11, PHP 7.3
       env:
@@ -44,12 +32,6 @@ jobs:
         - SPRYKER_TAG=7.4-alpine3.11
         - SPRYKER_DISTRO=alpine/3.11
     - os: linux
-      name: Alpine 3.10, PHP 7.2
-      env:
-        - SPRYKER_PHP_VERSION=7.2
-        - SPRYKER_TAG=7.2-alpine3.10
-        - SPRYKER_DISTRO=alpine/3.10
-    - os: linux
       name: Alpine 3.10, PHP 7.3
       env:
         - SPRYKER_PHP_VERSION=7.3
@@ -62,23 +44,11 @@ jobs:
         - SPRYKER_TAG=7.4-alpine3.10
         - SPRYKER_DISTRO=alpine/3.10
     - os: linux
-      name: Alpine 3.9, PHP 7.2
-      env:
-        - SPRYKER_PHP_VERSION=7.2
-        - SPRYKER_TAG=7.2-alpine3.9
-        - SPRYKER_DISTRO=alpine/3.9
-    - os: linux
       name: Alpine 3.9, PHP 7.3
       env:
           - SPRYKER_PHP_VERSION=7.3
           - SPRYKER_TAG=7.3-alpine3.9
           - SPRYKER_DISTRO=alpine/3.9
-    - os: linux
-      name: Debian "buster", PHP 7.2
-      env:
-          - SPRYKER_PHP_VERSION=7.2
-          - SPRYKER_TAG=7.2-debian
-          - SPRYKER_DISTRO=debian/buster
     - os: linux
       name: Debian "buster", PHP 7.3
       env:

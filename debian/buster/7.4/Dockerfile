@@ -141,7 +141,7 @@ COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=2.0.2
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
@@ -154,8 +154,6 @@ WORKDIR /data
 
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
-RUN mkdir -p /home/spryker/.composer && \
-    composer global require hirak/prestissimo && \
-    rm -rf /home/spryker/.composer/cache
+RUN mkdir -p /home/spryker/.composer
 
 USER root
