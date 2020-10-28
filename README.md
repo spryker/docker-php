@@ -178,7 +178,7 @@ Disabled extensions
  [ ] newrelic 9.13.0.270
  [ ] tideways 5.2.6
 
-installed packages, channel pecl.php.net:
+Installed packages, channel pecl.php.net:
 =========================================
 Package version state
 apcu    5.1.19  stable
@@ -191,7 +191,7 @@ Composer version 2.0.2 2020-10-25 23:03:59
 ```
 ##### Run the following to get the report
 ```bash
-$ docker run -i --rm spr/php:latest bash -s<<'EOF'
+$ docker run -i --rm spryker/php:latest bash -s<<'EOF'
     docker-php-source extract
     echo "Installed extensions";
     echo "====================";
