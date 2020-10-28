@@ -3,6 +3,7 @@ ARG SPRYKER_PHP_VERSION=7.4.10
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
+ARG COMPOSER_VERSION=2.0.2
 ARG BLACKFIRE_VERSION=1.36.0
 ARG NEWRELIC_VERSION=9.12.0.268
 ARG TIDEWAYS_VERSION=latest
@@ -141,7 +142,7 @@ COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=2.0.2
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
 
 # Create application user 'spryker'
 RUN addgroup spryker && \

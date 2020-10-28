@@ -103,6 +103,10 @@ script:
         for f in /usr/local/etc/php/disabled/*.ini; do disabled=$(basename $f | sed -e "s/\.ini$//"); echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion(\"${disabled}\");")"; done
         echo "";
         pear list -c pecl
+        echo "";
+        echo "Composer";
+        echo "====================";
+        composer -V
     '
   - >
     iconv_test=$(docker run -t --rm spryker/php:${SPRYKER_TAG} sh -c 'php -r "echo iconv(\"UTF-8\", \"ASCII//TRANSLIT\", \"español\");"');

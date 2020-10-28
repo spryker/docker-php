@@ -3,9 +3,10 @@ ARG SPRYKER_PHP_VERSION=7.4.10
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.11
 
-ARG BLACKFIRE_VERSION=1.36.0
-ARG NEWRELIC_VERSION=9.12.0.268
-ARG TIDEWAYS_VERSION=5.1.18
+ARG COMPOSER_VERSION=2.0.2
+ARG BLACKFIRE_VERSION=1.42.0
+ARG NEWRELIC_VERSION=9.13.0.270
+ARG TIDEWAYS_VERSION=5.2.6
 
 ENV srcRoot /data
 
@@ -148,7 +149,7 @@ COPY context/php/disabled /usr/local/etc/php/disabled
 WORKDIR /data
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=2.0.2
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
