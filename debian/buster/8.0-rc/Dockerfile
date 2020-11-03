@@ -1,12 +1,11 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION="8.0.0RC2"
+ARG SPRYKER_PHP_VERSION="8.0.0RC3"
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
 ARG BLACKFIRE_VERSION=1.36.0
 ARG NEWRELIC_VERSION=9.12.0.268
 ARG TIDEWAYS_VERSION=latest
-ARG REDIS_VERSION="5.3.2RC2"
 ARG XDEBUG_VERSION="3.0.0beta1"
 
 ENV srcRoot /data
@@ -89,14 +88,17 @@ RUN apt-get update \
       --with-webp=/usr \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
+    # Install Composer
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+    # Install Pickle
     && curl -A "Docker" -L -o /tmp/pickle.zip https://github.com/FriendsOfPHP/pickle/archive/master.zip \
     && unzip /tmp/pickle.zip -d /tmp/ && ln -sf /tmp/pickle-master/bin/pickle /usr/local/bin/pickle \
     && chmod +x /usr/local/bin/pickle \
     && cd /tmp/pickle-master/ && composer install --ignore-platform-reqs && cd - \
+    # Install extensions
     && echo ${PHP_PECL_EXTENSIONS} | xargs -n1 -r pickle install --defaults \
     && curl -A "Docker" -L -o /tmp/xdebug-${XDEBUG_VERSION}.tgz https://pecl.php.net/get/xdebug-${XDEBUG_VERSION}.tgz \
-    && mkdir -p /tmp/xdebug-${XDEBUG_VERSION} && tar zxvf /tmp/xdebug-${XDEBUG_VERSION}.tgz -C /tmp/xdebug-${XDEBUG_VERSION}/ \
+    && mkdir -p /tmp/xdebug-${XDEBUG_VERSION} && tar zxf /tmp/xdebug-${XDEBUG_VERSION}.tgz -C /tmp/xdebug-${XDEBUG_VERSION}/ \
     && sed -i 's+<release>beta</release>+<release>stable</release>+g' /tmp/xdebug-${XDEBUG_VERSION}/package.xml \
     && pickle install --defaults /tmp/xdebug-${XDEBUG_VERSION}/ \
     && rm -rf /tmp/xdebug-${XDEBUG_VERSION}/ \
@@ -148,9 +150,6 @@ COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
 COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
-
-# Install composer
-# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
