@@ -24,6 +24,7 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * CURL
   * OpenSSH client
   * Composer
+  * `hirak/prestissimo`
 
 > Note: Provided images require additional configuration for development, staging and production use.
 
