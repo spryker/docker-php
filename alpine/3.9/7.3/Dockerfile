@@ -7,6 +7,11 @@ ARG BLACKFIRE_VERSION=1.36.0
 ARG NEWRELIC_VERSION=9.12.0.268
 ARG TIDEWAYS_VERSION=5.1.18
 
+ARG GRAPHVIZ_VERSION="2.44.0"
+ARG CAIRO_VERSION="1.17.4"
+ARG PANGO_VERSION="1.48"
+ARG FONTCONFIG_VERSION="2.13.93"
+
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
@@ -40,7 +45,27 @@ ARG PHP_BUILD_DEPS="\
     libzip-dev \
     autoconf \
     g++ \
-    make"
+    make \
+    automake \
+    bison \
+    flex \
+    gcc \
+    python3 \
+    curl-dev \
+    libressl-dev \
+    libedit-dev \
+    sqlite-dev \
+    libcurl \
+    libxml2-dev \
+    argon2-dev \
+    tcl \
+    pkgconfig \
+    swig \
+    ghostscript-dev \
+    libxext-dev \
+    meson \
+    libffi-dev \
+    gperf"
 
 ARG PHP_EXTENSIONS="\
     gd \
@@ -69,7 +94,6 @@ RUN apk update \
     curl \
     git \
     unzip \
-    graphviz \
     netcat-openbsd \
     mysql-client \
     openssh \
@@ -77,6 +101,10 @@ RUN apk update \
     procps \
     shadow \
     coreutils \
+    libtool \
+    pixman-dev \
+    glib-dev \
+    libxrender-dev \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
@@ -94,6 +122,56 @@ RUN apk update \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
+    && cd /data \
+    && \
+    ### Fontconfig (dependency for Cairo)
+    wget https://www.freedesktop.org/software/fontconfig/release/fontconfig-${FONTCONFIG_VERSION}.tar.xz \
+        && tar xvf fontconfig-${FONTCONFIG_VERSION}.tar.xz \
+        && cd fontconfig-${FONTCONFIG_VERSION} || exit \
+        && rm -f src/fcobjshash.h \
+        && ./configure --sysconfdir=/etc --localstatedir=/var --disable-docs --enable-libxml2 \
+        && make \
+        && make install \
+        && cd /data || exit \
+        && rm -rf fontconfig-${FONTCONFIG_VERSION} \
+        && rm fontconfig-${FONTCONFIG_VERSION}.tar.xz \
+        && \
+    ### Cairo (dependency for Pango)
+    wget https://cairographics.org/snapshots/cairo-${CAIRO_VERSION}.tar.xz \
+        && tar xvf cairo-${CAIRO_VERSION}.tar.xz \
+        && cd cairo-${CAIRO_VERSION} || exit \
+        && autoreconf -fv \
+        && ./configure \
+        && make \
+        && make install \
+        && cd /data || exit \
+        && rm -rf cairo-${CAIRO_VERSION} \
+        && rm cairo-${CAIRO_VERSION}.tar.xz \
+        && \
+    ### Pango (dependency for GraphViz)
+    wget https://download.gnome.org/sources/pango/${PANGO_VERSION}/pango-${PANGO_VERSION}.0.tar.xz \
+        && tar xvf pango-${PANGO_VERSION}.0.tar.xz \
+        && cd pango-${PANGO_VERSION}.0 || exit \
+        && mkdir build \
+        && cd build || exit \
+        && meson .. \
+        && ninja \
+        && ninja install \
+        && cd /data || exit \
+        && rm -rf pango-${PANGO_VERSION}.0 \
+        && rm -rf pango-${PANGO_VERSION}.0.tar.xz \
+        && \
+    ### GraphViz
+    wget https://www2.graphviz.org/Packages/stable/portable_source/graphviz-${GRAPHVIZ_VERSION}.tar.gz \
+        && tar xvf graphviz-${GRAPHVIZ_VERSION}.tar.gz \
+        && cd graphviz-${GRAPHVIZ_VERSION} || exit \
+        && ./autogen.sh \
+        && ./configure \
+        && make \
+        && make install \
+        && cd /data \
+        && rm -rf graphviz-${GRAPHVIZ_VERSION} \
+        && rm graphviz-${GRAPHVIZ_VERSION}.tar.gz \
     && apk del --no-cache .php-build-deps \
     # Related to https://github.com/docker-library/php/issues/240
     && apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/v3.10/community gnu-libiconv

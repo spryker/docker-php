@@ -7,6 +7,11 @@ ARG BLACKFIRE_VERSION=1.36.0
 ARG NEWRELIC_VERSION=9.12.0.268
 ARG TIDEWAYS_VERSION=latest
 
+ARG GRAPHVIZ_VERSION="2.44.0"
+ARG CAIRO_VERSION="1.17.4"
+ARG PANGO_VERSION="1.48"
+ARG FONTCONFIG_VERSION="2.13.93"
+
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
@@ -39,7 +44,28 @@ ARG PHP_BUILD_DEPS="\
     libzip-dev \
     autoconf \
     g++ \
-    make"
+    make \
+    automake \
+    bison \
+    flex \
+    gcc \
+    python3 \
+    python3-pip \
+    libcurl3-dev \
+    libedit-dev \
+    libsqlite3-dev \
+    libxml2-dev \
+    libargon2-dev \
+    tcl \
+    pkg-config \
+    swig \
+    ghostscript \
+    libxext-dev \
+    libffi-dev \
+    libperl-dev \
+    libssl-dev \
+    libcrypto++-dev \
+    gperf"
 
 ARG PHP_EXTENSIONS="\
     gd \
@@ -69,7 +95,12 @@ RUN apt-get update \
     git \
     gnupg2 \
     unzip \
-    graphviz \
+    wget \
+    libtool \
+    libltdl7 \
+    libpixman-1-dev \
+    libalglib-dev \
+    libxrender-dev \
     netcat-openbsd \
     default-mysql-client \
     openssh-client \
@@ -91,6 +122,58 @@ RUN apt-get update \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
+    ### Meson and Ninja (for building Pango)
+    && pip3 install meson ninja \
+    && cd /data \
+    && \
+    ### Fontconfig (dependency for Cairo)
+    wget https://www.freedesktop.org/software/fontconfig/release/fontconfig-${FONTCONFIG_VERSION}.tar.xz \
+        && tar xvf fontconfig-${FONTCONFIG_VERSION}.tar.xz \
+        && cd fontconfig-${FONTCONFIG_VERSION} || exit \
+        && rm -f src/fcobjshash.h \
+        && ./configure --sysconfdir=/etc --localstatedir=/var --disable-docs --enable-libxml2 \
+        && make \
+        && make install \
+        && cd /data || exit \
+        && rm -rf fontconfig-${FONTCONFIG_VERSION} \
+        && rm fontconfig-${FONTCONFIG_VERSION}.tar.xz \
+        && \
+    ### Cairo (dependency for Pango)
+    wget https://cairographics.org/snapshots/cairo-${CAIRO_VERSION}.tar.xz \
+        && tar xvf cairo-${CAIRO_VERSION}.tar.xz \
+        && cd cairo-${CAIRO_VERSION} || exit \
+        && autoreconf -fv \
+        && ./configure \
+        && make \
+        && make install \
+        && cd /data || exit \
+        && rm -rf cairo-${CAIRO_VERSION} \
+        && rm cairo-${CAIRO_VERSION}.tar.xz \
+        && \
+    ### Pango (dependency for GraphViz)
+    wget https://download.gnome.org/sources/pango/${PANGO_VERSION}/pango-${PANGO_VERSION}.0.tar.xz \
+        && tar xvf pango-${PANGO_VERSION}.0.tar.xz \
+        && cd pango-${PANGO_VERSION}.0 || exit \
+        && mkdir build \
+        && cd build || exit \
+        && meson .. \
+        && ninja \
+        && ninja install \
+        && cd /data || exit \
+        && rm -rf pango-${PANGO_VERSION}.0 \
+        && rm pango-${PANGO_VERSION}.0.tar.xz \
+        && \
+    ### GraphViz
+    wget https://www2.graphviz.org/Packages/stable/portable_source/graphviz-${GRAPHVIZ_VERSION}.tar.gz \
+        && tar xvf graphviz-${GRAPHVIZ_VERSION}.tar.gz \
+        && cd graphviz-${GRAPHVIZ_VERSION} || exit \
+        && ./autogen.sh \
+        && ./configure \
+        && make \
+        && make install \
+        && cd /data \
+        && rm -rf graphviz-${GRAPHVIZ_VERSION} \
+        && rm graphviz-${GRAPHVIZ_VERSION}.tar.gz \
     && apt-get remove -y $PHP_BUILD_DEPS \
     && apt-get clean
 
