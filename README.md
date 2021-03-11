@@ -184,7 +184,7 @@ Installed packages, channel pecl.php.net:
 Package version state
 apcu    5.1.19  stable
 redis   5.3.2   stable
-xdebug  2.9.8   stable
+xdebug  3.0.2   stable
 
 Composer
 ====================
