@@ -109,6 +109,7 @@ Installed extensions
   [ ] enchant
   [ ] exif
   [ ] ext_skel.php
+  [ ] ffi
   [x] fileinfo
   [x] filter
   [x] ftp
@@ -118,7 +119,6 @@ Installed extensions
   [x] hash
   [x] iconv
   [ ] imap
-  [ ] interbase
   [x] intl
   [x] json
   [ ] ldap
@@ -145,7 +145,6 @@ Installed extensions
   [x] posix
   [ ] pspell
   [x] readline
-  [ ] recode
   [x] reflection
   [x] session
   [ ] shmop
@@ -163,7 +162,6 @@ Installed extensions
   [ ] sysvshm
   [ ] tidy
   [x] tokenizer
-  [ ] wddx
   [x] xml
   [x] xmlreader
   [ ] xmlrpc
@@ -172,24 +170,22 @@ Installed extensions
   [ ] zend_test
   [x] zip
   [x] zlib
-
 Disabled extensions
 ====================
- [ ] blackfire 1.49.0
+ [ ] blackfire 1.49.0~linux-musl-x64-non_zts74
  [ ] newrelic 9.15.0.293
- [ ] tideways 5.3.6 
-
+ [ ] tideways 5.3.6
 Installed packages, channel pecl.php.net:
 =========================================
-Package version state
-apcu    5.1.19  stable
-redis   5.3.2   stable
-xdebug  3.0.2   stable
-
+Package Version State
+apcu    5.1.20  stable
+redis   5.3.3   stable
+xdebug  3.0.3   stable
 Composer
 ====================
 Composer version 1.10.19 2020-12-04 09:14:16
 ```
+
 ##### Run the following to get the report
 ```bash
 $ docker run -i --rm spryker/php:latest bash -s<<'EOF'
