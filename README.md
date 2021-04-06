@@ -174,7 +174,7 @@ Installed extensions
   [x] zlib
 Disabled extensions
 ====================
- [ ] blackfire 1.55.0~linux-musl-x64-non_zts73
+ [ ] blackfire 1.55.0
  [ ] newrelic 9.16.0.295
  [ ] tideways 5.3.14
 Installed packages, channel pecl.php.net:
