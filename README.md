@@ -172,23 +172,20 @@ Installed extensions
   [ ] zend_test
   [x] zip
   [x] zlib
-
 Disabled extensions
 ====================
- [ ] blackfire 1.49.0
- [ ] newrelic 9.15.0.293
- [ ] tideways 5.3.6 
-
+ [ ] blackfire 1.55.0~linux-musl-x64-non_zts73
+ [ ] newrelic 9.16.0.295
+ [ ] tideways 5.3.14
 Installed packages, channel pecl.php.net:
 =========================================
-Package version state
-apcu    5.1.19  stable
-redis   5.3.2   stable
-xdebug  2.9.8   stable
-
+Package Version State
+apcu    5.1.20  stable
+redis   5.3.4   stable
+xdebug  3.0.3   stable
 Composer
 ====================
-Composer version 1.10.19 2020-12-04 09:14:16
+Composer version 2.0.12 2021-04-01 10:14:59
 ```
 ##### Run the following to get the report
 ```bash
