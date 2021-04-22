@@ -5,7 +5,7 @@ FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
 ARG COMPOSER_VERSION=1.10.19
 ARG BLACKFIRE_VERSION=1.49.0
-#ARG NEWRELIC_VERSION=9.16.0.295
+ARG NEWRELIC_VERSION=9.17.0.300
 ARG TIDEWAYS_VERSION=latest
 
 ENV srcRoot /data
@@ -104,17 +104,17 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
 # NewRelic release for PHP8 in progress
 
 # New Relic
-#ENV NEWRELIC_ENABLED=0
-#ENV NEWRELIC_LICENSE=''
-#ENV NEWRELIC_APPNAME='Spryker'
-#RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
-#  && export NR_INSTALL_USE_CP_NOT_LN=1 \
-#  && export NR_INSTALL_SILENT=1 \
-#  && /tmp/newrelic-php5-*/newrelic-install install \
-#  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
-#  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
-#  && rm /usr/local/etc/php/conf.d/newrelic.ini \
-#  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+ENV NEWRELIC_ENABLED=0
+ENV NEWRELIC_LICENSE=''
+ENV NEWRELIC_APPNAME='Spryker'
+RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
+  && export NR_INSTALL_USE_CP_NOT_LN=1 \
+  && export NR_INSTALL_SILENT=1 \
+  && /tmp/newrelic-php5-*/newrelic-install install \
+  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+  && rm /usr/local/etc/php/conf.d/newrelic.ini \
+  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
 # Tideways
 RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \

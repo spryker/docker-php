@@ -5,7 +5,7 @@ FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.12
 
 ARG COMPOSER_VERSION=1.10.19
 ARG BLACKFIRE_VERSION=1.49.0
-#ARG NEWRELIC_VERSION=9.15.0.293
+ARG NEWRELIC_VERSION=9.17.0.300
 ARG TIDEWAYS_VERSION=5.3.6
 
 ENV srcRoot /data
@@ -116,17 +116,17 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
     && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
 
 # New Relic
-#ENV NEWRELIC_ENABLED=0
-#ENV NEWRELIC_LICENSE=''
-#ENV NEWRELIC_APPNAME='Spryker'
-#RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
-#  && export NR_INSTALL_USE_CP_NOT_LN=1 \
-#  && export NR_INSTALL_SILENT=1 \
-#  && /tmp/newrelic-php5-*/newrelic-install install \
-#  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
-#  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
-#  && rm /usr/local/etc/php/conf.d/newrelic.ini \
-#  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+ENV NEWRELIC_ENABLED=0
+ENV NEWRELIC_LICENSE=''
+ENV NEWRELIC_APPNAME='Spryker'
+RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
+  && export NR_INSTALL_USE_CP_NOT_LN=1 \
+  && export NR_INSTALL_SILENT=1 \
+  && /tmp/newrelic-php5-*/newrelic-install install \
+  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+  && rm /usr/local/etc/php/conf.d/newrelic.ini \
+  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
