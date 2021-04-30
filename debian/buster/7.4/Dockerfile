@@ -1,11 +1,11 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.4.14
+ARG SPRYKER_PHP_VERSION=7.4.16
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
-ARG COMPOSER_VERSION=1.10.19
-ARG BLACKFIRE_VERSION=1.49.0
-ARG NEWRELIC_VERSION=9.15.0.293
+ARG COMPOSER_VERSION=2.0.12
+ARG BLACKFIRE_VERSION=1.55.0
+ARG NEWRELIC_VERSION=9.16.0.295
 ARG TIDEWAYS_VERSION=latest
 
 ENV srcRoot /data
@@ -156,6 +156,6 @@ WORKDIR /data
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $(composer --version) == "1*" ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
