@@ -13,6 +13,7 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * `Alpine 3.10`
   * `Alpine 3.11`
   * `Alpine 3.12`
+  * `Alpine 3.13`
   * `Debian "buster"`
 * Users: `root`, `spryker`
 * Working directory: `/data`
