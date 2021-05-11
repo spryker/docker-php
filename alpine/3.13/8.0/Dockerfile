@@ -1,12 +1,12 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.3.18
+ARG SPRYKER_PHP_VERSION=8.0.5
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.10
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.13
 
 ARG COMPOSER_VERSION=2.0.12
-ARG BLACKFIRE_VERSION=1.55.0
-ARG NEWRELIC_VERSION=9.16.0.295
-ARG TIDEWAYS_VERSION=5.3.14
+ARG BLACKFIRE_VERSION=1.57.0
+ARG NEWRELIC_VERSION=9.17.0.300
+ARG TIDEWAYS_VERSION=5.3.6
 
 ENV srcRoot /data
 
@@ -86,11 +86,10 @@ RUN apk update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype-dir=/usr \
-      --with-jpeg-dir=/usr \
-      --with-png-dir=/usr \
-      --with-webp-dir=/usr \
-      --with-xpm-dir=/usr \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
@@ -160,6 +159,6 @@ RUN addgroup spryker && \
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+RUN bash -c '[[ $(composer --version) == "1*" ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
