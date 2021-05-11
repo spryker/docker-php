@@ -153,7 +153,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin -
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
-    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+    adduser -h /home/spryker -s /bin/sh -G spryker -D spryker && \
+    usermod -a -G spryker,www-data spryker && \
     chown spryker:spryker ${srcRoot}
 
 USER spryker
