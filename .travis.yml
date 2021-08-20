@@ -52,21 +52,21 @@ jobs:
     - os: linux
       name: Debian "bullseye", PHP 7.3
       env:
-        - SPRYKER_PHP_VERSION=7.3
-        - SPRYKER_TAG=7.3-debian
+          - SPRYKER_PHP_VERSION=7.3
+          - SPRYKER_TAG=7.3-debian
+          - SPRYKER_DISTRO=debian/bullseye
+    - os: linux
+      name: Debian "bullseye", PHP 7.4
+      env:
+          - SPRYKER_PHP_VERSION=7.4
+          - SPRYKER_TAG=7.4-debian
+          - SPRYKER_DISTRO=debian/bullseye
+    - os: linux
+      name: Debian "bullseye", PHP 8.0
+      env:
+        - SPRYKER_PHP_VERSION=8.0
+        - SPRYKER_TAG=8.0-debian
         - SPRYKER_DISTRO=debian/bullseye
-     - os: linux
-       name: Debian "bullseye", PHP 7.4
-       env:
-         - SPRYKER_PHP_VERSION=7.4
-         - SPRYKER_TAG=7.4-debian
-         - SPRYKER_DISTRO=debian/bullseye
-     - os: linux
-       name: Debian "bullseye", PHP 8.0
-       env:
-         - SPRYKER_PHP_VERSION=8.0
-         - SPRYKER_TAG=8.0-debian
-         - SPRYKER_DISTRO=debian/bullseye
     - os: linux
       name: Debian "buster", PHP 7.3
       env:
