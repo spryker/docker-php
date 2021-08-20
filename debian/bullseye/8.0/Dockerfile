@@ -1,11 +1,11 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.4.16
+ARG SPRYKER_PHP_VERSION=8.0.9
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG COMPOSER_VERSION=2.0.12
 ARG BLACKFIRE_VERSION=1.57.0
-ARG NEWRELIC_VERSION=9.16.0.295
+ARG NEWRELIC_VERSION=9.17.0.300
 ARG TIDEWAYS_VERSION=latest
 
 ENV srcRoot /data
@@ -101,6 +101,8 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
+# NewRelic release for PHP8 in progress
+
 # New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
@@ -156,6 +158,6 @@ WORKDIR /data
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+RUN bash -c '[[ $(composer --version) == "1*" ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root

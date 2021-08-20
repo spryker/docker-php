@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.3.27
+ARG SPRYKER_PHP_VERSION=7.4.22
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG COMPOSER_VERSION=2.0.12
 ARG BLACKFIRE_VERSION=1.57.0
@@ -13,7 +13,7 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    libicu63 \
+    libicu67 \
     libbz2-1.0 \
     libxslt1.1 \
     libpng16-16 \
@@ -75,6 +75,7 @@ RUN apt-get update \
     default-mysql-client \
     openssh-client \
     postgresql-client \
+    supervisor \
     procps \
     ${PHP_RUN_DEPS} \
     && \
@@ -83,11 +84,10 @@ RUN apt-get update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype-dir=/usr \
-      --with-jpeg-dir=/usr \
-      --with-png-dir=/usr \
-      --with-webp-dir=/usr \
-      --with-xpm-dir=/usr \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
