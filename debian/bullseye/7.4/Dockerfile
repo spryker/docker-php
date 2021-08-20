@@ -63,8 +63,8 @@ ARG PHP_PECL_EXTENSIONS="\
     redis"
 
 ARG CFLAGS="-I/usr/src/php"
-RUN apt-get update \
-    && apt-get install -y \
+RUN apt update -y \
+    && apt install -y \
     bash \
     curl \
     git \
@@ -79,7 +79,7 @@ RUN apt-get update \
     procps \
     ${PHP_RUN_DEPS} \
     && \
-    apt-get install -y ${PHP_BUILD_DEPS} \
+    apt install -y ${PHP_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && \
     docker-php-ext-configure gd \
@@ -118,7 +118,7 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
 # Tideways
 RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \
     curl -sS 'https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg' | apt-key add - && \
-    apt-get update && \
+    apt update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get -yq install tideways-php && \
     apt-get autoremove --assume-yes && \
     apt-get clean && \
