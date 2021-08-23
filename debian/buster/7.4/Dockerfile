@@ -92,8 +92,8 @@ RUN apt update -y \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
-    && apt-get remove -y $PHP_BUILD_DEPS \
-    && apt-get clean
+    && apt remove -y $PHP_BUILD_DEPS \
+    && apt clean
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
@@ -118,9 +118,9 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
 RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \
     curl -sS 'https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg' | apt-key add - && \
     apt update -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get -yq install tideways-php && \
-    apt-get autoremove --assume-yes && \
-    apt-get clean && \
+    DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
+    apt autoremove --assume-yes && \
+    apt clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Opcache
