@@ -13,7 +13,7 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    libicu63 \
+    libicu67 \
     libbz2-1.0 \
     libxslt1.1 \
     libpng16-16 \
