@@ -1,11 +1,11 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=8.0.9
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG COMPOSER_VERSION=2.0.12
 ARG BLACKFIRE_VERSION=1.57.0
-ARG NEWRELIC_VERSION=9.18.1.303
+ARG NEWRELIC_VERSION=9.17.0.300
 ARG TIDEWAYS_VERSION=latest
 
 ENV srcRoot /data
@@ -13,7 +13,7 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    libicu63 \
+    libicu67 \
     libbz2-1.0 \
     libxslt1.1 \
     libpng16-16 \
