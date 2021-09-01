@@ -76,6 +76,7 @@ RUN apt update -y \
     openssh-client \
     postgresql-client \
     procps \
+    locales-all \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \

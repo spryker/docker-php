@@ -77,6 +77,7 @@ RUN apt update -y \
     postgresql-client \
     supervisor \
     procps \
+    locales-all \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \
