@@ -178,7 +178,7 @@ Installed extensions
 Disabled extensions
 ====================
  [ ] blackfire 1.55.0
- [ ] newrelic 9.16.0.295
+ [ ] newrelic 9.18.1.303
  [ ] tideways 5.3.14
 Installed packages, channel pecl.php.net:
 =========================================
