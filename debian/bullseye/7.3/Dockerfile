@@ -1,9 +1,10 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=7.3.29
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG COMPOSER_VERSION=2.0.12
+ARG BLACKFIRE_VERSION=1.57.0
 ARG NEWRELIC_VERSION=9.18.1.303
 ARG TIDEWAYS_VERSION=latest
 
@@ -12,7 +13,7 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    libicu63 \
+    libicu67 \
     libbz2-1.0 \
     libxslt1.1 \
     libpng16-16 \
@@ -98,13 +99,9 @@ RUN apt update -y \
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && architecture=$(case $(uname -m) in i386 | i686 | x86) echo "i386" ;; x86_64 | amd64) echo "amd64" ;; aarch64 | arm64 | armv8) echo "arm64" ;; *) echo "amd64" ;; esac) \
-    && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s https://blackfire.io/api/v1/releases/probe/php/linux/$architecture/$version \
-    && mkdir -p /tmp/blackfire \
-    && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp/blackfire \
-    && mv /tmp/blackfire/blackfire-*.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so \
-    && rm -rf /tmp/blackfire /tmp/blackfire-probe.tar.gz
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_amd64-php-$version.so \
+    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0

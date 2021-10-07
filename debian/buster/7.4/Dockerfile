@@ -1,10 +1,10 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.4.16
+ARG SPRYKER_PHP_VERSION=7.4.22
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
 ARG COMPOSER_VERSION=2.0.12
-ARG NEWRELIC_VERSION=9.16.0.295
+ARG NEWRELIC_VERSION=9.18.1.303
 ARG TIDEWAYS_VERSION=latest
 
 ENV srcRoot /data
@@ -62,8 +62,8 @@ ARG PHP_PECL_EXTENSIONS="\
     redis"
 
 ARG CFLAGS="-I/usr/src/php"
-RUN apt-get update \
-    && apt-get install -y \
+RUN apt update -y \
+    && apt install -y \
     bash \
     curl \
     git \
@@ -75,9 +75,10 @@ RUN apt-get update \
     openssh-client \
     postgresql-client \
     procps \
+    locales-all \
     ${PHP_RUN_DEPS} \
     && \
-    apt-get install -y ${PHP_BUILD_DEPS} \
+    apt install -y ${PHP_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && \
     docker-php-ext-configure gd \
@@ -91,8 +92,8 @@ RUN apt-get update \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
-    && apt-get remove -y $PHP_BUILD_DEPS \
-    && apt-get clean
+    && apt remove -y $PHP_BUILD_DEPS \
+    && apt clean
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
@@ -108,6 +109,11 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
+ENV NEWRELIC_DISTRIBUTED_TRACING_ENABLED=0
+ENV NEWRELIC_TRANSACTION_TRACER_ENABLED=0
+ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
+ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
+ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
@@ -120,10 +126,10 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
 # Tideways
 RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \
     curl -sS 'https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg' | apt-key add - && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -yq install tideways-php && \
-    apt-get autoremove --assume-yes && \
-    apt-get clean && \
+    apt update -y && \
+    DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
+    apt autoremove --assume-yes && \
+    apt clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Opcache
