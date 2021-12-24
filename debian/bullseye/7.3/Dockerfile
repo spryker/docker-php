@@ -5,12 +5,17 @@ FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG COMPOSER_VERSION=2.1.9
 ARG BLACKFIRE_VERSION=1.57.0
+ARG BLACKFIRE_PHP_VERSION=73
 ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=latest
+ARG TIDEWAYS_VERSION=5.4.28
+ARG TIDEWAYS_PHP_VERSION=7.3
 
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 ARG PHP_RUN_DEPS="\
     libicu67 \
@@ -77,6 +82,7 @@ RUN apt update -y \
     postgresql-client \
     procps \
     locales-all \
+    wget \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \
@@ -99,8 +105,8 @@ RUN apt update -y \
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_amd64-php-$version.so \
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # New Relic
@@ -122,13 +128,17 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
 # Tideways
-RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \
-    curl -sS 'https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg' | apt-key add - && \
-    apt update -y && \
-    DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
-    apt autoremove --assume-yes && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main" > /etc/apt/sources.list.d/tideways.list && \
+   curl -sS "https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg" | apt-key add - && \
+   apt update -y && \
+   DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
+   apt autoremove --assume-yes && \
+   apt clean && \
+   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz"; fi'
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz; fi'
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
