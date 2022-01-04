@@ -1,12 +1,12 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.3.26
+ARG SPRYKER_PHP_VERSION=7.4.27
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.11
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.14
 
 ARG COMPOSER_VERSION=2.1.9
 ARG BLACKFIRE_VERSION=1.57.0
 ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.3.14
+ARG TIDEWAYS_VERSION=5.4.32
 
 ENV srcRoot /data
 
@@ -86,11 +86,10 @@ RUN apk update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype-dir=/usr \
-      --with-jpeg-dir=/usr \
-      --with-png-dir=/usr \
-      --with-webp-dir=/usr \
-      --with-xpm-dir=/usr \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \

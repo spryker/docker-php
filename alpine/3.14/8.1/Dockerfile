@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.13
+ARG SPRYKER_PHP_VERSION=8.1.1
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.13
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.14
 
 ARG COMPOSER_VERSION=2.1.9
 ARG BLACKFIRE_VERSION=1.57.0
@@ -115,7 +115,7 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
 
-# New Relic
+## New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
 ENV NEWRELIC_APPNAME='Spryker'
@@ -164,6 +164,6 @@ RUN addgroup spryker && \
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $(composer --version) == "1*" ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
