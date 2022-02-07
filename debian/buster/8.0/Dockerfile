@@ -137,9 +137,10 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb http://
    apt clean && \
    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; fi'
 
-RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz"; fi'
-RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz; fi'
-RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi' \
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
