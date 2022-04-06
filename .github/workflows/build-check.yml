@@ -72,10 +72,6 @@ jobs:
             platform: [ "linux/amd64", "linux/arm64" ]
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GIT_AUTH_TOKEN }}
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -87,7 +83,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: false
-          file: ${{ matrix.file }}
+          file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.plaforms) }}
           secrets: |
