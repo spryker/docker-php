@@ -93,6 +93,6 @@ jobs:
           push: true
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
-          platforms: ${{ join(matrix.plaforms) }}
+          platforms: ${{ join(matrix.platform) }}
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GIT_AUTH_TOKEN }}
