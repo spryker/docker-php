@@ -1,14 +1,12 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.3.26
+ARG SPRYKER_PHP_VERSION=8.0.16
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.11
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.14
 
-ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.1.9
 ARG BLACKFIRE_VERSION=1.57.0
-ARG BLACKFIRE_PHP_VERSION=73
 ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.3.14
+ARG TIDEWAYS_VERSION=5.4.20
 
 ENV srcRoot /data
 
@@ -88,11 +86,10 @@ RUN apk update \
     && \
     docker-php-ext-configure gd \
       --disable-gd-jis-conv \
-      --with-freetype-dir=/usr \
-      --with-jpeg-dir=/usr \
-      --with-png-dir=/usr \
-      --with-webp-dir=/usr \
-      --with-xpm-dir=/usr \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
@@ -105,8 +102,8 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_amd64-php-$version.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # Tideways
@@ -167,6 +164,6 @@ RUN addgroup spryker && \
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+RUN bash -c '[[ $(composer --version) == "1*" ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
