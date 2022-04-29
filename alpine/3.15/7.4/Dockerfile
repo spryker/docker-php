@@ -3,8 +3,10 @@ ARG SPRYKER_PHP_VERSION=7.4.28
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.15
 
-ARG COMPOSER_VERSION=2.1.9
+ARG TARGETPLATFORM
+ARG COMPOSER_VERSION=2.3.4
 ARG BLACKFIRE_VERSION=1.57.0
+ARG BLACKFIRE_PHP_VERSION=74
 ARG NEWRELIC_VERSION=9.18.1.303
 ARG TIDEWAYS_VERSION=5.4.20
 
@@ -102,8 +104,8 @@ ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_amd64-php-$version.so \
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # Tideways

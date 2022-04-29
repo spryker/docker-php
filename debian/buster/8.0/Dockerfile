@@ -3,10 +3,13 @@ ARG SPRYKER_PHP_VERSION=8.0.16
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
-ARG COMPOSER_VERSION=2.1.9
+ARG TARGETPLATFORM
+ARG COMPOSER_VERSION=2.3.4
 ARG BLACKFIRE_VERSION=1.57.0
+ARG BLACKFIRE_PHP_VERSION=80
 ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=latest
+ARG TIDEWAYS_VERSION=5.4.28
+ARG TIDEWAYS_PHP_VERSION=8.0
 
 ENV srcRoot /data
 
@@ -77,6 +80,7 @@ RUN apt update -y \
     postgresql-client \
     procps \
     locales-all \
+    wget \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \
@@ -98,8 +102,8 @@ RUN apt update -y \
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
-RUN version=$(php -r "echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;") \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_amd64-php-$version.so \
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # NewRelic release for PHP8 in progress
@@ -123,31 +127,18 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
 # Tideways
-RUN echo 'deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main' > /etc/apt/sources.list.d/tideways.list && \
-    curl -sS 'https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg' | apt-key add - && \
-    apt update -y && \
-    DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
-    apt autoremove --assume-yes && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main" > /etc/apt/sources.list.d/tideways.list && \
+   curl -sS "https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg" | apt-key add - && \
+   apt update -y && \
+   DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
+   apt autoremove --assume-yes && \
+   apt clean && \
+   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; fi'
 
-# Opcache
-RUN /usr/bin/install -d -m 777 /var/run/opcache
-
-# Remove default FPM pool
-RUN rm /usr/local/etc/php-fpm.d/www.conf && \
-    rm /usr/local/etc/php-fpm.d/docker.conf && \
-    rm /usr/local/etc/php-fpm.d/zz-docker.conf
-
-# Add FPM configs
-COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
-COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
-
-# Copy php.ini configuration
-COPY context/php/php.ini /usr/local/etc/php/
-COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
-COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
-COPY context/php/disabled /usr/local/etc/php/disabled
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi' \
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
@@ -164,6 +155,6 @@ WORKDIR /data
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $(composer --version) == "1*" ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
