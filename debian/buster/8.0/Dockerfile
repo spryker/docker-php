@@ -140,6 +140,24 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
     cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi' \
 
+# Opcache
+RUN /usr/bin/install -d -m 777 /var/run/opcache
+
+# Remove default FPM pool
+RUN rm /usr/local/etc/php-fpm.d/www.conf && \
+    rm /usr/local/etc/php-fpm.d/docker.conf && \
+    rm /usr/local/etc/php-fpm.d/zz-docker.conf
+
+# Add FPM configs
+COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
+COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
+
+# Copy php.ini configuration
+COPY context/php/php.ini /usr/local/etc/php/
+COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
+COPY context/php/disabled /usr/local/etc/php/disabled
+
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
 
