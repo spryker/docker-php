@@ -70,17 +70,17 @@ ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
     bash \
+    coreutils \
     curl \
     git \
-    unzip \
     graphviz \
-    netcat-openbsd \
     mysql-client \
+    netcat-openbsd \
     openssh \
     postgresql-client \
     procps \
     shadow \
-    coreutils \
+    unzip \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
