@@ -81,6 +81,7 @@ RUN apk update \
     procps \
     shadow \
     coreutils \
+    make \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
