@@ -6,7 +6,7 @@ FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.14
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.4
 ARG BLACKFIRE_VERSION=1.57.0
-ARG BLACKFIRE_PHP_VERSION=80
+ARG BLACKFIRE_PHP_VERSION=81
 ARG NEWRELIC_VERSION=9.18.1.303
 ARG TIDEWAYS_VERSION=5.4.20
 
@@ -70,18 +70,18 @@ ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
     bash \
+    coreutils \
     curl \
     git \
-    unzip \
     graphviz \
-    netcat-openbsd \
+    make \
     mysql-client \
+    netcat-openbsd \
     openssh \
     postgresql-client \
     procps \
     shadow \
-    coreutils \
-    make \
+    unzip \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \

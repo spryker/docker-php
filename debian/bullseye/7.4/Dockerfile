@@ -70,17 +70,17 @@ RUN apt update -y \
     && apt install -y \
     bash \
     curl \
+    default-mysql-client \
     git \
     gnupg2 \
-    unzip \
     graphviz \
+    locales-all \
     netcat-openbsd \
-    default-mysql-client \
     openssh-client \
     postgresql-client \
-    supervisor \
     procps \
-    locales-all \
+    supervisor \
+    unzip \
     wget \
     make \
     ${PHP_RUN_DEPS} \
