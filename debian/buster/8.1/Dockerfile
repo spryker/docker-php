@@ -1,46 +1,45 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.21
+ARG SPRYKER_PHP_VERSION=8.1.8
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.15
+FROM php:${SPRYKER_PHP_VERSION}-fpm-buster
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.4
 ARG BLACKFIRE_VERSION=1.57.0
 ARG BLACKFIRE_PHP_VERSION=80
 ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.4.20
+ARG TIDEWAYS_VERSION=5.4.28
+ARG TIDEWAYS_PHP_VERSION=8.0
 
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    icu-libs \
-    libbz2 \
-    libxslt \
-    libpng \
-    freetype \
-    libxpm \
-    libwebp \
+    libicu63 \
+    libbz2-1.0 \
+    libxslt1.1 \
+    libpng16-16 \
+    libfreetype6 \
+    libxpm4 \
+    libwebp6 \
     libxml2 \
-    libjpeg-turbo \
-    libzip \
-    libc6-compat \
-    gnu-libiconv \
-    gmp"
+    libjpeg62-turbo \
+    libzip4 \
+    libgmp10"
 
 
 ARG PHP_BUILD_DEPS="\
-    postgresql-dev \
+    libpq-dev \
     libpng-dev \
     libwebp-dev \
-    libjpeg-turbo-dev \
+    libjpeg62-turbo-dev \
     libxpm-dev \
     libxml2-dev \
-    freetype-dev \
-    gmp-dev \
-    icu-dev \
-    bzip2-dev \
+    libfreetype6-dev \
+    libgmp-dev \
+    libicu-dev \
+    libbz2-dev \
     libzip-dev \
     autoconf \
     g++ \
@@ -67,23 +66,24 @@ ARG PHP_PECL_EXTENSIONS="\
     redis"
 
 ARG CFLAGS="-I/usr/src/php"
-RUN apk update \
-    && apk add --no-cache \
+RUN apt update -y \
+    && apt install -y \
     bash \
     curl \
     git \
+    gnupg2 \
     unzip \
     graphviz \
     netcat-openbsd \
-    mysql-client \
-    openssh \
+    default-mysql-client \
+    openssh-client \
     postgresql-client \
     procps \
-    shadow \
-    coreutils \
+    locales-all \
+    wget \
     ${PHP_RUN_DEPS} \
     && \
-    apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    apt install -y ${PHP_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && \
     docker-php-ext-configure gd \
@@ -96,26 +96,17 @@ RUN apk update \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
     && rm -rf /tmp/pear \
-    && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps
-
-# Related to https://github.com/docker-library/php/issues/240
-ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
+    && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
+    && apt remove -y $PHP_BUILD_DEPS \
+    && apt clean
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
-# Tideways
-ENV TIDEWAYS_APIKEY=''
-ENV TIDEWAYS_DAEMON_URI=''
-ENV TIDEWAYS_CLI_ENABLED=0
-RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
-    && wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
+# NewRelic release for PHP8 in progress
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
@@ -126,7 +117,7 @@ ENV NEWRELIC_TRANSACTION_TRACER_ENABLED=0
 ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
 ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
-RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
+RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
   && /tmp/newrelic-php5-*/newrelic-install install \
@@ -134,6 +125,20 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+
+# Tideways
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main" > /etc/apt/sources.list.d/tideways.list && \
+   curl -sS "https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg" | apt-key add - && \
+   apt update -y && \
+   DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
+   apt autoremove --assume-yes && \
+   apt clean && \
+   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi' \
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
@@ -153,15 +158,17 @@ COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
 COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
-WORKDIR /data
-
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
-    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+    useradd --home /home/spryker --shell /bin/sh --groups www-data --gid spryker spryker && \
+    mkdir -p /home/spryker && \
+    chown spryker:spryker /home/spryker && \
     chown spryker:spryker ${srcRoot}
+
+WORKDIR /data
 
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1

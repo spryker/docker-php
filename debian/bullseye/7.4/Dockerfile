@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=7.4.28
+ARG SPRYKER_PHP_VERSION=7.4.30
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
