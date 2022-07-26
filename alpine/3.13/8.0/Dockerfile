@@ -7,8 +7,9 @@ ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.4
 ARG BLACKFIRE_VERSION=1.57.0
 ARG BLACKFIRE_PHP_VERSION=80
-ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.4.20
+ARG NEWRELIC_VERSION=9.19.0.309
+ARG TIDEWAYS_VERSION=5.5.2
+ARG TIDEWAYS_PHP_VERSION=8.0
 
 ENV srcRoot /data
 
@@ -108,15 +109,6 @@ RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linu
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
-# Tideways
-ENV TIDEWAYS_APIKEY=''
-ENV TIDEWAYS_DAEMON_URI=''
-ENV TIDEWAYS_CLI_ENABLED=0
-RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
-    && wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
-
 # New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
@@ -134,6 +126,14 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+
+# Tideways
+ENV TIDEWAYS_APIKEY=''
+ENV TIDEWAYS_DAEMON_URI=''
+ENV TIDEWAYS_CLI_ENABLED=0
+RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache

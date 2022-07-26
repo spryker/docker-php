@@ -7,8 +7,8 @@ ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.4
 ARG BLACKFIRE_VERSION=1.57.0
 ARG BLACKFIRE_PHP_VERSION=81
-ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.4.28
+ARG NEWRELIC_VERSION=9.19.0.309
+ARG TIDEWAYS_VERSION=5.5.2
 ARG TIDEWAYS_PHP_VERSION=8.1
 
 ENV srcRoot /data
@@ -105,8 +105,6 @@ ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
-
-# NewRelic release for PHP8 in progress
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
