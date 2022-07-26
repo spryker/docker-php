@@ -81,6 +81,7 @@ RUN apt update -y \
     procps \
     locales-all \
     wget \
+    make \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \
