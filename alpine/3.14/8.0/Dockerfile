@@ -15,51 +15,50 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
+    freetype \
+    gmp \
+    gnu-libiconv \
     icu-libs \
     libbz2 \
-    libxslt \
+    libc6-compat \
+    libjpeg-turbo \
     libpng \
-    freetype \
-    libxpm \
     libwebp \
     libxml2 \
-    libjpeg-turbo \
-    libzip \
-    libc6-compat \
-    gnu-libiconv \
-    gmp"
+    libxpm \
+    libxslt \
+    libzip"
 
 
 ARG PHP_BUILD_DEPS="\
-    postgresql-dev \
-    libpng-dev \
-    libwebp-dev \
-    libjpeg-turbo-dev \
-    libxpm-dev \
-    libxml2-dev \
+    autoconf \
+    bzip2-dev \
     freetype-dev \
+    g++ \
     gmp-dev \
     icu-dev \
-    bzip2-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libxpm-dev \
     libzip-dev \
-    autoconf \
-    g++ \
-    make"
+    postgresql-dev"
 
 ARG PHP_EXTENSIONS="\
+    bcmath \
+    bz2 \
     gd \
     gmp \
     intl \
-    pdo_pgsql \
-    pdo_mysql \
     mysqli \
-    pgsql \
-    bcmath \
-    bz2 \
-    sockets \
-    soap \
-    pcntl \
     opcache \
+    pcntl \
+    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
+    soap \
+    sockets \
     zip"
 
 ARG PHP_PECL_EXTENSIONS="\

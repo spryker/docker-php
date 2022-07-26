@@ -16,49 +16,48 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    libicu67 \
     libbz2-1.0 \
-    libxslt1.1 \
-    libpng16-16 \
     libfreetype6 \
-    libxpm4 \
+    libgmp10 \
+    libicu67 \
+    libjpeg62-turbo \
+    libpng16-16 \
     libwebp6 \
     libxml2 \
-    libjpeg62-turbo \
-    libzip4 \
-    libgmp10"
+    libxpm4 \
+    libxslt1.1 \
+    libzip4"
 
 
 ARG PHP_BUILD_DEPS="\
-    libpq-dev \
-    libpng-dev \
-    libwebp-dev \
-    libjpeg62-turbo-dev \
-    libxpm-dev \
-    libxml2-dev \
+    autoconf \
+    g++ \
+    libbz2-dev \
     libfreetype6-dev \
     libgmp-dev \
     libicu-dev \
-    libbz2-dev \
-    libzip-dev \
-    autoconf \
-    g++ \
-    make"
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libpq-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libxpm-dev \
+    libzip-dev"
 
 ARG PHP_EXTENSIONS="\
+    bcmath \
+    bz2 \
     gd \
     gmp \
     intl \
-    pdo_pgsql \
-    pdo_mysql \
     mysqli \
-    pgsql \
-    bcmath \
-    bz2 \
-    sockets \
-    soap \
-    pcntl \
     opcache \
+    pcntl \
+    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
+    soap \
+    sockets \
     zip"
 
 ARG PHP_PECL_EXTENSIONS="\
@@ -75,6 +74,7 @@ RUN apt update -y \
     gnupg2 \
     graphviz \
     locales-all \
+    make \
     netcat-openbsd \
     openssh-client \
     postgresql-client \
@@ -82,7 +82,6 @@ RUN apt update -y \
     supervisor \
     unzip \
     wget \
-    make \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \
