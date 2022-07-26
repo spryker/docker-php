@@ -125,7 +125,7 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
-  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2 \
+  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
 # Tideways
 ENV TIDEWAYS_APIKEY=''

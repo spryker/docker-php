@@ -133,7 +133,7 @@ ENV TIDEWAYS_DAEMON_URI=''
 ENV TIDEWAYS_CLI_ENABLED=0
 RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
