@@ -35,7 +35,6 @@ ARG PHP_BUILD_DEPS="\
     autoconf \
     bzip2-dev \
     freetype-dev \
-    g++ \
     gmp-dev \
     icu-dev \
     libjpeg-turbo-dev \
@@ -71,6 +70,7 @@ RUN apk update \
     && apk add --no-cache \
     bash \
     curl \
+    g++ \
     git \
     unzip \
     graphviz \
@@ -79,6 +79,7 @@ RUN apk update \
     openssh \
     postgresql-client \
     procps \
+    python3 \
     shadow \
     coreutils \
     make \

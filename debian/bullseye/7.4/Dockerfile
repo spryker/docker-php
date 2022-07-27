@@ -31,7 +31,6 @@ ARG PHP_RUN_DEPS="\
 
 ARG PHP_BUILD_DEPS="\
     autoconf \
-    g++ \
     libbz2-dev \
     libfreetype6-dev \
     libgmp-dev \
@@ -70,6 +69,7 @@ RUN apt update -y \
     bash \
     curl \
     default-mysql-client \
+    g++ \
     git \
     gnupg2 \
     graphviz \
@@ -79,6 +79,7 @@ RUN apt update -y \
     openssh-client \
     postgresql-client \
     procps \
+    python3 \
     supervisor \
     unzip \
     wget \
