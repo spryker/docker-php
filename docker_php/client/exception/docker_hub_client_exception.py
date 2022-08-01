@@ -1,0 +1,2 @@
+class DockerHubClientException(Exception):
+    pass

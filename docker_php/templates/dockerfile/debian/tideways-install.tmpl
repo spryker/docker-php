@@ -1,0 +1,13 @@
+# Tideways
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main" > /etc/apt/sources.list.d/tideways.list && \
+   curl -sS "https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg" | apt-key add - && \
+   apt update -y && \
+   DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
+   apt autoremove --assume-yes && \
+   apt clean && \
+   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi' \

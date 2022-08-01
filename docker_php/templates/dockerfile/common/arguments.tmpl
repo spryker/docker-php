@@ -1,0 +1,7 @@
+ARG TARGETPLATFORM
+ARG COMPOSER_VERSION={{ dockerfile_transfer.get_third_party_package_transfer().get_third_party_package_version('composer') }}
+ARG BLACKFIRE_VERSION={{ dockerfile_transfer.get_third_party_package_transfer().get_third_party_package_version('blackfire') }}
+ARG BLACKFIRE_PHP_VERSION={{ dockerfile_transfer.get_php_transfer().get_version_trasfer().get_major_version() + dockerfile_transfer.get_php_transfer().get_version_trasfer().get_minor_version() }}
+ARG NEWRELIC_VERSION={{ dockerfile_transfer.get_third_party_package_transfer().get_third_party_package_version('newrelic') }}
+ARG TIDEWAYS_VERSION={{ dockerfile_transfer.get_third_party_package_transfer().get_third_party_package_version('tideways') }}
+ARG TIDEWAYS_PHP_VERSION={{ dockerfile_transfer.get_php_transfer().get_version_trasfer().get_major_version() + '.' + dockerfile_transfer.get_php_transfer().get_version_trasfer().get_minor_version() }}

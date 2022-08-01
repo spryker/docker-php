@@ -1,0 +1,11 @@
+ARG PHP_RUN_DEPS="\
+    {{ dockerfile_transfer.get_distro_transfer().get_packages().get_php_run_deps_packages()|join("\ \n    ") }}"
+
+ARG PHP_BUILD_DEPS="\
+    {{ dockerfile_transfer.get_distro_transfer().get_packages().get_php_build_deps_packages()|join("\ \n    ") }}"
+
+ARG PHP_EXTENSIONS="\
+    {{ dockerfile_transfer.get_php_transfer().get_extensions()|join("\ \n    ") }}"
+
+ARG PHP_PECL_EXTENSIONS="\
+    {{ dockerfile_transfer.get_php_transfer().get_pecl_extensions()|join("\ \n    ") }}"

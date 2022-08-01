@@ -1,0 +1,6 @@
+# Create application user 'spryker'
+RUN addgroup spryker && \
+    useradd --home /home/spryker --shell /bin/sh --groups www-data --gid spryker spryker && \
+    mkdir -p /home/spryker && \
+    chown spryker:spryker /home/spryker && \
+    chown spryker:spryker ${srcRoot}

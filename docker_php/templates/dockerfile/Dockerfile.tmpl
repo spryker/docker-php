@@ -1,0 +1,53 @@
+{% set distro_name = dockerfile_transfer.get_distro_transfer().get_name() %}
+# syntax = docker/dockerfile:1.0.2-experimental
+
+{% include "dockerfile/common/php.tmpl" %}
+
+{% include "dockerfile/common/arguments.tmpl" %}
+
+ENV srcRoot /data
+
+RUN mkdir -p ${srcRoot}
+
+{% include "dockerfile/common/packages.tmpl" %}
+
+ARG CFLAGS="-I/usr/src/php"
+{% set install_template = 'dockerfile/' + distro_name + '/install.tmpl' %}
+{% include install_template %}
+
+{% set blackfire_template = 'dockerfile/' + distro_name + '/blackfire-install.tmpl' %}
+{% set newrelic_template = 'dockerfile/' + distro_name + '/newrelic-install.tmpl' %}
+{% set tideways_template = 'dockerfile/' + distro_name + '/tideways-install.tmpl' %}
+{% include blackfire_template %}
+
+{% include newrelic_template %}
+
+{% include tideways_template %}
+
+# Opcache
+RUN /usr/bin/install -d -m 777 /var/run/opcache
+
+# Remove default FPM pool
+RUN rm /usr/local/etc/php-fpm.d/www.conf && \
+    rm /usr/local/etc/php-fpm.d/docker.conf && \
+    rm /usr/local/etc/php-fpm.d/zz-docker.conf
+
+# Add FPM configs
+COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
+COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
+
+# Copy php.ini configuration
+COPY context/php/php.ini /usr/local/etc/php/
+COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
+COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
+COPY context/php/disabled /usr/local/etc/php/disabled
+
+WORKDIR /data
+
+{% set user_template = 'dockerfile/' + distro_name + '/create-user.tmpl' %}
+{% include user_template %}
+
+{% include "dockerfile/common/composer-install.tmpl" %}
+
+USER root
+

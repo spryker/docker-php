@@ -1,0 +1,34 @@
+deps-packages:
+  - bash
+  - curl
+  - g++
+  - git
+  - graphviz
+  - make
+  - netcat-openbsd
+  - postgresql-client
+  - procps
+  - python3
+  - supervisor
+  - unzip
+  - wget
+
+php-extensions:
+  - bcmath
+  - bz2
+  - gd
+  - gmp
+  - intl
+  - mysqli
+  - opcache
+  - pcntl
+  - pdo_mysql
+  - pdo_pgsql
+  - pgsql
+  - soap
+  - sockets
+  - zip
+
+php-pecl-extensions:
+  - apcu
+  - redis

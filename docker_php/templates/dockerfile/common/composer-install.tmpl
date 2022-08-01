@@ -1,0 +1,8 @@
+# Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
+
+USER spryker
+
+ENV COMPOSER_MEMORY_LIMIT=-1
+RUN mkdir -p /home/spryker/.composer
+RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'

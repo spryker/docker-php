@@ -1,0 +1,23 @@
+RUN apk update \
+    && apk add --no-cache \
+    {{ dockerfile_transfer.get_distro_transfer().get_packages().get_deps_packages()|join(" \\\n    ") }}\
+    ${PHP_RUN_DEPS} \
+    && \
+    apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    && rm -rf /var/lib/apt/lists/ \
+    && \
+    docker-php-ext-configure gd \
+      --disable-gd-jis-conv \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
+    && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
+    && \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
+    && rm -rf /tmp/pear \
+    && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
+    && apk del --no-cache .php-build-deps
+
+# Related to https://github.com/docker-library/php/issues/240
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so

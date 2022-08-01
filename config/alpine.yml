@@ -1,0 +1,53 @@
+php:
+  '3.13':
+      - 7.4
+      - 8.0
+  '3.14':
+      - 7.4
+      - 8.0
+      - 8.1
+  '3.15':
+      - 7.4
+      - 8.0
+      - 8.1
+  '3.16':
+      - 7.4
+      - 8.0
+      - 8.1
+
+php-tag-format: '{{php_version}}-fpm-alpine{{distro_version}}'
+
+deps-packages:
+  - coreutils
+  - mysql-client
+  - openssh
+  - shadow
+
+php-build-deps-packages:
+  - autoconf
+  - bzip2-dev
+  - freetype-dev
+  - gmp-dev
+  - icu-dev
+  - libjpeg-turbo-dev
+  - libpng-dev
+  - libwebp-dev
+  - libxml2-dev
+  - libxpm-dev
+  - libzip-dev
+  - postgresql-dev
+
+php-run-deps-packages:
+  - freetype
+  - gmp
+  - gnu-libiconv
+  - icu-libs
+  - libbz2
+  - libc6-compat
+  - libjpeg-turbo
+  - libpng
+  - libwebp
+  - libxml2
+  - libxpm
+  - libxslt
+  - libzip

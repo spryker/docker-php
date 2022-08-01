@@ -1,1 +1,5 @@
 .idea
+docker_php.egg-info/
+docker_hub_cache/
+build/
+!build/context

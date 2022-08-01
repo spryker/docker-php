@@ -1,0 +1,4 @@
+# Create application user 'spryker'
+RUN addgroup spryker && \
+    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+    chown spryker:spryker ${srcRoot}
