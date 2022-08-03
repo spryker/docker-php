@@ -53,9 +53,6 @@ jobs:
 
           ## Debian
           ### Debian bullseye
-          - image: 'debian/bullseye/7.3/Dockerfile'
-            tags: [ 'spryker/php:7.3-debian' ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
           - image: 'debian/bullseye/7.4/Dockerfile'
             tags: [ 'spryker/php:7.4-debian' ]
             platforms: [ "linux/amd64", "linux/arm64" ]
@@ -67,9 +64,6 @@ jobs:
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ### Debian buster
-          - image: 'debian/buster/7.3/Dockerfile'
-            tags: [ 'spryker/php:7.3-debian-buster' ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
           - image: 'debian/buster/7.4/Dockerfile'
             tags: [ 'spryker/php:7.4-debian-buster' ]
             platforms: [ "linux/amd64", "linux/arm64" ]
