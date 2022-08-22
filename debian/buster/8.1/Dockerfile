@@ -63,6 +63,11 @@ ARG PHP_PECL_EXTENSIONS="\
     apcu \
     redis"
 
+RUN apt update -y \
+    && apt install -y software-properties-common\
+    && add-apt-repository "deb http://ftp.de.debian.org/debian bullseye main" \
+    && apt update -y
+
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
     && apt install -y \
