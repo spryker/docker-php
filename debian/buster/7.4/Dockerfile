@@ -65,7 +65,7 @@ ARG PHP_PECL_EXTENSIONS="\
 
 RUN apt update -y \
     && apt install -y software-properties-common\
-    && add-apt-repository "deb http://ftp.de.debian.org/debian bullseye main" \
+    && add-apt-repository "deb http://ftp.de.debian.org/debian buster-backports main" \
     && apt update -y
 
 ARG CFLAGS="-I/usr/src/php"
