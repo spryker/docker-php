@@ -62,17 +62,6 @@ jobs:
           - image: 'debian/bullseye/8.1/Dockerfile'
             tags: [ 'spryker/php:8.1-debian' ]
             platforms: [ "linux/amd64", "linux/arm64" ]
-
-          ### Debian buster
-          - image: 'debian/buster/7.4/Dockerfile'
-            tags: [ 'spryker/php:7.4-debian-buster' ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: 'debian/buster/8.0/Dockerfile'
-            tags: [ 'spryker/php:8.0-debian-buster' ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: 'debian/buster/8.1/Dockerfile'
-            tags: [ 'spryker/php:8.1-debian-buster' ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
