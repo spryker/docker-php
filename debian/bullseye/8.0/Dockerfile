@@ -1,14 +1,14 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.16
+ARG SPRYKER_PHP_VERSION=8.0.21
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.3.4
-ARG BLACKFIRE_VERSION=1.57.0
+ARG COMPOSER_VERSION=2.3.10
+ARG BLACKFIRE_VERSION=1.80.0
 ARG BLACKFIRE_PHP_VERSION=80
-ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.4.28
+ARG NEWRELIC_VERSION=9.19.0.309
+ARG TIDEWAYS_VERSION=5.5.2
 ARG TIDEWAYS_PHP_VERSION=8.0
 
 ENV srcRoot /data
@@ -16,49 +16,47 @@ ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    libicu67 \
     libbz2-1.0 \
-    libxslt1.1 \
-    libpng16-16 \
     libfreetype6 \
-    libxpm4 \
+    libgmp10 \
+    libicu67 \
+    libjpeg62-turbo \
+    libpng16-16 \
     libwebp6 \
     libxml2 \
-    libjpeg62-turbo \
-    libzip4 \
-    libgmp10"
+    libxpm4 \
+    libxslt1.1 \
+    libzip4"
 
 
 ARG PHP_BUILD_DEPS="\
-    libpq-dev \
-    libpng-dev \
-    libwebp-dev \
-    libjpeg62-turbo-dev \
-    libxpm-dev \
-    libxml2-dev \
+    autoconf \
+    libbz2-dev \
     libfreetype6-dev \
     libgmp-dev \
     libicu-dev \
-    libbz2-dev \
-    libzip-dev \
-    autoconf \
-    g++ \
-    make"
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libpq-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libxpm-dev \
+    libzip-dev"
 
 ARG PHP_EXTENSIONS="\
+    bcmath \
+    bz2 \
     gd \
     gmp \
     intl \
-    pdo_pgsql \
-    pdo_mysql \
     mysqli \
-    pgsql \
-    bcmath \
-    bz2 \
-    sockets \
-    soap \
-    pcntl \
     opcache \
+    pcntl \
+    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
+    soap \
+    sockets \
     zip"
 
 ARG PHP_PECL_EXTENSIONS="\
@@ -70,16 +68,19 @@ RUN apt update -y \
     && apt install -y \
     bash \
     curl \
+    default-mysql-client \
+    g++ \
     git \
     gnupg2 \
-    unzip \
     graphviz \
+    locales-all \
+    make \
     netcat-openbsd \
-    default-mysql-client \
     openssh-client \
     postgresql-client \
     procps \
-    locales-all \
+    python3 \
+    unzip \
     wget \
     ${PHP_RUN_DEPS} \
     && \
@@ -105,8 +106,6 @@ ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
-
-# NewRelic release for PHP8 in progress
 
 # New Relic
 ENV NEWRELIC_ENABLED=0

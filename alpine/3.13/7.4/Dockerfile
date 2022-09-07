@@ -4,62 +4,61 @@ ARG SPRYKER_PHP_VERSION=7.4.26
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.13
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.3.4
-ARG BLACKFIRE_VERSION=1.57.0
+ARG COMPOSER_VERSION=2.3.10
+ARG BLACKFIRE_VERSION=1.80.0
 ARG BLACKFIRE_PHP_VERSION=74
-ARG NEWRELIC_VERSION=9.18.1.303
-ARG TIDEWAYS_VERSION=5.4.20
+ARG NEWRELIC_VERSION=9.19.0.309
+ARG TIDEWAYS_VERSION=5.5.2
+ARG TIDEWAYS_PHP_VERSION=7.4
 
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
+    freetype \
+    gmp \
+    gnu-libiconv \
     icu-libs \
     libbz2 \
-    libxslt \
+    libc6-compat \
+    libjpeg-turbo \
     libpng \
-    freetype \
-    libxpm \
     libwebp \
     libxml2 \
-    libjpeg-turbo \
-    libzip \
-    libc6-compat \
-    gnu-libiconv \
-    gmp"
+    libxpm \
+    libxslt \
+    libzip"
 
 
 ARG PHP_BUILD_DEPS="\
-    postgresql-dev \
-    libpng-dev \
-    libwebp-dev \
-    libjpeg-turbo-dev \
-    libxpm-dev \
-    libxml2-dev \
+    autoconf \
+    bzip2-dev \
     freetype-dev \
     gmp-dev \
     icu-dev \
-    bzip2-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libxpm-dev \
     libzip-dev \
-    autoconf \
-    g++ \
-    make"
+    postgresql-dev"
 
 ARG PHP_EXTENSIONS="\
+    bcmath \
+    bz2 \
     gd \
     gmp \
     intl \
-    pdo_pgsql \
-    pdo_mysql \
     mysqli \
-    pgsql \
-    bcmath \
-    bz2 \
-    sockets \
-    soap \
-    pcntl \
     opcache \
+    pcntl \
+    pdo_mysql \
+    pdo_pgsql \
+    pgsql \
+    soap \
+    sockets \
     zip"
 
 ARG PHP_PECL_EXTENSIONS="\
@@ -70,17 +69,20 @@ ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
     bash \
+    coreutils \
     curl \
+    g++ \
     git \
-    unzip \
     graphviz \
-    netcat-openbsd \
+    make \
     mysql-client \
+    netcat-openbsd \
     openssh \
     postgresql-client \
     procps \
+    python3 \
     shadow \
-    coreutils \
+    unzip \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
@@ -108,15 +110,6 @@ RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linu
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
-# Tideways
-ENV TIDEWAYS_APIKEY=''
-ENV TIDEWAYS_DAEMON_URI=''
-ENV TIDEWAYS_CLI_ENABLED=0
-RUN version=$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;") \
-    && wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${version}.so $(php-config --extension-dir)/tideways.so
-
 # New Relic
 ENV NEWRELIC_ENABLED=0
 ENV NEWRELIC_LICENSE=''
@@ -134,6 +127,14 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+
+# Tideways
+ENV TIDEWAYS_APIKEY=''
+ENV TIDEWAYS_DAEMON_URI=''
+ENV TIDEWAYS_CLI_ENABLED=0
+RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
