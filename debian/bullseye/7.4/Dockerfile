@@ -8,7 +8,7 @@ ARG COMPOSER_VERSION=2.3.10
 ARG BLACKFIRE_VERSION=1.57.0
 ARG BLACKFIRE_PHP_VERSION=74
 ARG NEWRELIC_VERSION=9.19.0.309
-ARG TIDEWAYS_VERSION=5.5.2
+ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=7.4
 
 ENV srcRoot /data
@@ -127,8 +127,8 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
 
 # Tideways
-RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb http://s3-eu-west-1.amazonaws.com/tideways/packages debian main" > /etc/apt/sources.list.d/tideways.list && \
-   curl -sS "https://s3-eu-west-1.amazonaws.com/tideways/packages/EEB5E8F4.gpg" | apt-key add - && \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb https://packages.tideways.com/apt-packages-main any-version main" > /etc/apt/sources.list.d/tideways.list && \
+   curl -sS "https://packages.tideways.com/key.gpg" | apt-key add - && \
    apt update -y && \
    DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
    apt autoremove --assume-yes && \
