@@ -8,7 +8,7 @@ ARG COMPOSER_VERSION=2.3.10
 ARG BLACKFIRE_VERSION=1.80.0
 ARG BLACKFIRE_PHP_VERSION=81
 ARG NEWRELIC_VERSION=9.19.0.309
-ARG TIDEWAYS_VERSION=5.5.2
+ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.1
 
 ENV srcRoot /data
@@ -99,7 +99,8 @@ RUN apt update -y \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
     && apt remove -y $PHP_BUILD_DEPS \
-    && apt clean
+    && apt clean \
+    && ln -sf /bin/bash /bin/sh
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
