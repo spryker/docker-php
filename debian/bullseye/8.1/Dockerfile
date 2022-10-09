@@ -99,7 +99,8 @@ RUN apt update -y \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
     && apt remove -y $PHP_BUILD_DEPS \
-    && apt clean
+    && apt clean \
+    && ln -sf /bin/bash /bin/sh
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
