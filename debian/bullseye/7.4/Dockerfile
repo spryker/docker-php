@@ -128,7 +128,7 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
 
 # Tideways
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then echo "deb https://packages.tideways.com/apt-packages-main any-version main" > /etc/apt/sources.list.d/tideways.list && \
-   curl -sS "https://packages.tideways.com/key.gpg" | apt-key add - && \
+   curl -sSL "https://packages.tideways.com/key.gpg" | apt-key add - && \
    apt update -y && \
    DEBIAN_FRONTEND=noninteractive apt -yq install tideways-php && \
    apt autoremove --assume-yes && \
