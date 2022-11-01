@@ -101,7 +101,8 @@ RUN apt update -y \
     && apt remove -y $PHP_BUILD_DEPS \
     && apt clean
 
-SHELL ["/bin/bash", "-c"]
+RUN echo "dash dash/sh boolean false" | debconf-set-selections
+RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
