@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.21
+ARG SPRYKER_PHP_VERSION=8.0.25
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.16
 
@@ -8,7 +8,7 @@ ARG COMPOSER_VERSION=2.3.10
 ARG BLACKFIRE_VERSION=1.57.0
 ARG BLACKFIRE_PHP_VERSION=80
 ARG NEWRELIC_VERSION=9.19.0.309
-ARG TIDEWAYS_VERSION=5.5.2
+ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.0
 
 ENV srcRoot /data
@@ -132,9 +132,15 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
 ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
 ENV TIDEWAYS_CLI_ENABLED=0
-RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
