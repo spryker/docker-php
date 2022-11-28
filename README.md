@@ -171,7 +171,7 @@ Installed extensions
 
 Disabled extensions
 ====================
- [ ] blackfire 1.80.0
+ [ ] blackfire 1.50.0
  [ ] newrelic 9.19.0.309
  [ ] tideways 5.5.8
 
