@@ -8,7 +8,7 @@ ARG COMPOSER_VERSION=2.3.10
 ARG BLACKFIRE_VERSION=1.57.0
 ARG BLACKFIRE_PHP_VERSION=80
 ARG NEWRELIC_VERSION=9.19.0.309
-ARG TIDEWAYS_VERSION=5.5.2
+ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.0
 
 ENV srcRoot /data
@@ -65,6 +65,10 @@ ARG PHP_PECL_EXTENSIONS="\
     apcu \
     redis"
 
+ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
+    xdebug \
+    xhprof"
+
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
@@ -96,7 +100,7 @@ RUN apk update \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps
@@ -132,9 +136,15 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}
 ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
 ENV TIDEWAYS_CLI_ENABLED=0
-RUN wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
