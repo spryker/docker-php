@@ -1,10 +1,14 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.0RC3
+ARG SPRYKER_PHP_VERSION=8.2.0
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.16
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.4.3
+ARG BLACKFIRE_VERSION=1.86.1
+ARG BLACKFIRE_PHP_VERSION=82
+ARG TIDEWAYS_VERSION=5.5.12
+ARG TIDEWAYS_PHP_VERSION=8.2
 
 ENV srcRoot /data
 
@@ -59,6 +63,10 @@ ARG PHP_PECL_EXTENSIONS="\
     apcu \
     redis"
 
+ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
+   xdebug-3.2.0 \
+   xhprof"
+
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk add --no-cache \
@@ -91,7 +99,7 @@ RUN apk update \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && apk add --update linux-headers \
     && \
-    pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug-3.2.0RC1 \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps
@@ -104,6 +112,26 @@ RUN curl -sSLf \
 
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
+
+# Blackfire
+ENV BLACKFIRE_AGENT_SOCKET=''
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
+
+# Tideways
+ENV TIDEWAYS_APIKEY=''
+ENV TIDEWAYS_DAEMON_URI=''
+ENV TIDEWAYS_CLI_ENABLED=0
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache

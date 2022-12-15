@@ -1,10 +1,14 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.0RC3
+ARG SPRYKER_PHP_VERSION=8.2.0
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.10
+ARG BLACKFIRE_VERSION=1.86.1
+ARG BLACKFIRE_PHP_VERSION=82
+ARG TIDEWAYS_VERSION=5.5.12
+ARG TIDEWAYS_PHP_VERSION=8.2
 
 ENV srcRoot /data
 
@@ -58,6 +62,10 @@ ARG PHP_PECL_EXTENSIONS="\
     apcu \
     redis"
 
+ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
+   xdebug-3.2.0 \
+   xhprof"
+
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
     && apt install -y \
@@ -90,13 +98,30 @@ RUN apt update -y \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f ${PHP_PECL_EXTENSIONS} xdebug-3.2.0RC1 \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} redis \
     && apt remove -y $PHP_BUILD_DEPS \
     && apt clean
 
 SHELL ["/bin/bash", "-c"]
+
+# Blackfire
+ENV BLACKFIRE_AGENT_SOCKET=''
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
+
+# Tideways
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
