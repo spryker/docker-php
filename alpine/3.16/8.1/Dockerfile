@@ -7,7 +7,7 @@ ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.10
 ARG BLACKFIRE_VERSION=1.80.0
 ARG BLACKFIRE_PHP_VERSION=81
-ARG NEWRELIC_VERSION=9.19.0.309
+ARG NEWRELIC_VERSION=10.4.0.316
 ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.1
 
@@ -99,6 +99,7 @@ RUN apk update \
       --with-webp=/usr \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
+    && apk add --update linux-headers \
     && \
     pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
