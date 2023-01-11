@@ -124,14 +124,16 @@ ENV NEWRELIC_TRANSACTION_TRACER_ENABLED=0
 ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
 ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
-RUN curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
+  curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
   && /tmp/newrelic-php5-*/newrelic-install install \
   && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
-  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2
+  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2; fi'
 
 # Tideways
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
