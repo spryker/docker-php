@@ -13,10 +13,10 @@ jobs:
           ### Alpine 3.14
           - image: 'alpine/3.14/8.0/Dockerfile'
             tags: [ 'spryker/php:8.0', 'spryker/php:8.0-alpine3.14' ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
+            platforms: [ 'linux/amd64', 'linux/arm64' ]
           - image: 'alpine/3.14/8.1/Dockerfile'
             tags: [ 'spryker/php:8.1', 'spryker/php:8.1-alpine3.14' ]
-            platforms: [ "spryker/php:latest", "linux/amd64", "linux/arm64" ]
+            platforms: [ 'spryker/php:latest', 'linux/amd64', 'linux/arm64' ]
 
           ### Alpine 3.15
           - image: 'alpine/3.15/8.0/Dockerfile'
