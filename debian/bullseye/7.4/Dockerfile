@@ -64,7 +64,7 @@ ARG PHP_PECL_EXTENSIONS="\
     redis"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
-    xdebug \
+    xdebug-3.1.6 \
     xhprof"
 
 ARG CFLAGS="-I/usr/src/php"
