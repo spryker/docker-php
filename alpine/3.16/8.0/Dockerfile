@@ -37,6 +37,7 @@ ARG PHP_BUILD_DEPS="\
     freetype-dev \
     gmp-dev \
     icu-dev \
+    icu-data-full \
     libjpeg-turbo-dev \
     libpng-dev \
     libwebp-dev \
@@ -87,6 +88,7 @@ RUN apk update \
     python3 \
     shadow \
     unzip \
+    linux-headers \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
@@ -99,8 +101,7 @@ RUN apk update \
       --with-webp=/usr \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
-    && \
-    pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
+    && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps
