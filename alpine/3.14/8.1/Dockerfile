@@ -127,7 +127,7 @@ ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
 ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
-COPY --from=spyker-newrelic-arm /tmp/newrelic-php-agent/agent/.libs/newrelic.so /tmp/newrelic-arm.so
+COPY --from=spyker-newrelic-arm /newrelic-arm.so /tmp/newrelic-arm.so
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
   curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
