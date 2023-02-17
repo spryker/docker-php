@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.1.14
+ARG SPRYKER_PHP_VERSION=8.1.16
 
-FROM spryker/newrelic-extension:latest as spyker-newrelic-arm
+FROM  spryker/newrelic-extension:10.6.0.318-php8.1 as spyker-newrelic-arm
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.16
 
@@ -127,8 +127,6 @@ ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
 ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
-COPY --from=spyker-newrelic-arm /newrelic-arm.so /tmp/newrelic-arm.so
-
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
   curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
@@ -139,8 +137,12 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
   && rm /usr/local/etc/php/conf.d/newrelic.ini \
   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2; fi'
 
+COPY --from=spyker-newrelic-arm /newrelic.so /tmp/newrelic.so
+COPY --from=spyker-newrelic-arm /newrelic-daemon /tmp/newrelic-daemon
+
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-  cp /tmp/newrelic-arm.so $(php-config --extension-dir)/newrelic.so; fi'
+  cp /tmp/newrelic.so $(php-config --extension-dir)/newrelic.so \
+  && cp /tmp/newrelic-daemon /usr/bin/newrelic-daemon; fi'
 
 # Tideways
 ENV TIDEWAYS_APIKEY=''
