@@ -1,7 +1,9 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=8.1.16
 
-FROM  spryker/newrelic-extension:10.6.0.318-php8.1 as spyker-newrelic-arm
+ARG NEWRELIC_VERSION=10.6.0.318
+
+FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.0 as spyker-newrelic-arm
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
@@ -9,7 +11,6 @@ ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.3.10
 ARG BLACKFIRE_VERSION=1.80.0
 ARG BLACKFIRE_PHP_VERSION=81
-ARG NEWRELIC_VERSION=10.6.0.318
 ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.1
 
@@ -32,7 +33,6 @@ ARG PHP_RUN_DEPS="\
 
 
 ARG PHP_BUILD_DEPS="\
-    autoconf \
     libbz2-dev \
     libfreetype6-dev \
     libgmp-dev \
@@ -88,6 +88,13 @@ RUN apt update -y \
     python3 \
     unzip \
     wget \
+    build-essential \
+    golang-go \
+    automake \
+    libtool \
+    libpcre3 \
+    libpcre3-dev \
+    autoconf \
     ${PHP_RUN_DEPS} \
     && \
     apt install -y ${PHP_BUILD_DEPS} \
@@ -136,11 +143,14 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
     && rm /usr/local/etc/php/conf.d/newrelic.ini \
     && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2; fi'
 
-COPY --from=spyker-newrelic-arm /newrelic.so /tmp/newrelic.so
 COPY --from=spyker-newrelic-arm /newrelic-daemon /tmp/newrelic-daemon
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-  cp /tmp/newrelic.so $(php-config --extension-dir)/newrelic.so \
+  cd /tmp \
+  && git clone https://github.com/newrelic/newrelic-php-agent.git newrelic-php-agent \
+  && cd newrelic-php-agent \
+  && make agent-install \
+  && rm -rf /tmp/newrelic-php-agent \
   && cp /tmp/newrelic-daemon /usr/bin/newrelic-daemon; fi'
 
 # Tideways

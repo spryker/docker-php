@@ -1,7 +1,9 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=8.0.26
 
-FROM  spryker/newrelic-extension:10.6.0.318-php8.0 as spyker-newrelic-arm
+ARG NEWRELIC_VERSION=10.6.0.318
+
+FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.0 as spyker-newrelic-arm
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.15
 
