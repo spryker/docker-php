@@ -179,6 +179,7 @@ INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
 PACKAGE VERSION STATE
 apcu    5.1.22  stable
+pcov    1.0.11  stable
 redis   5.3.7   stable
 xdebug  3.1.6   stable
 xhprof  2.3.5   stable
