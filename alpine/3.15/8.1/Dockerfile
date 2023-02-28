@@ -2,7 +2,7 @@
 ARG SPRYKER_PHP_VERSION=8.1.13
 ARG NEWRELIC_VERSION=10.6.0.318
 
-FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.0 as spyker-newrelic-arm
+FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.1 as spyker-newrelic-arm
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.15
 
