@@ -69,6 +69,7 @@ ARG PHP_PECL_EXTENSIONS="\
     redis"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
+    pcov \
     xdebug \
     xhprof"
 
