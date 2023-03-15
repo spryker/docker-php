@@ -12,10 +12,10 @@ jobs:
           ## Alpine
           ### Alpine 3.14
           - image: "alpine/3.14/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0", "spryker/php:8.0-alpine3.14" ]
+            tags: [ "spryker/php:8.0-alpine3.14" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.14/8.1/Dockerfile"
-            tags: [ "spryker/php:latest", "spryker/php:8.1", "spryker/php:8.1-alpine3.14" ]
+            tags: [ "spryker/php:8.1-alpine3.14" ]
             platforms: ["linux/amd64", "linux/arm64" ]
 
           ### Alpine 3.15
@@ -28,10 +28,10 @@ jobs:
 
           ### Alpine 3.16
           - image: "alpine/3.16/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0-alpine3.16" ]
+            tags: [ "spryker/php:8.0", "spryker/php:8.0-alpine3.16" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.16/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.16" ]
+            tags: [ "spryker/php:latest", "spryker/php:8.1", "spryker/php:8.1-alpine3.16" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ## Debian
