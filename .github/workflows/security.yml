@@ -81,7 +81,8 @@ jobs:
 
       - name: Scan Docker image
         run: |
-          IMAGE_TAG=${{ join(matrix.tags) }}
+          IMAGE_TAG=8.1-alpine3.16
+#          IMAGE_TAG=${{ join(matrix.tags) }}
           aws ecr start-image-scan --repository-name my-repo --image-id imageTag=$IMAGE_TAG
           aws ecr wait image-scan-complete --repository-name my-repo --image-id imageTag=$IMAGE_TAG
           if [ $(echo $?) -eq 0 ]; then
