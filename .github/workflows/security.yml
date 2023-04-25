@@ -79,18 +79,18 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#
-#      - name: Check scan results
-#        run: |
-#          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
-#          if [[ $VULNERABILITIES -gt 0 ]]; then
-#            echo "Image has vulnerabilities"
-#            exit 1
-#          else
-#            echo "Image is secure"
-#          fi
-#        if: ${{ steps.scan.outcome == 'success' }}
-#
+
+      - name: Check scan results
+        run: |
+          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
+          if [[ $VULNERABILITIES -gt 0 ]]; then
+            echo "Image has vulnerabilities"
+            exit 1
+          else
+            echo "Image is secure"
+          fi
+        if: ${{ steps.scan.outcome == 'success' }}
+
 #      - name: Delete Docker image from AWS ECR
 #        run: |
 #          aws ecr batch-delete-image --repository-name your-repository-name --image-ids imageDigest=$(aws ecr describe-images --repository-name your-repository-name --query "sort_by(imageDetails,& imagePushedAt)[-1].imageDigest" --output text)
