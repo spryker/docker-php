@@ -63,16 +63,16 @@ jobs:
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
           platforms: ${{ matrix.platforms }}
 
       - name: Scan Docker image
         run: |
           IMAGE_TAG=${{ join(matrix.tags) }}-${{ github.sha }}
-          aws ecr start-image-scan --repository-name ${{ AWS_ECR_REPO }} --image-id imageTag="$IMAGE_TAG"
-          aws ecr wait image-scan-complete --repository-name ${{ AWS_ECR_REPO }} --image-id imageTag="$IMAGE_TAG"
+          aws ecr start-image-scan --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="$IMAGE_TAG"
+          aws ecr wait image-scan-complete --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="$IMAGE_TAG"
           if [ $(echo $?) -eq 0 ]; then
-            SCAN_FINDINGS=$(aws ecr describe-image-scan-findings --repository-name ${{ AWS_ECR_REPO }} --image-id imageTag="$IMAGE_TAG" | jq '.imageScanFindings.findingSeverityCounts')
+            SCAN_FINDINGS=$(aws ecr describe-image-scan-findings --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="$IMAGE_TAG" | jq '.imageScanFindings.findingSeverityCounts')
             CRITICAL=$(echo $SCAN_FINDINGS | jq '.CRITICAL')
             HIGH=$(echo $SCAN_FINDINGS | jq '.HIGH')
             MEDIUM=$(echo $SCAN_FINDINGS | jq '.MEDIUM')
@@ -83,4 +83,4 @@ jobs:
 
 #      - name: Delete images after scan images
 #        run: |
-#            aws ecr batch-delete-image --repository-name ${{ AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
+#            aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
