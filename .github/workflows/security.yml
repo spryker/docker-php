@@ -36,14 +36,14 @@ jobs:
       - name: Login to AWS ECR
         uses: aws-actions/amazon-ecr-login@v1
 #
-#      - name: Build and push
-#        id: docker_build
-#        uses: docker/build-push-action@v2
-#        with:
-#          push: ${{ github.ref != 'refs/heads/master' }}
-#          file: ${{ matrix.image }}
-#          tags: ${{ join(matrix.tags) }}
-#          platforms: ${{ join(matrix.platforms) }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref != 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ join(matrix.tags) }}
+          platforms: ${{ join(matrix.platforms) }}
 
 #      - name: Run AWS ECR scan
 #        uses: aws-actions/amazon-ecr-scan@v0
