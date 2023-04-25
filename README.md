@@ -27,25 +27,28 @@ Extends official PHP Docker images with extensions and tools to be able to run S
 
 ## Tags
 
-| Tag                                                                                               | PHP version       | Linux distribution | Details                                                                                                                                                                                    | Dockerfile                                                                                 |
-|:--------------------------------------------------------------------------------------------------|:------------------|:-------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
-| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                       | 8.1.6             | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/7.4/Dockerfile)     |
-| [spryker/php:8.1](https://hub.docker.com/r/spryker/php/tags?name=8.1)                             | 8.1.6             | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1.svg)](https://microbadger.com/images/spryker/php:8.1 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/8.1/Dockerfile)     |
-| [spryker/php:8.0](https://hub.docker.com/r/spryker/php/tags?name=8.0)                             | 8.0.19            | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0.svg)](https://microbadger.com/images/spryker/php:8.0 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/8.0/Dockerfile)     |
-| [spryker/php:8.1-alpine3.16](https://hub.docker.com/r/spryker/php/tags?name=8.1-alpine3.16)       | 8.1.16            | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-alpine3.16.svg)](https://microbadger.com/images/spryker/php:8.1-alpine3.16 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.1/Dockerfile)     |
-| [spryker/php:8.0-alpine3.16](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.16)       | 8.0.28            | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-alpine3.16.svg)](https://microbadger.com/images/spryker/php:8.0-alpine3.16 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.0/Dockerfile)     |
-| [spryker/php:8.1-alpine3.15](https://hub.docker.com/r/spryker/php/tags?name=8.1-alpine3.15)       | 8.1.13            | Alpine 3.15        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-alpine3.15.svg)](https://microbadger.com/images/spryker/php:8.1-alpine3.15 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.15/8.1/Dockerfile)     |
-| [spryker/php:8.0-alpine3.15](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.15)       | 8.0.26            | Alpine 3.15        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-alpine3.15.svg)](https://microbadger.com/images/spryker/php:8.0-alpine3.15 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.15/8.0/Dockerfile)     |
-| [spryker/php:8.1-alpine3.14](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.14)       | 8.1.6             | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-alpine3.14.svg)](https://microbadger.com/images/spryker/php:8.1-alpine3.14 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/8.1/Dockerfile)     |
-| [spryker/php:8.0-alpine3.14](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.14)       | 8.0.19            | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-alpine3.14.svg)](https://microbadger.com/images/spryker/php:8.0-alpine3.14 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/8.0/Dockerfile)     |
-| [spryker/php:8.1-debian](https://hub.docker.com/r/spryker/php/tags?name=8.1-debian)               | 8.1.16            | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-debian.svg)](https://microbadger.com/images/spryker/php:8.1-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.1/Dockerfile) |
-| [spryker/php:8.0-debian](https://hub.docker.com/r/spryker/php/tags?name=8.0-debian)               | 8.0.28            | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-debian.svg)](https://microbadger.com/images/spryker/php:8.0-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.0/Dockerfile) |
+| Tag                                                                                         | PHP version | Linux distribution | Details                                                                                                                                                                                    | Dockerfile                                                                                 |
+|:--------------------------------------------------------------------------------------------|:------------|:-------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
+| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                 | 8.2.5       | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.2/Dockerfile)     |
+| [spryker/php:8.2](https://hub.docker.com/r/spryker/php/tags?name=8.2)                       | 8.2.5       | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2.svg)](https://microbadger.com/images/spryker/php:8.2 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.2/Dockerfile)     |
+| [spryker/php:8.1](https://hub.docker.com/r/spryker/php/tags?name=8.1)                       | 8.1.18      | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1.svg)](https://microbadger.com/images/spryker/php:8.1 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.1/Dockerfile)     |
+| [spryker/php:8.0](https://hub.docker.com/r/spryker/php/tags?name=8.0)                       | 8.0.28      | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0.svg)](https://microbadger.com/images/spryker/php:8.0 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.0/Dockerfile)     |
+| [spryker/php:8.2-alpine3.16](https://hub.docker.com/r/spryker/php/tags?name=8.2-alpine3.16) | 8.2.5       | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2-alpine3.16.svg)](https://microbadger.com/images/spryker/php:8.2-alpine3.16 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.2/Dockerfile)     |
+| [spryker/php:8.1-alpine3.16](https://hub.docker.com/r/spryker/php/tags?name=8.1-alpine3.16) | 8.1.18      | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-alpine3.16.svg)](https://microbadger.com/images/spryker/php:8.1-alpine3.16 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.1/Dockerfile)     |
+| [spryker/php:8.0-alpine3.16](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.16) | 8.0.28      | Alpine 3.16        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-alpine3.16.svg)](https://microbadger.com/images/spryker/php:8.0-alpine3.16 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.16/8.0/Dockerfile)     |
+| [spryker/php:8.1-alpine3.15](https://hub.docker.com/r/spryker/php/tags?name=8.1-alpine3.15) | 8.1.13      | Alpine 3.15        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-alpine3.15.svg)](https://microbadger.com/images/spryker/php:8.1-alpine3.15 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.15/8.1/Dockerfile)     |
+| [spryker/php:8.0-alpine3.15](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.15) | 8.0.26      | Alpine 3.15        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-alpine3.15.svg)](https://microbadger.com/images/spryker/php:8.0-alpine3.15 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.15/8.0/Dockerfile)     |
+| [spryker/php:8.1-alpine3.14](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.14) | 8.1.6       | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-alpine3.14.svg)](https://microbadger.com/images/spryker/php:8.1-alpine3.14 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/8.1/Dockerfile)     |
+| [spryker/php:8.0-alpine3.14](https://hub.docker.com/r/spryker/php/tags?name=8.0-alpine3.14) | 8.0.19      | Alpine 3.14        | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-alpine3.14.svg)](https://microbadger.com/images/spryker/php:8.0-alpine3.14 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.14/8.0/Dockerfile)     |
+| [spryker/php:8.2-debian](https://hub.docker.com/r/spryker/php/tags?name=8.2-debian)         | 8.2.5       | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.2-debian.svg)](https://microbadger.com/images/spryker/php:8.2-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.2/Dockerfile) |
+| [spryker/php:8.1-debian](https://hub.docker.com/r/spryker/php/tags?name=8.1-debian)         | 8.1.18      | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.1-debian.svg)](https://microbadger.com/images/spryker/php:8.1-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.1/Dockerfile) |
+| [spryker/php:8.0-debian](https://hub.docker.com/r/spryker/php/tags?name=8.0-debian)         | 8.0.28      | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-debian.svg)](https://microbadger.com/images/spryker/php:8.0-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.0/Dockerfile) |
 ## How to use
 
 ### Pull image
 ```bash
 $ docker pull spryker/php
-$ docker pull spryker/php:8.1
+$ docker pull spryker/php:8.2
 ```
 
 ### Run container
@@ -55,32 +58,32 @@ $ docker run -i --rm spryker/php:latest php -v
 
 ### Dockerfile
 ```dockerfile
-FROM spryker/php:8.1
+FROM spryker/php:8.2
 ```
 
 ### docker-compose.yml
 ```yaml
 service1:
-    image: spryker/php:8.1-debian
+    image: spryker/php:8.2-debian
 ```
 
 ### Enable NewRelic
 ```dockerfile
-FROM spryker/php:8.1
+FROM spryker/php:8.2
 
 RUN mv /usr/local/etc/php/disabled/newrelic.ini /usr/local/etc/php/conf.d/90-newrelic.ini
 ```
 
 ### Enable Blackfire
 ```dockerfile
-FROM spryker/php:8.1
+FROM spryker/php:8.2
 
 RUN mv /usr/local/etc/php/disabled/blackfire.ini /usr/local/etc/php/conf.d/90-blackfire.ini
 ```
 
 ### Enable Tideways
 ```dockerfile
-FROM spryker/php:8.1
+FROM spryker/php:8.2
 
 RUN mv /usr/local/etc/php/disabled/tideways.ini /usr/local/etc/php/conf.d/90-tideways.ini
 ```
@@ -138,6 +141,7 @@ Installed extensions
   [x] phar
   [x] posix
   [ ] pspell
+  [x] random
   [x] readline
   [x] reflection
   [x] session
@@ -166,9 +170,11 @@ Installed extensions
 
 Disabled extensions
 ====================
- [ ] blackfire 1.57.0
- [ ] newrelic 10.6.0.318
- [ ] tideways 5.5.8
+ [ ] blackfire 1.86.4~linux-x64-non_zts82
+ [ ] newrelic 10.9.0.324
+ [ ] pcov 1.0.11
+ [ ] tideways 5.5.14
+ [ ] xhprof 2.3.9
 
 INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
@@ -176,11 +182,12 @@ PACKAGE VERSION STATE
 apcu    5.1.22  stable
 pcov    1.0.11  stable
 redis   5.3.7   stable
-xdebug  3.1.6   stable
-xhprof  2.3.5   stable
+xdebug  3.2.1   stable
+xhprof  2.3.9   stable
+
 Composer
 ====================
-Composer version 2.3.10 2022-07-13 15:48:23
+Composer version 2.5.5 2023-03-21 11:50:05
 ```
 ##### Run the following to get the report
 ```bash
