@@ -68,6 +68,7 @@ jobs:
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
+          load: true
 
       - name: Configure AWS credentials
         if: github.ref != 'refs/heads/master'
