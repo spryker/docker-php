@@ -40,7 +40,8 @@ jobs:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
           #"${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest"
-          tags: ${{ join([format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', tag, secrets.AWS_ACCOUNT_ID, secrets.AWS_REGION) for tag in matrix.tags], ',') }}
+#          tags: ${{ join([format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', tag, secrets.AWS_ACCOUNT_ID, secrets.AWS_REGION) for tag in matrix.tags], ',') }}
+          tags: ${{ join(matrix.tags.map(tag => format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', tag, secrets.AWS_ACCOUNT_ID, secrets.AWS_REGION)), ',') }}
 
           #          tags: ${{ join([format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', '${{ matrix.tags[x] }}', '${{ secrets.AWS_ACCOUNT_ID }}', '${{ secrets.AWS_REGION }}') for x in range(length(matrix.tags))], ',') }}
           platforms: ${{ join(matrix.platforms) }}
