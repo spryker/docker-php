@@ -72,7 +72,7 @@ jobs:
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$ECR_REPO/${{ join(matrix.tags) }}-${{ github.sha }}"
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$ECR_REPO/${{ join(matrix.tags) }}-${{ github.sha }}
           platforms: ${{ join(matrix.platforms) }}
 
       - name: Delete untagged images
