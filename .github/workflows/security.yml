@@ -69,8 +69,8 @@ jobs:
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: [${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ matrix.tag }}]
-          platforms: [${{ matrix.platform }}]
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ matrix.tag }}
+          platforms: ${{ matrix.platform }}
 
 #      - name: Run AWS ECR scan
 #        uses: aws-actions/amazon-ecr-scan@v0
