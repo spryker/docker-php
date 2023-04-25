@@ -77,8 +77,9 @@ jobs:
         uses: alexjurkiewicz/ecr-scan-image@v1.7.1
         with:
           repository: spryker/php
-          tag: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
+          tag: php:8.1-alpine3.16-${{ github.sha }}
           fail_threshold: high
+
       - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
 
