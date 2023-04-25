@@ -11,10 +11,39 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - image: "alpine/3.16/8.1/Dockerfile"
-            tag:  "spryker/php:8.1-alpine3.16"
-            platform: "linux/amd64"
+#        ## Alpine
+#        ### Alpine 3.14
+#        - image: "alpine/3.14/8.0/Dockerfile"
+#          tag: "spryker/php:8.0-alpine3.14"
+#          platform: "linux/amd64"
+#        - image: "alpine/3.14/8.1/Dockerfile"
+#          tag: "spryker/php:8.1-alpine3.14"
+#          platform: "linux/amd64"
+#
+#        ### Alpine 3.15
+#        - image: "alpine/3.15/8.0/Dockerfile"
+#          tag: "spryker/php:8.0-alpine3.15"
+#          platform: "linux/amd64"
+#        - image: "alpine/3.15/8.1/Dockerfile"
+#          tag: "spryker/php:8.1-alpine3.15"
+#          platform: "linux/amd64"
+
+        ### Alpine 3.16
+        - image: "alpine/3.16/8.0/Dockerfile"
+          tag: "spryker/php:8.0-alpine3.16"
+          platform: "linux/amd64"
+        - image: "alpine/3.16/8.1/Dockerfile"
+          tag: "spryker/php:8.1-alpine3.16"
+          platform: "linux/amd64"
+
+        # Debian
+        ## Debian bullseye
+#        - image: "debian/bullseye/8.0/Dockerfile"
+#          tag: "spryker/php:8.0-debian"
+#          platform: "linux/amd64"
+#        - image: "debian/bullseye/8.1/Dockerfile"
+#          tag: "spryker/php:8.1-debian"
+#          platform: "linux/amd64"
 
     steps:
       - name: Set up QEMU
@@ -39,8 +68,8 @@ jobs:
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ matrix.tag }}
-          platforms: ${{ matrix.platform }}
+          tag: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ matrix.tag }}
+          platform: ${{ matrix.platform }}
 
 #      - name: Run AWS ECR scan
 #        uses: aws-actions/amazon-ecr-scan@v0
