@@ -2,9 +2,8 @@ name: Vulnerability detection
 
 on:
   push:
-    branches:
-      - '*'
-      - '!master'
+    branches-ignore:
+      - master
 
 jobs:
   build:
