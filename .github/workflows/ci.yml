@@ -65,10 +65,12 @@ jobs:
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
 
+      - name: Set AWS region
+        run: |
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+
       - name: Login to AWS ECR
         uses: aws-actions/amazon-ecr-login@v1
-        with:
-          region: ${{ secrets.AWS_REGION }}
 
       - name: Push Docker image to AWS ECR
         run: |
