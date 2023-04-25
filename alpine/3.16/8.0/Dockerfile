@@ -2,7 +2,7 @@
 ARG SPRYKER_PHP_VERSION=8.0.28
 ARG NEWRELIC_VERSION=10.6.0.318
 
-FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.0 as spyker-newrelic-arm
+#FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.0 as spyker-newrelic-arm
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.16
 
@@ -160,37 +160,37 @@ FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.16
 #    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
 #    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 #
-# Opcache
-RUN /usr/bin/install -d -m 777 /var/run/opcache
-
-# Remove default FPM pool
-RUN rm /usr/local/etc/php-fpm.d/www.conf && \
-    rm /usr/local/etc/php-fpm.d/docker.conf && \
-    rm /usr/local/etc/php-fpm.d/zz-docker.conf
-
-# Add FPM configs
-COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
-COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
-
-# Copy php.ini configuration
-COPY context/php/php.ini /usr/local/etc/php/
-COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
-COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
-COPY context/php/disabled /usr/local/etc/php/disabled
-
-WORKDIR /data
-
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
-
-# Create application user 'spryker'
-RUN addgroup spryker && \
-    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
-    chown spryker:spryker ${srcRoot}
-
-USER spryker
-ENV COMPOSER_MEMORY_LIMIT=-1
-RUN mkdir -p /home/spryker/.composer
-RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
-
-USER root
+## Opcache
+#RUN /usr/bin/install -d -m 777 /var/run/opcache
+#
+## Remove default FPM pool
+#RUN rm /usr/local/etc/php-fpm.d/www.conf && \
+#    rm /usr/local/etc/php-fpm.d/docker.conf && \
+#    rm /usr/local/etc/php-fpm.d/zz-docker.conf
+#
+## Add FPM configs
+#COPY context/php/php-fpm.d/worker.conf /usr/local/etc/php-fpm.d/worker.conf
+#COPY context/php/php-fpm.conf  /usr/local/etc/php-fpm.conf
+#
+## Copy php.ini configuration
+#COPY context/php/php.ini /usr/local/etc/php/
+#COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
+#COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
+#COPY context/php/disabled /usr/local/etc/php/disabled
+#
+#WORKDIR /data
+#
+## Install composer
+#RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
+#
+## Create application user 'spryker'
+#RUN addgroup spryker && \
+#    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+#    chown spryker:spryker ${srcRoot}
+#
+#USER spryker
+#ENV COMPOSER_MEMORY_LIMIT=-1
+#RUN mkdir -p /home/spryker/.composer
+#RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
+#
+#USER root
