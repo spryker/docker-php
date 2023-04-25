@@ -1,0 +1,74 @@
+name: Vulnerability detection
+
+on: push
+
+branches:
+  - '!master'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: "alpine/3.16/8.1/Dockerfile"
+            tags:
+              - ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest
+              - ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1
+              - ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1-alpine3.16
+            platforms:
+              - "linux/amd64"
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref == 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ join(matrix.tags) }}
+          platforms: ${{ join(matrix.platforms) }}
+
+#      - name: Run AWS ECR scan
+#        uses: aws-actions/amazon-ecr-scan@v0
+#        with:
+#          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
+#          report-format: "sarif"
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#
+#      - name: Check scan results
+#        run: |
+#          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
+#          if [[ $VULNERABILITIES -gt 0 ]]; then
+#            echo "Image has vulnerabilities"
+#            exit 1
+#          else
+#            echo "Image is secure"
+#          fi
+#        if: ${{ steps.scan.outcome == 'success' }}
+#
+#      - name: Delete Docker image from AWS ECR
+#        run: |
+#          aws ecr batch-delete-image --repository-name your-repository-name --image-ids imageDigest=$(aws ecr describe-images --repository-name your-repository-name --query "sort_by(imageDetails,& imagePushedAt)[-1].imageDigest" --output text)
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
