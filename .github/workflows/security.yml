@@ -72,7 +72,8 @@ jobs:
         with:
           repository: ${{ join(matrix.tags) }}-${{ github.sha }}
           tag: ${{ matrix.tags }}
-          - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+
+      - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
 #      - name: Scan Docker image
 #        run: |
