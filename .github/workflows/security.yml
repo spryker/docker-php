@@ -78,7 +78,7 @@ jobs:
         with:
           repository: spryker/php
           tag: ${{ steps.docker-build.outputs.tag }}
-          - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+      - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
 
 #      - name: Run AWS ECR scan
