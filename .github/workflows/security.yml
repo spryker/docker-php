@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - image: "alpine/3.16/8.1/Dockerfile"
-            tags: ["${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest", "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1", "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1-alpine3.16"]
+            tags: [ "spryker/php:latest", "spryker/php:8.1", "spryker/php:8.1-alpine3.16" ]
             platforms: ["linux/amd64"]
 
     steps:
@@ -32,14 +32,18 @@ jobs:
 
       - name: Login to AWS ECR
         uses: aws-actions/amazon-ecr-login@v1
-#
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: ${{ join(matrix.tags) }}
+          tags: |
+            ${{ join('', map(
+              format('{0}.dkr.ecr.{1}.amazonaws.com/spryker/php:{2}\n', secrets.AWS_ACCOUNT_ID, secrets.AWS_REGION, item),
+              matrix.tags
+            )) }}
           platforms: ${{ join(matrix.platforms) }}
 
 #      - name: Run AWS ECR scan
