@@ -81,6 +81,11 @@ jobs:
       - name: Login to AWS ECR
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Restart Docker daemon
+        run: |
+          sudo service docker stop
+          sudo service docker start
+
       - name: Push Docker image to AWS ECR
         run: |
           docker image ls
