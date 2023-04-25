@@ -69,7 +69,7 @@ jobs:
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
 
       - name: Delete untagged images
@@ -81,7 +81,7 @@ jobs:
 
       - name: Scan Docker image
         run: |
-          IMAGE_TAG=${{ join(matrix.tags) }}-${{ github.sha }}
+          IMAGE_TAG=${{ join(matrix.tags) }}
           aws ecr start-image-scan --repository-name my-repo --image-id imageTag=$IMAGE_TAG
           aws ecr wait image-scan-complete --repository-name my-repo --image-id imageTag=$IMAGE_TAG
           if [ $(echo $?) -eq 0 ]; then
