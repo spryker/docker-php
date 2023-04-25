@@ -77,6 +77,7 @@ jobs:
 
       - name: Push Docker image to AWS ECR
         run: |
+          docker image ls
           docker tag spryker/php:latest aws-account-id.dkr.ecr.region.amazonaws.com/spryker/php:latest
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest
 
