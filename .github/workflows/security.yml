@@ -74,7 +74,7 @@ jobs:
 
       - name: Delete untagged images
         run: |
-          images=$(aws ecr list-images --repository-name $repository --filter tagStatus=UNTAGGED --max-items 100)
+          images=$(aws ecr list-images --repository-name spryker/php --filter tagStatus=UNTAGGED --max-items 100)
           untaggedImages=$(echo $images | jq -c '.imageIds')
           aws ecr batch-delete-image --repository-name spryker/php --image-ids $untaggedImages
 
