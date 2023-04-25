@@ -11,25 +11,25 @@ jobs:
         include:
           ## Alpine
           ### Alpine 3.14
-          - image: "alpine/3.14/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0-alpine3.14" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.14/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.14" ]
-            platforms: ["linux/amd64", "linux/arm64" ]
-
-          ### Alpine 3.15
-          - image: "alpine/3.15/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0-alpine3.15" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.15/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.15" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
+#          - image: "alpine/3.14/8.0/Dockerfile"
+#            tags: [ "spryker/php:8.0-alpine3.14" ]
+#            platforms: [ "linux/amd64", "linux/arm64" ]
+#          - image: "alpine/3.14/8.1/Dockerfile"
+#            tags: [ "spryker/php:8.1-alpine3.14" ]
+#            platforms: ["linux/amd64", "linux/arm64" ]
+#
+#          ### Alpine 3.15
+#          - image: "alpine/3.15/8.0/Dockerfile"
+#            tags: [ "spryker/php:8.0-alpine3.15" ]
+#            platforms: [ "linux/amd64", "linux/arm64" ]
+#          - image: "alpine/3.15/8.1/Dockerfile"
+#            tags: [ "spryker/php:8.1-alpine3.15" ]
+#            platforms: [ "linux/amd64", "linux/arm64" ]
 
           ### Alpine 3.16
-          - image: "alpine/3.16/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0", "spryker/php:8.0-alpine3.16" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
+#          - image: "alpine/3.16/8.0/Dockerfile"
+#            tags: [ "spryker/php:8.0", "spryker/php:8.0-alpine3.16" ]
+#            platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.16/8.1/Dockerfile"
             tags: [ "spryker/php:latest", "spryker/php:8.1", "spryker/php:8.1-alpine3.16" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
@@ -42,6 +42,7 @@ jobs:
           - image: "debian/bullseye/8.1/Dockerfile"
             tags: [ "spryker/php:8.1-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
+
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -63,3 +64,38 @@ jobs:
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
+
+      - name: Login to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Push Docker image to AWS ECR
+        run: |
+          docker tag ${{ join(matrix.tags) }} aws-account-id.dkr.ecr.region.amazonaws.com/${{ join(matrix.tags) }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
+
+      - name: Run AWS ECR scan
+        uses: aws-actions/amazon-ecr-scan@v0
+        with:
+          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
+          report-format: "sarif"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Check scan results
+        run: |
+          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
+          if [[ $VULNERABILITIES -gt 0 ]]; then
+            echo "Image has vulnerabilities"
+            exit 1
+          else
+            echo "Image is secure"
+          fi
+        if: ${{ steps.scan.outcome == 'success' }}
+
+#      - name: Delete Docker image from AWS ECR
+#        run: |
+#          aws ecr batch-delete-image --repository-name your-repository-name --image-ids imageDigest=$(aws ecr describe-images --repository-name your-repository-name --query "sort_by(imageDetails,& imagePushedAt)[-1].imageDigest" --output text)
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
