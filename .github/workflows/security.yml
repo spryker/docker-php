@@ -66,16 +66,8 @@ jobs:
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$ECR_REPO:${{ matrix.tags }}-${{ github.sha }}
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${ECR_REPO}:${{ matrix.tags }}-${{ github.sha }}
           platforms: ${{ matrix.platforms }}
-
-      - name: Delete untagged images
-        run: |
-          IMAGES=$(aws ecr list-images --repository-name spryker/php --query 'imageIds[?type(imageTag)!=`string`].[imageDigest]' --output text)
-          for DIGEST in $IMAGES; do
-            echo $DIGEST
-            aws ecr batch-delete-image --repository-name spryker/php --image-id imageDigest="$DIGEST"
-          done
 
       - name: Scan Docker image
         run: |
@@ -92,29 +84,6 @@ jobs:
             UNDEFINED=$(echo $SCAN_FINDINGS | jq '.UNDEFINED')
           fi
 
-#      - name: Run AWS ECR scan
-#        uses: aws-actions/amazon-ecr-scan@v0
-#        with:
-#          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
-#          report-format: "sarif"
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#
-#      - name: Check scan results
+#      - name: Delete images after scan images
 #        run: |
-#          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
-#          if [[ $VULNERABILITIES -gt 0 ]]; then
-#            echo "Image has vulnerabilities"
-#            exit 1
-#          else
-#            echo "Image is secure"
-#          fi
-#        if: ${{ steps.scan.outcome == 'success' }}
-
-#      - name: Delete Docker image from AWS ECR
-#        run: |
-#          aws ecr batch-delete-image --repository-name your-repository-name --image-ids imageDigest=$(aws ecr describe-images --repository-name your-repository-name --query "sort_by(imageDetails,& imagePushedAt)[-1].imageDigest" --output text)
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#            aws ecr batch-delete-image --repository-name $ECR_REPO --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
