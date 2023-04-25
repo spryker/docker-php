@@ -86,6 +86,7 @@ jobs:
       - name: Scan Docker image
         run: |
           IMAGE_TAG=${{ join(matrix.tags) }}-${{ github.sha }}
+          echo $IMAGE_TAG
           aws ecr start-image-scan --repository-name spryker/php --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
           aws ecr wait image-scan-complete --repository-name spryker/php --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
           if [ $(echo $?) -eq 0 ]; then
