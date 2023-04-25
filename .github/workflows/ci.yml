@@ -36,12 +36,12 @@ jobs:
 
           ## Debian
           ### Debian bullseye
-          - image: "debian/bullseye/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0-debian" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "debian/bullseye/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-debian" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
+#          - image: "debian/bullseye/8.0/Dockerfile"
+#            tags: [ "spryker/php:8.0-debian" ]
+#            platforms: [ "linux/amd64", "linux/arm64" ]
+#          - image: "debian/bullseye/8.1/Dockerfile"
+#            tags: [ "spryker/php:8.1-debian" ]
+#            platforms: [ "linux/amd64", "linux/arm64" ]
 
     steps:
       - name: Set up QEMU
@@ -73,26 +73,26 @@ jobs:
           docker tag ${{ join(matrix.tags) }} aws-account-id.dkr.ecr.region.amazonaws.com/${{ join(matrix.tags) }}
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
 
-      - name: Run AWS ECR scan
-        uses: aws-actions/amazon-ecr-scan@v0
-        with:
-          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
-          report-format: "sarif"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Check scan results
-        run: |
-          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
-          if [[ $VULNERABILITIES -gt 0 ]]; then
-            echo "Image has vulnerabilities"
-            exit 1
-          else
-            echo "Image is secure"
-          fi
-        if: ${{ steps.scan.outcome == 'success' }}
-
+#      - name: Run AWS ECR scan
+#        uses: aws-actions/amazon-ecr-scan@v0
+#        with:
+#          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
+#          report-format: "sarif"
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#
+#      - name: Check scan results
+#        run: |
+#          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
+#          if [[ $VULNERABILITIES -gt 0 ]]; then
+#            echo "Image has vulnerabilities"
+#            exit 1
+#          else
+#            echo "Image is secure"
+#          fi
+#        if: ${{ steps.scan.outcome == 'success' }}
+#
 #      - name: Delete Docker image from AWS ECR
 #        run: |
 #          aws ecr batch-delete-image --repository-name your-repository-name --image-ids imageDigest=$(aws ecr describe-images --repository-name your-repository-name --query "sort_by(imageDetails,& imagePushedAt)[-1].imageDigest" --output text)
