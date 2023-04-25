@@ -11,6 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        include:
 #        ## Alpine
 #        ### Alpine 3.14
 #        - image: "alpine/3.14/8.0/Dockerfile"
@@ -29,12 +30,12 @@ jobs:
 #          platform: "linux/amd64"
 
         ### Alpine 3.16
-        - image: "alpine/3.16/8.0/Dockerfile"
-          tag: "spryker/php:8.0-alpine3.16"
-          platform: "linux/amd64"
-        - image: "alpine/3.16/8.1/Dockerfile"
-          tag: "spryker/php:8.1-alpine3.16"
-          platform: "linux/amd64"
+          - image: "alpine/3.16/8.0/Dockerfile"
+            tag: "spryker/php:8.0-alpine3.16"
+            platform: "linux/amd64"
+          - image: "alpine/3.16/8.1/Dockerfile"
+            tag: "spryker/php:8.1-alpine3.16"
+            platform: "linux/amd64"
 
         # Debian
         ## Debian bullseye
