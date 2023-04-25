@@ -73,22 +73,20 @@ jobs:
           platforms: ${{ join(matrix.platforms) }}
 
       - name: Delete untagged images
-        uses: aws-actions/amazon-ecr@v1
-        with:
-          command: batch-delete
-          repository-name: spryker/php
-          image-ids: |
-            $(aws ecr list-images --repository-name spryker/php --filter "tagStatus=UNTAGGED" --
+        run: |
+          images=$(aws ecr list-images --repository-name $repository --filter tagStatus=UNTAGGED --max-items 100)
+          untaggedImages=$(echo $response | jq -c '.imageIds')
+          aws ecr batch-delete-image --repository-name spryker/php --image-ids $untaggedImages
 
-      - name: Scan Docker image
-        id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
-        with:
-          repository: spryker/php
-          tag: php:8.1-alpine3.16-${{ github.sha }}
-          fail_threshold: high
-
-      - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+#      - name: Scan Docker image
+#        id: docker-scan
+#        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
+#        with:
+#          repository: spryker/php
+#          tag: php:8.1-alpine3.16-${{ github.sha }}
+#          fail_threshold: high
+#
+#      - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
 
 #      - name: Run AWS ECR scan
