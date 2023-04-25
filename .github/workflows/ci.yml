@@ -66,17 +66,11 @@ jobs:
           platforms: ${{ join(matrix.platforms) }}
 
       - name: Configure AWS credentials
-        run: |
-          mkdir -p ~/.aws
-          echo "[default]" > ~/.aws/config
-          echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
-          echo "output = json" >> ~/.aws/config
-          echo "[default]" > ~/.aws/credentials
-          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-          export AWS_CONFIG_FILE=~/.aws/config
-          export AWS_REGION=${{ secrets.AWS_REGION }}
-          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR
         uses: aws-actions/amazon-ecr-login@v1
