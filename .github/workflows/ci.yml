@@ -4,7 +4,7 @@ on: push
 
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  ECR_REPOSITORY: docker-php-ci
+  ECR_REPOSITORY: spryker/php
   AWS_REGION: ${{ secrets.AWS_REGION }}
   IMAGE_TAG: ${{ github.sha }}
 
@@ -88,10 +88,8 @@ jobs:
 
       - name: Push Docker image to AWS ECR
         run: |
-          docker image ls
-          echo ${{ matrix.tags[0] }}
-#          docker tag spryker/php:latest aws-account-id.dkr.ecr.region.amazonaws.com/spryker/php:latest
-#          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest
+          docker tag ${{ matrix.tags[0] }} aws-account-id.dkr.ecr.region.amazonaws.com/${{ matrix.tags[0] }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ matrix.tags[0] }}
 
 
 
