@@ -70,8 +70,8 @@ jobs:
         id: docker-scan
         uses: alexjurkiewicz/ecr-scan-image@v1.7.1
         with:
-          repository: ${{ join(matrix.tags) }}-${{ github.sha }}
-          tag: ${{ matrix.tags }}
+          repository: ${{ secrets.AWS_ECR_REPO }}
+          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
 
       - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
