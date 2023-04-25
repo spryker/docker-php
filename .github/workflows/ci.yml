@@ -69,7 +69,7 @@ jobs:
         run: |
           mkdir -p ~/.aws
           echo "[default]" > ~/.aws/config
-          echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
+          echo "region = eu-west-1" >> ~/.aws/config
           echo "output = json" >> ~/.aws/config
           echo "[default]" > ~/.aws/credentials
           echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
