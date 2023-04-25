@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build:
+  vulnerability-detection:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
