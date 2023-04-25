@@ -13,10 +13,11 @@ jobs:
       matrix:
         include:
           - image: "alpine/3.16/8.1/Dockerfile"
-            tags:
-              - "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest"
-              - "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1"
-              - "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1-alpine3.16"
+            tags: [ "spryker/php:latest", "spryker/php:8.1", "spryker/php:8.1-alpine3.16" ]
+#            tags:
+#              - "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:latest"
+#              - "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1"
+#              - "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/spryker/php:8.1-alpine3.16"
             platforms: ["linux/amd64"]
 
     steps:
