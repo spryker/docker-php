@@ -74,10 +74,8 @@ jobs:
 
       - name: Delete untagged images
         run: |
-          images=$(aws ecr list-images --repository-name spryker/php --filter tagStatus=UNTAGGED --max-items 100)
-          untaggedImages=$(echo $images | jq -c '.imageIds')
-          echo $untaggedImages
-          aws ecr batch-delete-image --region=${{ secrets.AWS_REGION }} --repository-name spryker/php --image-ids $untaggedImages
+          TAGS=$(aws ecr list-images --region ${{ secrets.AWS_REGION }} --repository-name spryker/php --filter tagStatus=UNTAGGED --query ‘imageIds[].imageDigest’ --output text)
+          aws ecr batch-delete-image --region=${{ secrets.AWS_REGION }} --repository-name spryker/php --image-ids $TAGS
 
 #      - name: Scan Docker image
 #        id: docker-scan
