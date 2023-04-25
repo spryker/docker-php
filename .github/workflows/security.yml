@@ -74,7 +74,7 @@ jobs:
 
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.7.1
+        uses: alexjurkiewicz/ecr-scan-image@v2.0
         with:
           repository: spryker/php
           tag: php:8.1-alpine3.16-${{ github.sha }}
