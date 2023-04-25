@@ -1,0 +1,84 @@
+name: Vulnerability detection
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          ## Alpine
+          ### Alpine 3.14
+          - image: "alpine/3.14/8.0/Dockerfile"
+            tag: "spryker/php:8.0-alpine3.14"
+            platform: "linux/amd64"
+          - image: "alpine/3.14/8.1/Dockerfile"
+            tag: "spryker/php:8.1-alpine3.14"
+            platform: "linux/amd64"
+
+          ### Alpine 3.15
+          - image: "alpine/3.15/8.0/Dockerfile"
+            tag: "spryker/php:8.0-alpine3.15"
+            platform: "linux/amd64"
+          - image: "alpine/3.15/8.1/Dockerfile"
+            tag: "spryker/php:8.1-alpine3.15"
+            platform: "linux/amd64"
+
+          ### Alpine 3.16
+          - image: "alpine/3.16/8.0/Dockerfile"
+            tags: "8.0-alpine3.16"
+            platforms: "linux/amd64"
+          - image: "alpine/3.16/8.1/Dockerfile"
+            tags: "8.1-alpine3.16"
+            platforms: "linux/amd64"
+
+        # Debian
+        ## Debian bullseye
+          - image: "debian/bullseye/8.0/Dockerfile"
+            tag: "spryker/php:8.0-debian"
+            platform: "linux/amd64"
+          - image: "debian/bullseye/8.1/Dockerfile"
+            tag: "spryker/php:8.1-debian"
+            platform: "linux/amd64"
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push
+        id: docker-build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref != 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
+          platforms: ${{ matrix.platforms }}
+
+      - name: Scan Docker image
+        id: docker-scan
+        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
+        with:
+          repository: ${{ secrets.AWS_ECR_REPO }}
+          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
+
+      - name: Delete images after scan images
+        run: |
+          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
+
+      - run: |
+          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+
+          if [ steps.docker-scan.outputs.total > 0 ]; then
+            exit 1
