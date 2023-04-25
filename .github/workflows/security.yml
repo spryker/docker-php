@@ -85,7 +85,7 @@ jobs:
       - name: Scan Docker image
         run: |
           IMAGE_TAG=spryker/php:${{ join(matrix.tags) }}-${{ github.sha }}
-          aws ecr start-image-scan --repository-name spryker/php --image-id imageTag=8.1-alpine3.16-f1395593a75bfed056ba6eb44734a9d2ef851050
+          aws ecr start-image-scan --repository-name spryker/php --image-id imageTag=sha256:f25ee3997df0ca239f7576f3679dcdea6a6fcdabe67c0ac95749742901d3c9cf
 #          aws ecr wait image-scan-complete --repository-name spryker/php --image-id imageTag=spryker/php:${{ join(matrix.tags) }}-${{ github.sha }}
 #          if [ $(echo $?) -eq 0 ]; then
 #            SCAN_FINDINGS=$(aws ecr describe-image-scan-findings --repository-name spryker/php --image-id imageTag=spryker/php:${{ join(matrix.tags) }}-${{ github.sha }} | jq '.imageScanFindings.findingSeverityCounts')
