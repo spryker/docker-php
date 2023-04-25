@@ -71,14 +71,14 @@ jobs:
           tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
           platforms: ${{ join(matrix.platforms) }}
 
-#      - name: Run AWS ECR scan
-#        uses: aws-actions/amazon-ecr-scan@v0
-#        with:
-#          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}
-#          report-format: "sarif"
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Run AWS ECR scan
+        uses: aws-actions/amazon-ecr-scan@v0
+        with:
+          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
+          report-format: "sarif"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 #
 #      - name: Check scan results
 #        run: |
