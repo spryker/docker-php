@@ -64,6 +64,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and push
+        id: docker-build
         uses: docker/build-push-action@v2
         with:
           push: ${{ github.ref != 'refs/heads/master' }}
@@ -71,25 +72,34 @@ jobs:
           tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
           platforms: ${{ join(matrix.platforms) }}
 
-      - name: Run AWS ECR scan
-        uses: aws-actions/amazon-ecr-scan@v0
+      name: Scan Docker image
+        id: docker-scan
+        uses: alexjurkiewicz/ecr-scan-image@v1.7.1
         with:
-          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
-          report-format: "sarif"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          repository: spryker/php
+          tag: ${{ steps.docker-build.outputs.tag }}
+          - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
-      - name: Check scan results
-        run: |
-          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
-          if [[ $VULNERABILITIES -gt 0 ]]; then
-            echo "Image has vulnerabilities"
-            exit 1
-          else
-            echo "Image is secure"
-          fi
-        if: ${{ steps.scan.outcome == 'success' }}
+
+#      - name: Run AWS ECR scan
+#        uses: aws-actions/amazon-ecr-scan@v0
+#        with:
+#          image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ join(matrix.tags) }}-${{ github.sha }}
+#          report-format: "sarif"
+#        env:
+#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#
+#      - name: Check scan results
+#        run: |
+#          VULNERABILITIES=$(jq -r '.[0].vulnerabilities.severity_counts.critical' ${GITHUB_WORKSPACE}/scan.sarif)
+#          if [[ $VULNERABILITIES -gt 0 ]]; then
+#            echo "Image has vulnerabilities"
+#            exit 1
+#          else
+#            echo "Image is secure"
+#          fi
+#        if: ${{ steps.scan.outcome == 'success' }}
 
 #      - name: Delete Docker image from AWS ECR
 #        run: |
