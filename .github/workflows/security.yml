@@ -79,7 +79,7 @@ jobs:
         run: |
           IMAGES=$(aws ecr list-images --repository-name spryker/php --query 'imageIds[?type(imageTag)!=`string`].[imageDigest]' --output text)
           for DIGEST in $IMAGES; do
-            aws ecr batch-delete-image --repository-name spryker/php --image-ids imageDigest=$DIGEST
+            aws ecr batch-delete-image --repository-name spryker/php --image-id imageDigest=$DIGEST
           done
 
       - name: Scan Docker image
