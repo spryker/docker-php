@@ -82,3 +82,4 @@ jobs:
 
           if [ steps.docker-scan.outputs.total > 0 ]; then
             exit 1
+          fi  
