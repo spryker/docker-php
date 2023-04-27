@@ -13,6 +13,7 @@ ARG BLACKFIRE_PHP_VERSION=81
 ARG NEWRELIC_VERSION=10.6.0.318
 ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.1
+ARG GOLANG_VERSION=1.20.3
 
 ENV srcRoot /data
 
@@ -72,6 +73,7 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
+    && apt upgrade -y \
     && apt install -y \
     bash \
     curl \
@@ -90,7 +92,6 @@ RUN apt update -y \
     unzip \
     wget \
     build-essential \
-    golang-go \
     automake \
     libtool \
     libpcre3 \
@@ -114,6 +115,11 @@ RUN apt update -y \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apt remove -y $PHP_BUILD_DEPS \
     && apt clean
+
+# Golang
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -L "https://go.dev/dl/go${GOLANG_VERSION}.linux-${architecture}.tar.gz" | tar -C /usr/local -xz
+ENV PATH="$PATH:/usr/local/go/bin"
 
 RUN echo "dash dash/sh boolean false" | debconf-set-selections
 RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
