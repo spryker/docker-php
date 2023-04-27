@@ -37,15 +37,6 @@ jobs:
             tags: "8.1-alpine3.16"
             platforms: "linux/amd64"
 
-        # Debian
-        ## Debian bullseye
-          - image: "debian/bullseye/8.0/Dockerfile"
-            tags: "8.0-debian"
-            platforms: "linux/amd64"
-          - image: "debian/bullseye/8.1/Dockerfile"
-            tags: "8.1-debian"
-            platforms: "linux/amd64"
-
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
