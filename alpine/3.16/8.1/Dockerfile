@@ -76,6 +76,7 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
+    && apk upgrade \
     && apk add --no-cache \
     bash \
     coreutils \
