@@ -80,6 +80,6 @@ jobs:
       - run: |
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
-          if [ steps.docker-scan.outputs.total > 0 ]; then
-            exit 1
-          fi  
+      - name: Fail the execution
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        run: exit 1
