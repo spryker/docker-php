@@ -28,6 +28,17 @@ jobs:
           - image: "alpine/3.16/8.1/Dockerfile"
             tags: "8.1-alpine3.16"
             platforms: "linux/amd64"
+          - image: "alpine/3.16/8.2/Dockerfile"
+            tags: "8.2-alpine3.16"
+            platforms: "linux/amd64"
+
+          ### Alpine 3.17
+          - image: "alpine/3.17/8.1/Dockerfile"
+            tags: "8.1-alpine3.17"
+            platforms: "linux/amd64"
+          - image: "alpine/3.17/8.2/Dockerfile"
+            tags: "8.2-alpine3.17"
+            platforms: "linux/amd64"
 
     steps:
       - name: Configure AWS credentials

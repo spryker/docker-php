@@ -1,52 +1,49 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.26
-ARG NEWRELIC_VERSION=10.6.0.318
+ARG SPRYKER_PHP_VERSION=8.2.5
 
-FROM  spryker/newrelic-extension:${NEWRELIC_VERSION}-php8.0 as spyker-newrelic-arm
+FROM spryker/newrelic-extension:10.9.0.324-php8.2 as spyker-newrelic-arm
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.15
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.5.5
-ARG BLACKFIRE_VERSION=1.57.0
-ARG BLACKFIRE_PHP_VERSION=80
-ARG NEWRELIC_VERSION=10.6.0.318
-ARG TIDEWAYS_VERSION=5.5.8
-ARG TIDEWAYS_PHP_VERSION=8.0
+ARG BLACKFIRE_VERSION=1.86.4
+ARG BLACKFIRE_PHP_VERSION=82
+ARG NEWRELIC_VERSION=10.9.0.324
+ARG TIDEWAYS_VERSION=5.5.14
+ARG TIDEWAYS_PHP_VERSION=8.2
+ARG GOLANG_VERSION=1.20.3
 
 ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
-    freetype \
-    gmp \
-    gnu-libiconv \
-    icu-libs \
-    libbz2 \
-    libc6-compat \
-    libjpeg-turbo \
-    libpng \
-    libwebp \
+    libbz2-1.0 \
+    libfreetype6 \
+    libgmp10 \
+    libicu67 \
+    libjpeg62-turbo \
+    libpng16-16 \
+    libwebp6 \
     libxml2 \
-    libxpm \
-    libxslt \
-    libzip"
+    libxpm4 \
+    libxslt1.1 \
+    libzip4"
 
 
 ARG PHP_BUILD_DEPS="\
-    autoconf \
-    bzip2-dev \
-    freetype-dev \
-    gmp-dev \
-    icu-dev \
-    libjpeg-turbo-dev \
+    libbz2-dev \
+    libfreetype6-dev \
+    libgmp-dev \
+    libicu-dev \
+    libjpeg62-turbo-dev \
     libpng-dev \
+    libpq-dev \
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
-    libzip-dev \
-    postgresql-dev"
+    libzip-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -74,30 +71,34 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     xhprof"
 
 ARG CFLAGS="-I/usr/src/php"
-RUN apk update \
-    && apk upgrade \
-    && apk add --no-cache \
+RUN apt update -y \
+    && apt upgrade -y \
+    && apt install -y \
     bash \
-    coreutils \
     curl \
+    default-mysql-client \
     g++ \
     git \
+    gnupg2 \
     graphviz \
+    locales-all \
     make \
-    mysql-client \
     netcat-openbsd \
-    openssh \
-    openssl=1.1.1t-r3 \
+    openssh-client \
     postgresql-client \
     procps \
     python3 \
-    shadow \
-    make \
     unzip \
-    linux-headers \
+    wget \
+    build-essential \
+    automake \
+    libtool \
+    libpcre3 \
+    libpcre3-dev \
+    autoconf \
     ${PHP_RUN_DEPS} \
     && \
-    apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    apt install -y ${PHP_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && \
     docker-php-ext-configure gd \
@@ -107,18 +108,25 @@ RUN apk update \
       --with-webp=/usr \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
-    && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
+    && \
+    pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps
+    && apt remove -y $PHP_BUILD_DEPS \
+    && apt clean
 
-# Related to https://github.com/docker-library/php/issues/240
-ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
+# Golang
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -L "https://go.dev/dl/go${GOLANG_VERSION}.linux-${architecture}.tar.gz" | tar -C /usr/local -xz
+ENV PATH="$PATH:/usr/local/go/bin"
+
+RUN echo "dash dash/sh boolean false" | debconf-set-selections
+RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # New Relic
@@ -132,35 +140,35 @@ ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-  curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
-  && export NR_INSTALL_USE_CP_NOT_LN=1 \
-  && export NR_INSTALL_SILENT=1 \
-  && /tmp/newrelic-php5-*/newrelic-install install \
-  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
-  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
-  && rm /usr/local/etc/php/conf.d/newrelic.ini \
-  && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2; fi'
+  curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
+    && export NR_INSTALL_USE_CP_NOT_LN=1 \
+    && export NR_INSTALL_SILENT=1 \
+    && /tmp/newrelic-php5-*/newrelic-install install \
+    && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+    && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+    && rm /usr/local/etc/php/conf.d/newrelic.ini \
+    && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2; fi'
 
-COPY --from=spyker-newrelic-arm /newrelic.so /tmp/newrelic.so
 COPY --from=spyker-newrelic-arm /newrelic-daemon /tmp/newrelic-daemon
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-  cp /tmp/newrelic.so $(php-config --extension-dir)/newrelic.so \
+  cd /tmp \
+  && git clone https://github.com/newrelic/newrelic-php-agent.git newrelic-php-agent \
+  && cd newrelic-php-agent \
+  && make agent-install \
+  && rm -rf /tmp/newrelic-php-agent \
   && cp /tmp/newrelic-daemon /usr/bin/newrelic-daemon; fi'
 
 # Tideways
-ENV TIDEWAYS_APIKEY=''
-ENV TIDEWAYS_DAEMON_URI=''
-ENV TIDEWAYS_CLI_ENABLED=0
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
-    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
@@ -180,15 +188,17 @@ COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
 COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
 
-WORKDIR /data
-
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
 
 # Create application user 'spryker'
 RUN addgroup spryker && \
-    adduser -h /home/spryker -s /bin/sh -G www-data -D spryker && \
+    useradd --home /home/spryker --shell /bin/sh --groups www-data --gid spryker spryker && \
+    mkdir -p /home/spryker && \
+    chown spryker:spryker /home/spryker && \
     chown spryker:spryker ${srcRoot}
+
+WORKDIR /data
 
 USER spryker
 ENV COMPOSER_MEMORY_LIMIT=-1
