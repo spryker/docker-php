@@ -7,7 +7,7 @@ ARG TARGETPLATFORM
 RUN export TARGETPLATFORM=${TARGETPLATFORM} && ash -c 'if [ "${TARGETPLATFORM}" != "linux/arm64" ]; then \
   rm -f /newrelic.so /newrelic-daemon; fi'
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.18
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.17
 
 ARG TARGETPLATFORM
 ARG BLACKFIRE_VERSION=1.87.1
@@ -102,20 +102,16 @@ RUN mkdir -p ${srcRoot} \
     && rm /usr/local/etc/php-fpm.d/zz-docker.conf \
     && apk upgrade \
     && apk add --no-cache \
-#    bash \
-#    coreutils \
-#    curl \
-#    git \
+    bash \
+    coreutils \
+    curl \
+    git \
     # suite-nonsplit backoffice running dependency (phpdocumentor/graphviz)
     graphviz \
-#    mysql-client \
-#    netcat-openbsd \
-#    openssh \
+    mysql-client \
+    openssh \
     postgresql-client \
-#    procps \
-#    python3 \
-#    shadow \
-#    unzip \
+    procps \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
@@ -153,7 +149,7 @@ ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
 ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
-RUN ash -c 'if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
   curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
   && export NR_INSTALL_USE_CP_NOT_LN=1 \
   && export NR_INSTALL_SILENT=1 \
@@ -166,7 +162,7 @@ RUN ash -c 'if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
 COPY --from=spyker-newrelic-arm /newrelic.so* /tmp/newrelic.so
 COPY --from=spyker-newrelic-arm /newrelic-daemon* /tmp/newrelic-daemon
 
-RUN ash -c 'if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
   mv /tmp/newrelic.so $(php-config --extension-dir)/newrelic.so \
   && mv /tmp/newrelic-daemon /usr/bin/newrelic-daemon; fi'
 
@@ -174,14 +170,14 @@ RUN ash -c 'if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
 ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
 ENV TIDEWAYS_CLI_ENABLED=0
-RUN ash -c 'if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
     wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so \
     && rm tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
     && rm -rf ./build ; fi'
 
-RUN ash -c 'if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so \
