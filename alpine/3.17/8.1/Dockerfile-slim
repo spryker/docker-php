@@ -106,7 +106,8 @@ RUN mkdir -p ${srcRoot} \
 #    coreutils \
 #    curl \
 #    git \
-#    graphviz \
+    # suite-nonsplit backoffice running dependency (phpdocumentor/graphviz)
+    graphviz \
 #    mysql-client \
 #    netcat-openbsd \
 #    openssh \
