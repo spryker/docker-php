@@ -10,6 +10,7 @@ RUN export TARGETPLATFORM=${TARGETPLATFORM} && ash -c 'if [ "${TARGETPLATFORM}" 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.17
 
 ARG TARGETPLATFORM
+ARG COMPOSER_VERSION=2.5.5
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=81
 ARG NEWRELIC_VERSION=10.9.0.324
@@ -93,6 +94,8 @@ RUN mkdir -p ${srcRoot} \
     && addgroup spryker \
     && adduser -h /home/spryker -s /bin/sh -G www-data -D spryker \
     && chown spryker:spryker ${srcRoot} \
+    && mkdir -p /home/spryker/.composer \
+    && chown spryker:spryker /home/spryker/.composer \
     # Opcache \
     && /usr/bin/install -d -m 777 /var/run/opcache\
     && apk update \
@@ -128,10 +131,12 @@ RUN mkdir -p ${srcRoot} \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps
+    && apk del --no-cache .php-build-deps \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=${COMPOSER_VERSION}
 
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
+ENV COMPOSER_MEMORY_LIMIT=-1
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
