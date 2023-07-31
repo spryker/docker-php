@@ -7,7 +7,7 @@ ARG TARGETPLATFORM
 RUN export TARGETPLATFORM=${TARGETPLATFORM} && ash -c 'if [ "${TARGETPLATFORM}" != "linux/arm64" ]; then \
   rm -f /newrelic.so /newrelic-daemon; fi'
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.18
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.17
 
 ARG TARGETPLATFORM
 ARG BLACKFIRE_VERSION=1.87.1
