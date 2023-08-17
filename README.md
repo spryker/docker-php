@@ -5,7 +5,7 @@
 
 # Description
 
-Extends official PHP Docker images with extensions and tools to be able to run Spryker on.
+Extends official PHP Docker images with extensions and tools to be able to run Spryker.
 
 * Based on official PHP images
   * `Alpine 3.15`
@@ -23,7 +23,7 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * OpenSSH client
   * Composer v2
 
-> Note: Provided images require additional configuration for development, staging and production use.
+> Note: Provided images require additional configuration for development, staging, and production use.
 
 ## Tags
 
