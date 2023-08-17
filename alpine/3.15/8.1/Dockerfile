@@ -87,7 +87,7 @@ RUN apk update \
     mysql-client \
     netcat-openbsd \
     openssh \
-    openssl=1.1.1t-r3 \
+    openssl \
     postgresql-client \
     procps \
     python3 \
