@@ -5,15 +5,6 @@ FROM spryker/newrelic-extension:10.9.0.324-php8.2 as spyker-newrelic-arm
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.18
 
-WORKDIR /graphviz
-RUN apk add --no-cache build-base cmake pkgconf libtool automake autoconf bison flex expat-dev libtool musl-dev
-RUN curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx
-WORKDIR /graphviz/graphviz-7.0.5
-RUN ./configure && \
-    make && \
-    make install && \
-    rm -rf /graphviz
-
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.5.5
 ARG BLACKFIRE_VERSION=1.87.1
@@ -91,7 +82,6 @@ RUN apk update \
     curl \
     g++ \
     git \
-    graphviz \
     make \
     mysql-client \
     netcat-openbsd \
@@ -168,6 +158,15 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+# GraphViz 7.0.5
+RUN cd /tmp && \
+    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
+    cd /tmp/graphviz-7.0.5 && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf /tmp/graphviz-7.0.5
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
