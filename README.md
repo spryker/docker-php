@@ -173,8 +173,8 @@ Installed extensions
 
 Disabled extensions
 ====================
- [ ] blackfire 1.87.1~linux-musl-x64-non_zts82
- [ ] newrelic 10.9.0.324
+ [ ] blackfire 1.87.1
+ [ ] newrelic 10.11.0.3
  [ ] pcov 1.0.11
  [ ] tideways 5.5.14
  [ ] xhprof 2.3.9
