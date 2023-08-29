@@ -190,7 +190,7 @@ xhprof  2.3.9   stable
 
 Composer
 ====================
-Composer version 2.5.5 2023-03-21 11:50:05
+Composer version 2.5.8 2023-06-09 17:13:21
 ```
 ##### Run the following to get the report
 ```bash
