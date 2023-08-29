@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.28
+ARG SPRYKER_PHP_VERSION=8.0.30
 ARG NEWRELIC_VERSION=10.6.0.318
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.16
