@@ -1,15 +1,13 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=8.2.5
 
-FROM spryker/newrelic-extension:10.9.0.324-php8.2 as spyker-newrelic-arm
-
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.5.5
+ARG COMPOSER_VERSION=2.5.8
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=82
-ARG NEWRELIC_VERSION=10.9.0.324
+ARG NEWRELIC_VERSION=10.11.0.3
 ARG TIDEWAYS_VERSION=5.5.14
 ARG TIDEWAYS_PHP_VERSION=8.2
 ARG GOLANG_VERSION=1.20.3
@@ -139,25 +137,14 @@ ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
 ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
-RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-  curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
+RUN bash -c 'curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
     && export NR_INSTALL_USE_CP_NOT_LN=1 \
     && export NR_INSTALL_SILENT=1 \
     && /tmp/newrelic-php5-*/newrelic-install install \
     && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
     && /usr/bin/install -d -m 777 /var/log/newrelic/ \
     && rm /usr/local/etc/php/conf.d/newrelic.ini \
-    && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2; fi'
-
-COPY --from=spyker-newrelic-arm /newrelic-daemon /tmp/newrelic-daemon
-
-RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-  cd /tmp \
-  && git clone https://github.com/newrelic/newrelic-php-agent.git newrelic-php-agent \
-  && cd newrelic-php-agent \
-  && make agent-install \
-  && rm -rf /tmp/newrelic-php-agent \
-  && cp /tmp/newrelic-daemon /usr/bin/newrelic-daemon; fi'
+    && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2'
 
 # Tideways
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
