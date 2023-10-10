@@ -1,6 +1,8 @@
 name: Vulnerability detection
 
 on:
+  schedule:
+    - cron: '*/5 * * * *'
   push:
     branches-ignore:
       - master
