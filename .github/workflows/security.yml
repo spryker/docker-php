@@ -2,7 +2,10 @@ name: Vulnerability detection
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 9 * * *'
+  push:
+    branches-ignore:
+      - master
 
 jobs:
   vulnerability-detection:
@@ -76,3 +79,10 @@ jobs:
       - name: Fail the execution
         if: ${{ steps.docker-scan.outputs.total > 0 }}
         run: exit 1
+
+      - name: Send GitHub Action trigger data to Slack workflow
+        id: slack
+        if: github.event.schedule == '0 9 * * *'
+        uses: slackapi/slack-github-action@v1.24.0
+        env:
+           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
