@@ -92,7 +92,7 @@ jobs:
           else
             COLOR="#ff0000"
           fi
-          echo "COLOR=$COLOR" >> .env
+          echo "COLOR=$COLOR" >> $GITHUB_ENV
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
@@ -103,8 +103,8 @@ jobs:
               "text": "Scanned image tag *${{ matrix.tags }}*.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for $DATE_TIME",
-                  "color": "$COLOR",
+                  "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.DATE_TIME }}",
+                  "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
                     {
                       "title": "Status",
@@ -116,7 +116,5 @@ jobs:
               ]
             }
         env:
-          DATE_TIME: ${{ steps.set-date.outputs.DATE_TIME }}
-          COLOR: ${{ steps.set-color.outputs.color }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
