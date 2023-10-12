@@ -88,7 +88,9 @@ jobs:
           else
             COLOR="red"
           fi
-          echo "::set-output name=color::$COLOR"
+          echo "COLOR=$COLOR" >> .env
+        env:
+          COLOR: ${{ steps.set-color.outputs.color }}
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
@@ -96,16 +98,16 @@ jobs:
         with:
           payload: |
             {
-              "text": "Scanned image - ${{ matrix.image }}",
+              "text": "Scanned image tag ${{ matrix.tags }}.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for ${{ steps.date.outputs.date }}",
-                  "color": "${{ steps.set-color.outputs.color }}",
+                  "pretext": "Vulnerability scan outputs for $(date +"%Y-%m-%d %H:%M:%S")",
+                  "color": "${{ COLOR }}",
                   "fields": [
                     {
                       "title": "Status",
                       "short": true,
-                      "value": "${{ steps.docker-scan.outputs.findingsDetails }}"
+                      "value": "${{ steps.docker-scan.outputs.informational }}"
                     }
                   ]
                 }
