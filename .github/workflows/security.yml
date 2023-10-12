@@ -78,10 +78,12 @@ jobs:
 
       - name: Set Date and Time
         id: set-date
+        if: github.event.schedule == '0 9 * * *'
         run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
 
       - name: Set Color
         id: set-color
+        if: github.event.schedule == '0 9 * * *'
         run: |
           if [[ "${{ true }}" ]]; then
             COLOR="#008000"
@@ -92,6 +94,7 @@ jobs:
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
+        if: github.event.schedule == '0 9 * * *'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
