@@ -103,13 +103,13 @@ jobs:
               "text": "Scanned image tag *${{ matrix.tags }}*.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.DATE_TIME }}",
-                  "color": "${{ steps.set-color.outputs.color }}",
+                  "pretext": "Vulnerability scan outputs for $DATE_TIME",
+                  "color": "$COLOR",
                   "fields": [
                     {
                       "title": "Status",
                       "short": true,
-                      "value": "${{ steps.docker-scan.outputs.total }} total vulnerabilities".
+                      "value": "${{ steps.docker-scan.outputs.total }} total vulnerabilities"
                     }
                   ]
                 }
