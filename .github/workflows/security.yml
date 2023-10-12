@@ -103,8 +103,8 @@ jobs:
               "text": "Scanned image tag *${{ matrix.tags }}*.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for $DATE_TIME",
-                  "color": "$COLOR",
+                  "pretext": "Vulnerability scan outputs for $GITHUB_ENV_DATE_TIME",
+                  "color": "$GITHUB_ENV_COLOR",
                   "fields": [
                     {
                       "title": "Status",
