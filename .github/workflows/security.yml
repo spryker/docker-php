@@ -82,7 +82,7 @@ jobs:
 
       - name: Set Date and Time
         id: set-date
-        run: echo "DATE_TIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+        run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
 
       - name: Set Color
         id: set-color
@@ -103,7 +103,7 @@ jobs:
               "text": "Scanned image tag *${{ matrix.tags }}*.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for $GITHUB_ENV_DATE_TIME",
+                  "pretext": "Vulnerability scan outputs for $DATE_TIME",
                   "color": "$GITHUB_ENV_COLOR",
                   "fields": [
                     {
@@ -116,7 +116,7 @@ jobs:
               ]
             }
         env:
-          DATE_TIME: ${{ steps.set-date.outputs.DATE_TIME }}
+          DATE_TIME: ${{ steps.set-date.outputs.current_datetime }}
           COLOR: ${{ steps.set-color.outputs.COLOR }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
