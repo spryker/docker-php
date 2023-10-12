@@ -116,5 +116,7 @@ jobs:
               ]
             }
         env:
+          DATE_TIME: ${{ steps.set-date.outputs.DATE_TIME }}
+          COLOR: ${{ steps.set-color.outputs.COLOR }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
