@@ -102,7 +102,7 @@ jobs:
               "attachments": [
                 {
                   "pretext": "Vulnerability scan outputs for $(date +"%Y-%m-%d %H:%M:%S")",
-                  "color": "${{ COLOR }}",
+                  "color": "$COLOR",
                   "fields": [
                     {
                       "title": "Status",
