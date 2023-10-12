@@ -101,7 +101,7 @@ jobs:
               "text": "Scanned image tag ${{ matrix.tags }}.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for $(date +"%Y-%m-%d %H:%M:%S")",
+                  "pretext": "Vulnerability scan outputs for $(date +'%Y-%m-%d %H:%M:%S')",
                   "color": "$COLOR",
                   "fields": [
                     {
