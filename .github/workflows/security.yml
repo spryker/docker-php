@@ -93,8 +93,6 @@ jobs:
             COLOR="#ff0000"
           fi
           echo "COLOR=$COLOR" >> .env
-        env:
-          COLOR: ${{ steps.set-color.outputs.color }}
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
@@ -118,5 +116,7 @@ jobs:
               ]
             }
         env:
+          DATE_TIME: ${{ steps.set-date.outputs.DATE_TIME }}
+          COLOR: ${{ steps.set-color.outputs.color }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
