@@ -80,13 +80,17 @@ jobs:
         if: ${{ steps.docker-scan.outputs.total > 0 }}
         run: exit 1
 
+      - name: Set Date and Time
+        id: set-date
+        run: echo "DATE_TIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+
       - name: Set Color
         id: set-color
         run: |
           if [[ "${{ steps.docker-scan.outputs.total == 0 }}" ]]; then
-            COLOR="green"
+            COLOR="#008000"
           else
-            COLOR="red"
+            COLOR="#ff0000"
           fi
           echo "COLOR=$COLOR" >> .env
         env:
@@ -101,13 +105,13 @@ jobs:
               "text": "Scanned image tag ${{ matrix.tags }}.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for $(date +'%Y-%m-%d %H:%M:%S')",
+                  "pretext": "Vulnerability scan outputs for $DATE_TIME",
                   "color": "$COLOR",
                   "fields": [
                     {
                       "title": "Status",
                       "short": true,
-                      "value": "${{ steps.docker-scan.outputs.informational }}"
+                      "value": "${{ steps.docker-scan.outputs.total }} total vulnerabilities.
                     }
                   ]
                 }
