@@ -19,80 +19,66 @@ jobs:
           - image: "alpine/3.15/8.0/Dockerfile"
             tags: "8.0-alpine3.15"
             platforms: "linux/amd64"
-          # - image: "alpine/3.15/8.1/Dockerfile"
-          #   tags: "8.1-alpine3.15"
-          #   platforms: "linux/amd64"
+          - image: "alpine/3.15/8.1/Dockerfile"
+            tags: "8.1-alpine3.15"
+            platforms: "linux/amd64"
 
-          # ### Alpine 3.16
-          # - image: "alpine/3.16/8.0/Dockerfile"
-          #   tags: "8.0-alpine3.16"
-          #   platforms: "linux/amd64"
-          # - image: "alpine/3.16/8.1/Dockerfile"
-          #   tags: "8.1-alpine3.16"
-          #   platforms: "linux/amd64"
-          # - image: "alpine/3.16/8.2/Dockerfile"
-          #   tags: "8.2-alpine3.16"
-          #   platforms: "linux/amd64"
+          ### Alpine 3.16
+          - image: "alpine/3.16/8.0/Dockerfile"
+            tags: "8.0-alpine3.16"
+            platforms: "linux/amd64"
+          - image: "alpine/3.16/8.1/Dockerfile"
+            tags: "8.1-alpine3.16"
+            platforms: "linux/amd64"
+          - image: "alpine/3.16/8.2/Dockerfile"
+            tags: "8.2-alpine3.16"
+            platforms: "linux/amd64"
 
-          # ### Alpine 3.17
-          # - image: "alpine/3.17/8.1/Dockerfile"
-          #   tags: "8.1-alpine3.17"
-          #   platforms: "linux/amd64"
-          # - image: "alpine/3.17/8.2/Dockerfile"
-          #   tags: "8.2-alpine3.17"
-          #   platforms: "linux/amd64"
+          ### Alpine 3.17
+          - image: "alpine/3.17/8.1/Dockerfile"
+            tags: "8.1-alpine3.17"
+            platforms: "linux/amd64"
+          - image: "alpine/3.17/8.2/Dockerfile"
+            tags: "8.2-alpine3.17"
+            platforms: "linux/amd64"
 
     steps:
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # - name: Login to AWS ECR
-      #   uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # - name: Build and push
-      #   id: docker-build
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     push: ${{ github.ref != 'refs/heads/master' }}
-      #     file: ${{ matrix.image }}
-      #     tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
-      #     platforms: ${{ matrix.platforms }}
+      - name: Build and push
+        id: docker-build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref != 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
+          platforms: ${{ matrix.platforms }}
 
-      # - name: Scan Docker image
-      #   id: docker-scan
-      #   uses: alexjurkiewicz/ecr-scan-image@v2.0.0
-      #   with:
-      #     repository: ${{ secrets.AWS_ECR_REPO }}
-      #     tag: ${{ join(matrix.tags) }}-${{ github.sha }}
+      - name: Scan Docker image
+        id: docker-scan
+        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
+        with:
+          repository: ${{ secrets.AWS_ECR_REPO }}
+          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
 
-      # - name: Delete images after scan images
-      #   run: |
-      #     aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
+      - name: Delete images after scan images
+        run: |
+          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
 
-      # - run: |
-      #     echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
-
-      # - name: Fail the execution
-      #   if: ${{ steps.docker-scan.outputs.total > 0 }}
-      #   run: exit 1
+      - run: |
+          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
       - name: Set Date and Time
         id: set-date
         run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
-
-      # - name: Set Color
-      #   id: set-color
-      #   run: |
-      #     if [[ "${{ steps.docker-scan.outputs.total == 0 }}" ]]; then
-      #       COLOR="#008000"
-      #     else
-      #       COLOR="#ff0000"
-      #     fi
-      #     echo "COLOR=$COLOR" >> $GITHUB_ENV
 
       - name: Set Color
         id: set-color
@@ -119,7 +105,7 @@ jobs:
                     {
                       "title": "Status",
                       "short": true,
-                      "value": "0 total vulnerabilities"
+                      "value": "*${{ steps.docker-scan.outputs.total }}* total vulnerabilities"
                     }
                   ]
                 }
@@ -128,3 +114,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Fail the execution
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        run: exit 1
