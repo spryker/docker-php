@@ -43,55 +43,64 @@ jobs:
             platforms: "linux/amd64"
 
     steps:
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # - name: Login to AWS ECR
-      #   uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # - name: Build and push
-      #   id: docker-build
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     push: ${{ github.ref != 'refs/heads/master' }}
-      #     file: ${{ matrix.image }}
-      #     tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
-      #     platforms: ${{ matrix.platforms }}
+      - name: Build and push
+        id: docker-build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref != 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
+          platforms: ${{ matrix.platforms }}
 
-      # - name: Scan Docker image
-      #   id: docker-scan
-      #   uses: alexjurkiewicz/ecr-scan-image@v2.0.0
-      #   with:
-      #     repository: ${{ secrets.AWS_ECR_REPO }}
-      #     tag: ${{ join(matrix.tags) }}-${{ github.sha }}
+      - name: Scan Docker image
+        id: docker-scan
+        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
+        with:
+          repository: ${{ secrets.AWS_ECR_REPO }}
+          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
 
-      # - name: Delete images after scan images
-      #   run: |
-      #     aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
+      - name: Delete images after scan images
+        run: |
+          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
 
-      # - run: |
-      #     echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+      - run: |
+          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 
-      # - name: Fail the execution
-      #   if: ${{ steps.docker-scan.outputs.total > 0 }}
-      #   run: exit 1
+      - name: Fail the execution
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        run: exit 1
+
+      - name: Set Color
+        id: set-color
+        run: |
+          if [[ "${{ steps.docker-scan.outputs.total == 0 }}" ]]; then
+            COLOR="green"
+          else
+            COLOR="red"
+          fi
+          echo "::set-output name=color::$COLOR"
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:
-          # For posting a rich message using Block Kit
           payload: |
             {
-              "text": "Deployment started (In Progress)",
+              "text": "Image name - ${{ matrix.image }}",
               "attachments": [
                 {
-                  "pretext": "Deployment started",
-                  "color": "dbab09",
+                  "pretext": "Vulnerability scan outputs",
+                  "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
                     {
                       "title": "Status",
