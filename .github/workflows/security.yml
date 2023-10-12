@@ -111,7 +111,7 @@ jobs:
                     {
                       "title": "Status",
                       "short": true,
-                      "value": "${{ steps.docker-scan.outputs.total }} total vulnerabilities.
+                      "value": "${{ steps.docker-scan.outputs.total }} total vulnerabilities".
                     }
                   ]
                 }
