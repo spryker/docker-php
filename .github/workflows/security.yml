@@ -96,10 +96,10 @@ jobs:
         with:
           payload: |
             {
-              "text": "Image name - ${{ matrix.image }}",
+              "text": "Scanned image - ${{ matrix.image }}",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs",
+                  "pretext": "Vulnerability scan outputs for ${{ steps.date.outputs.date }}",
                   "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
                     {
