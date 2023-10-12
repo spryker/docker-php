@@ -94,6 +94,16 @@ jobs:
       #     fi
       #     echo "COLOR=$COLOR" >> $GITHUB_ENV
 
+      - name: Set Color
+        id: set-color
+        run: |
+          if [[ "${{ true }}" ]]; then
+            COLOR="#008000"
+          else
+            COLOR="#ff0000"
+          fi
+          echo "::set-output name=color::$COLOR"
+
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
@@ -104,6 +114,7 @@ jobs:
               "attachments": [
                 {
                   "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
+                  "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
                     {
                       "title": "Status",
