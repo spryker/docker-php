@@ -80,9 +80,9 @@ jobs:
       #   if: ${{ steps.docker-scan.outputs.total > 0 }}
       #   run: exit 1
 
-      # - name: Set Date and Time
-      #   id: set-date
-      #   run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
+      - name: Set Date and Time
+        id: set-date
+        run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
 
       # - name: Set Color
       #   id: set-color
@@ -104,7 +104,6 @@ jobs:
               "attachments": [
                 {
                   "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
-                  "color": "$GITHUB_ENV_COLOR",
                   "fields": [
                     {
                       "title": "Status",
@@ -116,7 +115,5 @@ jobs:
               ]
             }
         env:
-          DATE_TIME: ${{ steps.set-date.outputs.current_datetime }}
-          COLOR: ${{ steps.set-color.outputs.COLOR }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
