@@ -57,7 +57,7 @@ jobs:
         id: docker-build
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.ref != 'refs/heads/master' }}
+          push: true
           file: ${{ matrix.image }}
           tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
           platforms: ${{ matrix.platforms }}
