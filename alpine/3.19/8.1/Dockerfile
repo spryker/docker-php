@@ -1,15 +1,15 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.0.26
+ARG SPRYKER_PHP_VERSION=8.1.27
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.15
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.19
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.6.4
+ARG COMPOSER_VERSION=2.6.6
 ARG BLACKFIRE_VERSION=1.87.1
-ARG BLACKFIRE_PHP_VERSION=80
-ARG NEWRELIC_VERSION=10.11.0.3
-ARG TIDEWAYS_VERSION=5.5.8
-ARG TIDEWAYS_PHP_VERSION=8.0
+ARG BLACKFIRE_PHP_VERSION=81
+ARG NEWRELIC_VERSION=10.16.0.5
+ARG TIDEWAYS_VERSION=5.5.14
+ARG TIDEWAYS_PHP_VERSION=8.1
 
 ENV srcRoot /data
 
@@ -37,6 +37,7 @@ ARG PHP_BUILD_DEPS="\
     freetype-dev \
     gmp-dev \
     icu-dev \
+    icu-data-full \
     libjpeg-turbo-dev \
     libpng-dev \
     libwebp-dev \
@@ -70,6 +71,9 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     xdebug \
     xhprof"
 
+ARG GRAPHVIZ_BUILD_DEPS="\
+    expat-dev"
+
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk upgrade \
@@ -79,22 +83,21 @@ RUN apk update \
     curl \
     g++ \
     git \
-    graphviz \
     make \
     mysql-client \
     netcat-openbsd \
     openssh \
-    openssl \
     postgresql-client \
     procps \
     python3 \
     shadow \
-    make \
     unzip \
     linux-headers \
     ${PHP_RUN_DEPS} \
     && \
     apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    && \ 
+    apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && \
     docker-php-ext-configure gd \
@@ -150,6 +153,16 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+# GraphViz 7.0.5
+RUN cd /tmp && \
+    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
+    cd /tmp/graphviz-7.0.5 && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf /tmp/graphviz-7.0.5 && \
+    apk del --no-cache .graphviz-build-deps
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
