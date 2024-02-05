@@ -11,7 +11,6 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * `Alpine 3.16`
   * `Alpine 3.17`
   * `Alpine 3.18`
-  * `Alpine 3.19`
   * `Debian "bullseye"`
   
 * Users: `root`, `spryker`
