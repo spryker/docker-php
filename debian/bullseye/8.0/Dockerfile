@@ -57,7 +57,8 @@ ARG PHP_EXTENSIONS="\
     pgsql \
     soap \
     sockets \
-    zip"
+    zip \
+    ftp"
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
