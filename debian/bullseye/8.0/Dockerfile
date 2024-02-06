@@ -91,6 +91,7 @@ RUN apt update -y \
     wget \
     build-essential \
     automake \
+    libssl-dev \
     libtool \
     libpcre3 \
     libpcre3-dev \
