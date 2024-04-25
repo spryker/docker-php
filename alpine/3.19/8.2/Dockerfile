@@ -30,7 +30,6 @@ ARG PHP_RUN_DEPS="\
     libxslt \
     libzip"
 
-
 ARG PHP_BUILD_DEPS="\
     autoconf \
     bzip2-dev \
@@ -44,7 +43,8 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
-    postgresql-dev"
+    postgresql-dev \
+    imagemagick-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -65,7 +65,8 @@ ARG PHP_EXTENSIONS="\
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
-    redis"
+    redis \
+    imagick"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
