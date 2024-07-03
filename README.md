@@ -8,10 +8,10 @@
 Extends official PHP Docker images with extensions and tools to be able to run Spryker.
 
 * Based on official PHP images
-  * `Alpine 3.16`
   * `Alpine 3.17`
   * `Alpine 3.18`
   * `Alpine 3.19`
+  * `Alpine 3.20`
   * `Debian "bullseye"`
   
 * Users: `root`, `spryker`
