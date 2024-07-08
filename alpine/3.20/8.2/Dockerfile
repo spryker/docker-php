@@ -15,15 +15,6 @@ ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
 
-# Temporarily use Alpine 3.18 repositories to fetch specific ICU package versions
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/main" > /etc/apk/repositories \
-    && echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/community" >> /etc/apk/repositories \
-    && apk update \
-    && apk add --no-cache icu-libs=73.2-r2 icu-dev=73.2-r2 icu-data-full=73.2-r2 \
-    && echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/main" > /etc/apk/repositories \
-    && echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories \
-    && apk update
-
 ARG PHP_RUN_DEPS="\
     freetype \
     gmp \
@@ -50,8 +41,7 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
-    postgresql-dev \
-    build-base"
+    postgresql-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -101,8 +91,6 @@ RUN apk update \
     shadow \
     unzip \
     linux-headers \
-    libstdc++ \
-    gcompat \
     ${PHP_RUN_DEPS} \
     && apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
     && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
@@ -117,7 +105,7 @@ RUN apk update \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps build-base
+    && apk del --no-cache .php-build-deps
 
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
