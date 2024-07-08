@@ -19,6 +19,7 @@ ARG PHP_RUN_DEPS="\
     freetype \
     gmp \
     gnu-libiconv \
+    icu-libs \
     libbz2 \
     libc6-compat \
     libjpeg-turbo \
@@ -35,6 +36,8 @@ ARG PHP_BUILD_DEPS="\
     bzip2-dev \
     freetype-dev \
     gmp-dev \
+    icu-dev \
+    icu-data-full \
     libjpeg-turbo-dev \
     libpng-dev \
     libwebp-dev \
