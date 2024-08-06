@@ -27,8 +27,7 @@ ARG PHP_RUN_DEPS="\
     libxml2 \
     libxpm4 \
     libxslt1.1 \
-    libzip4 \
-    rabbitmq-c"
+    libzip4"
 
 ARG PHP_BUILD_DEPS="\
     libbz2-dev \
@@ -42,7 +41,7 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
-    rabbitmq-c-dev"
+    librabbitmq-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
