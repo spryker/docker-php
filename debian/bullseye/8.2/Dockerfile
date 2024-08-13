@@ -29,7 +29,6 @@ ARG PHP_RUN_DEPS="\
     libxslt1.1 \
     libzip4"
 
-
 ARG PHP_BUILD_DEPS="\
     libbz2-dev \
     libfreetype6-dev \
@@ -41,7 +40,8 @@ ARG PHP_BUILD_DEPS="\
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
-    libzip-dev"
+    libzip-dev \
+    librabbitmq-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -67,7 +67,8 @@ ARG PHP_PECL_EXTENSIONS="\
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
-    xhprof"
+    xhprof \
+    amqp"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
@@ -125,8 +126,8 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
-    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
+   && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+   && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
@@ -139,24 +140,24 @@ ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
 RUN bash -c 'curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
-    && export NR_INSTALL_USE_CP_NOT_LN=1 \
-    && export NR_INSTALL_SILENT=1 \
-    && /tmp/newrelic-php5-*/newrelic-install install \
-    && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
-    && /usr/bin/install -d -m 777 /var/log/newrelic/ \
-    && rm /usr/local/etc/php/conf.d/newrelic.ini \
-    && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2'
+   && export NR_INSTALL_USE_CP_NOT_LN=1 \
+   && export NR_INSTALL_SILENT=1 \
+   && /tmp/newrelic-php5-*/newrelic-install install \
+   && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+   && rm /usr/local/etc/php/conf.d/newrelic.ini \
+   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2'
 
 # Tideways
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
-    tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
-    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+   wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
+   tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
+   cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
-    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
-    cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+   wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+   tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+   cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
