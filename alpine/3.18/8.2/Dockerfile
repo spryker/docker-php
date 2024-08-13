@@ -65,6 +65,9 @@ ARG PHP_EXTENSIONS="\
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
+    opentelemetry \
+    protobuf \
+    grpc \
     redis"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
