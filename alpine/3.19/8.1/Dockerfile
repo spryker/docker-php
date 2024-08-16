@@ -69,6 +69,9 @@ ARG PHP_PECL_EXTENSIONS="\
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
+    opentelemetry \
+    protobuf \
+    grpc \
     xhprof"
 
 ARG GRAPHVIZ_BUILD_DEPS="\
