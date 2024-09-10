@@ -48,6 +48,17 @@ jobs:
             tags: "8.3-alpine3.19"
             platforms: "linux/amd64"
 
+          ### Alpine 3.20
+          - image: "alpine/3.20/8.1/Dockerfile"
+            tags: "8.1-alpine3.20"
+            platforms: "linux/amd64"
+          - image: "alpine/3.20/8.2/Dockerfile"
+            tags: "8.2-alpine3.20"
+            platforms: "linux/amd64"
+          - image: "alpine/3.20/8.3/Dockerfile"
+            tags: "8.3-alpine3.20"
+            platforms: "linux/amd64"
+
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
