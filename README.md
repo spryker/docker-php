@@ -30,7 +30,7 @@ Extends official PHP Docker images with extensions and tools to be able to run S
 
 | Tag                                                                                         | PHP version | Linux distribution | Details                                                                                                                                                                                    | Dockerfile                                                                                 |
 |:--------------------------------------------------------------------------------------------|:------------|:-------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
-| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                 | 8.3.11      | Alpine 3.18        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.19/8.3/Dockerfile)     |
+| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                 | 8.2.20      | Alpine 3.18        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.19/8.3/Dockerfile)     |
 | [spryker/php:8.3](https://hub.docker.com/r/spryker/php/tags?name=8.3)                       | 8.3.11      | Alpine 3.18        | [![](https://images.microbadger.com/badges/image/spryker/php:8.3.svg)](https://microbadger.com/images/spryker/php:8.2 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.19/8.3/Dockerfile)     |
 | [spryker/php:8.2](https://hub.docker.com/r/spryker/php/tags?name=8.2)                       | 8.2.20      | Alpine 3.18        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2.svg)](https://microbadger.com/images/spryker/php:8.2 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.19/8.2/Dockerfile)     |
 | [spryker/php:8.1](https://hub.docker.com/r/spryker/php/tags?name=8.1)                       | 8.1.29      | Alpine 3.18        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1.svg)](https://microbadger.com/images/spryker/php:8.1 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.19/8.1/Dockerfile)     |
@@ -65,32 +65,32 @@ $ docker run -i --rm spryker/php:latest php -v
 
 ### Dockerfile
 ```dockerfile
-FROM spryker/php:8.3
+FROM spryker/php:8.2
 ```
 
 ### docker-compose.yml
 ```yaml
 service1:
-    image: spryker/php:8.3-debian
+    image: spryker/php:8.2-debian
 ```
 
 ### Enable NewRelic
 ```dockerfile
-FROM spryker/php:8.3
+FROM spryker/php:8.2
 
 RUN mv /usr/local/etc/php/disabled/newrelic.ini /usr/local/etc/php/conf.d/90-newrelic.ini
 ```
 
 ### Enable Blackfire
 ```dockerfile
-FROM spryker/php:8.3
+FROM spryker/php:8.2
 
 RUN mv /usr/local/etc/php/disabled/blackfire.ini /usr/local/etc/php/conf.d/90-blackfire.ini
 ```
 
 ### Enable Tideways
 ```dockerfile
-FROM spryker/php:8.3
+FROM spryker/php:8.2
 
 RUN mv /usr/local/etc/php/disabled/tideways.ini /usr/local/etc/php/conf.d/90-tideways.ini
 ```
