@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.1.29
+ARG SPRYKER_PHP_VERSION=8.1.30
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.20
 
@@ -12,13 +12,11 @@ ARG TIDEWAYS_VERSION=5.5.14
 ARG TIDEWAYS_PHP_VERSION=8.1
 
 ENV srcRoot /data
-
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
     freetype \
     gmp \
-    gnu-libiconv \
     icu-libs \
     libbz2 \
     libc6-compat \
@@ -45,7 +43,8 @@ ARG PHP_BUILD_DEPS="\
     libxpm-dev \
     libzip-dev \
     postgresql-dev \
-    rabbitmq-c-dev"
+    rabbitmq-c-dev \
+    g++"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -95,19 +94,20 @@ RUN apk update \
     shadow \
     unzip \
     linux-headers \
+    libstdc++ \
     ${PHP_RUN_DEPS} \
-    && \
-    apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
-    && \ 
-    apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
+    && apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
-    && \
-    docker-php-ext-configure gd \
-      --disable-gd-jis-conv \
-      --with-freetype=/usr \
-      --with-jpeg=/usr \
-      --with-webp=/usr \
-      --with-xpm=/usr \
+    && cd /tmp && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
+    && tar xzf icu4c-74_1-src.tgz \
+    && cd icu/source && ./configure --prefix=/usr && make && make install \
+    && docker-php-ext-configure gd \
+        --disable-gd-jis-conv \
+        --with-freetype=/usr \
+        --with-jpeg=/usr \
+        --with-webp=/usr \
+        --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \

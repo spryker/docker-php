@@ -1,6 +1,5 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.22
-
+ARG SPRYKER_PHP_VERSION=8.2.24
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.20
 
 ARG TARGETPLATFORM
@@ -12,13 +11,11 @@ ARG TIDEWAYS_VERSION=5.5.14
 ARG TIDEWAYS_PHP_VERSION=8.2
 
 ENV srcRoot /data
-
 RUN mkdir -p ${srcRoot}
 
 ARG PHP_RUN_DEPS="\
     freetype \
     gmp \
-    gnu-libiconv \
     icu-libs \
     libbz2 \
     libc6-compat \
@@ -45,7 +42,8 @@ ARG PHP_BUILD_DEPS="\
     libxpm-dev \
     libzip-dev \
     postgresql-dev \
-    rabbitmq-c-dev"
+    rabbitmq-c-dev \
+    g++"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -81,34 +79,35 @@ ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk upgrade \
     && apk add --no-cache \
-    bash \
-    coreutils \
-    curl \
-    g++ \
-    git \
-    make \
-    mysql-client \
-    netcat-openbsd \
-    openssh \
-    postgresql-client \
-    procps \
-    python3 \
-    shadow \
-    unzip \
-    linux-headers \
-    ${PHP_RUN_DEPS} \
-    && \
-    apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
-    && \
-    apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
+        bash \
+        coreutils \
+        curl \
+        g++ \
+        git \
+        make \
+        mysql-client \
+        netcat-openbsd \
+        openssh \
+        postgresql-client \
+        procps \
+        python3 \
+        shadow \
+        unzip \
+        linux-headers \
+        libstdc++ \
+        ${PHP_RUN_DEPS} \
+    && apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
+    && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
-    && \
-    docker-php-ext-configure gd \
-      --disable-gd-jis-conv \
-      --with-freetype=/usr \
-      --with-jpeg=/usr \
-      --with-webp=/usr \
-      --with-xpm=/usr \
+    && cd /tmp && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
+    && tar xzf icu4c-74_1-src.tgz \
+    && cd icu/source && ./configure --prefix=/usr && make && make install \
+    && docker-php-ext-configure gd \
+        --disable-gd-jis-conv \
+        --with-freetype=/usr \
+        --with-jpeg=/usr \
+        --with-webp=/usr \
+        --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
@@ -156,7 +155,7 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
-# GraphViz 7.0.5
+#GraphViz 7.0.5
 RUN cd /tmp && \
     curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
     cd /tmp/graphviz-7.0.5 && \
