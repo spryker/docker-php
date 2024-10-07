@@ -17,6 +17,7 @@ RUN mkdir -p ${srcRoot}
 ARG PHP_RUN_DEPS="\
     freetype \
     gmp \
+    gnu-libiconv \
     icu-libs \
     libbz2 \
     libc6-compat \
