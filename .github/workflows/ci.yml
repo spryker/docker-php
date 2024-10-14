@@ -81,11 +81,28 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          push: ${{ github.ref == 'refs/heads/master' }}
-          file: ${{ matrix.image }}
-          tags: ${{ join(matrix.tags) }}
-          platforms: ${{ join(matrix.platforms) }}
+      - name: Get the previous commit hash
+#        if: ${{ github.ref == 'refs/heads/master' }}
+        id: previous_commit
+        run: echo "PREV_COMMIT_HASH=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
+
+      - name: Re-tag images with previous commit hash
+#        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          IMAGE_TAGS=${{ matrix.tags }}
+          PREV_HASH=${{ env.PREV_COMMIT_HASH }}
+          for IMAGE_TAG in ${IMAGE_TAGS[@]}; do
+            docker pull $IMAGE_TAG
+            docker tag $IMAGE_TAG $IMAGE_TAG-$PREV_HASH
+            echo "Re-tagged image: $NEW_TAG"
+#            docker push $IMAGE_TAG-$PREV_HASH
+          done
+
+#      - name: Build and push
+#        id: docker_build
+#        uses: docker/build-push-action@v2
+#        with:
+#          push: ${{ github.ref == 'refs/heads/master' }}
+#          file: ${{ matrix.image }}
+#          tags: ${{ join(matrix.tags) }}
+#          platforms: ${{ join(matrix.platforms) }}
