@@ -103,6 +103,7 @@ jobs:
             NEW_TAG="${IMAGE_TAG}-${PREV_HASH}"
             docker tag "$IMAGE_TAG" "$NEW_TAG"
             echo "Re-tagged image: $NEW_TAG"
+            docker push $NEW_TAG
           done
 
 #      - name: Build and push
