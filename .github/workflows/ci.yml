@@ -69,6 +69,9 @@ jobs:
             tags: [ "spryker/php:8.3-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
