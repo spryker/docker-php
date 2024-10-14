@@ -72,6 +72,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      - name: Get the previous commit hash
+        id: previous_commit
+        run: |
+          PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -83,11 +89,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Get the previous commit hash
-        id: previous_commit
-        run: |
-          echo "PREV_COMMIT_HASH=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Re-tag images with previous commit hash
         run: |
