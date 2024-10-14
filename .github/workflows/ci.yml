@@ -82,20 +82,17 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Get the previous commit hash
-#        if: ${{ github.ref == 'refs/heads/master' }}
         id: previous_commit
         run: echo "PREV_COMMIT_HASH=$(git rev-parse HEAD^1)" >> $GITHUB_ENV
 
       - name: Re-tag images with previous commit hash
-#        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          IMAGE_TAGS=${{ matrix.tags }}
           PREV_HASH=${{ env.PREV_COMMIT_HASH }}
-          for IMAGE_TAG in ${IMAGE_TAGS[@]}; do
+          for IMAGE_TAG in ${{ toJson(matrix.tags) }}; do
             docker pull $IMAGE_TAG
-            docker tag $IMAGE_TAG $IMAGE_TAG-$PREV_HASH
+            NEW_TAG="${IMAGE_TAG}-${PREV_HASH}"
+            docker tag $IMAGE_TAG $NEW_TAG
             echo "Re-tagged image: $NEW_TAG"
-#            docker push $IMAGE_TAG-$PREV_HASH
           done
 
 #      - name: Build and push
