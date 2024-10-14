@@ -95,10 +95,11 @@ jobs:
       - name: Re-tag images with previous commit hash
         run: |
           PREV_HASH=${{ env.PREV_COMMIT_HASH }}
-          for IMAGE_TAG in ${{ toJson(matrix.tags) }}; do
-            docker pull $IMAGE_TAG
+          IMAGE_TAGS="${{ join(matrix.tags, ' ') }}"
+          for IMAGE_TAG in $IMAGE_TAGS; do
+            docker pull "$IMAGE_TAG"
             NEW_TAG="${IMAGE_TAG}-${PREV_HASH}"
-            docker tag $IMAGE_TAG $NEW_TAG
+            docker tag "$IMAGE_TAG" "$NEW_TAG"
             echo "Re-tagged image: $NEW_TAG"
           done
 
