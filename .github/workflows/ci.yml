@@ -76,6 +76,7 @@ jobs:
 
       - name: Get the previous commit hash
         id: previous_commit
+        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
           echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV
@@ -93,6 +94,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Re-tag images with previous commit hash
+        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           PREV_HASH=${{ env.PREV_COMMIT_HASH }}
           IMAGE_TAGS="${{ join(matrix.tags, ' ') }}"
