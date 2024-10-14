@@ -5,7 +5,7 @@ on:
     - cron: '0 9 * * *'
   push:
     branches-ignore:
-      - feature/preserve-the-previous-version
+      - master
 
 jobs:
   vulnerability-detection:

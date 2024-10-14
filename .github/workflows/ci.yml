@@ -106,11 +106,11 @@ jobs:
             docker push $NEW_TAG
           done
 
-#      - name: Build and push
-#        id: docker_build
-#        uses: docker/build-push-action@v2
-#        with:
-#          push: ${{ github.ref == 'refs/heads/master' }}
-#          file: ${{ matrix.image }}
-#          tags: ${{ join(matrix.tags) }}
-#          platforms: ${{ join(matrix.platforms) }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref == 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ join(matrix.tags) }}
+          platforms: ${{ join(matrix.platforms) }}
