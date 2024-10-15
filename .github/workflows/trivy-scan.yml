@@ -77,7 +77,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --platform ${{ matrix.platforms }} -t my-docker-image:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} ${{ matrix.context }}
+          docker build --platform ${{ matrix.platforms }} -t my-docker-image:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.28.0
