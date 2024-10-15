@@ -24,7 +24,7 @@ jobs:
 
       - name: Secret Scanning
         id: trufflehog_scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.82.8
         with:
           extra_args: --only-verified
 
