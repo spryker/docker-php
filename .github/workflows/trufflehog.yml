@@ -26,7 +26,77 @@ jobs:
           find . -type f 
 
       - name: Run TruffleHog Scan
+        id: truffle_hog-scan
         env:
           SCAN_PATH: "."
         run: |
-          trufflehog filesystem "$SCAN_PATH" --only-verified --fail --json | jq .
+          trufflehog filesystem "$SCAN_PATH" --only-verified --fail --json | tee trufflehog_output.json
+
+      - name: Extract Trufflehog Scan Data for Slack
+        id: extract_trufflehog_data
+        run: |
+          # Extract fields from JSON
+          SCAN_DURATION=$(jq -r '.scan_duration' trufflehog_output.json)
+          CHUNKS=$(jq -r '.chunks' trufflehog_output.json)
+          BYTES=$(jq -r '.bytes' trufflehog_output.json)
+          VERIFIED_SECRETS=$(jq -r '.verified_secrets' trufflehog_output.json)
+          UNVERIFIED_SECRETS=$(jq -r '.unverified_secrets' trufflehog_output.json)
+          VERSION=$(jq -r '.trufflehog_version' trufflehog_output.json)
+
+          # Set outputs for use in Slack payload
+          echo "::set-output name=scan_duration::$SCAN_DURATION"
+          echo "::set-output name=chunks::$CHUNKS"
+          echo "::set-output name=bytes::$BYTES"
+          echo "::set-output name=verified_secrets::$VERIFIED_SECRETS"
+          echo "::set-output name=unverified_secrets::$UNVERIFIED_SECRETS"
+          echo "::set-output name=version::$VERSION"
+
+      - name: Send Slack Notification
+        id: slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Trufflehog scan completed for ${{ github.repository }}",
+              "attachments": [
+                {
+                  "pretext": "Trufflehog scan details:",
+                  "color": "#36a64f",
+                  "fields": [
+                    {
+                      "title": "Chunks Scanned",
+                      "value": "${{ steps.extract_trufflehog_data.outputs.chunks }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Bytes Scanned",
+                      "value": "${{ steps.extract_trufflehog_data.outputs.bytes }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Verified Secrets",
+                      "value": "${{ steps.extract_trufflehog_data.outputs.verified_secrets }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Unverified Secrets",
+                      "value": "${{ steps.extract_trufflehog_data.outputs.unverified_secrets }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Scan Duration",
+                      "value": "${{ steps.extract_trufflehog_data.outputs.scan_duration }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Trufflehog Version",
+                      "value": "${{ steps.extract_trufflehog_data.outputs.version }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
