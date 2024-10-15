@@ -1,0 +1,23 @@
+name: Trivy security scan
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  trivy-secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Scan for secrets in repository
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          scan-type: 'fs'
+          security-checks: 'secret'
+          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
+          ignore-unfixed: true
