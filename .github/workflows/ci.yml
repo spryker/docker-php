@@ -23,13 +23,13 @@ jobs:
 
           ### Alpine 3.18
           - image: "alpine/3.18/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.18" ]
+            tags: [ "spryker/php:8.1-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.18/8.2/Dockerfile"
-            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.18" ]
+            tags: [ "spryker/php:8.2-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.18/8.3/Dockerfile"
-            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.18" ]
+            tags: [ "spryker/php:8.3-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ### Alpine 3.19
@@ -45,13 +45,13 @@ jobs:
 
           ### Alpine 3.20
           - image: "alpine/3.20/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.20" ]
+            tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.20/8.2/Dockerfile"
-            tags: [ "spryker/php:8.2-alpine3.20" ]
+            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.20/8.3/Dockerfile"
-            tags: [ "spryker/php:8.3-alpine3.20" ]
+            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ## Debian
@@ -69,6 +69,18 @@ jobs:
             tags: [ "spryker/php:8.3-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get the previous commit hash
+        id: previous_commit
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV        
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -80,6 +92,19 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Re-tag images with previous commit hash
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          PREV_HASH=${{ env.PREV_COMMIT_HASH }}
+          IMAGE_TAGS="${{ join(matrix.tags, ' ') }}"
+          for IMAGE_TAG in $IMAGE_TAGS; do
+            docker pull "$IMAGE_TAG"
+            NEW_TAG="${IMAGE_TAG}-${PREV_HASH}"
+            docker tag "$IMAGE_TAG" "$NEW_TAG"
+            echo "Re-tagged image: $NEW_TAG"
+            docker push $NEW_TAG
+          done
 
       - name: Build and push
         id: docker_build
