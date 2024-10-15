@@ -1,140 +1,140 @@
-name: Vulnerability detection
-
-on:
-  schedule:
-    - cron: '0 9 * * *'
-  push:
-    branches-ignore:
-      - master
-
-jobs:
-  vulnerability-detection:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          ## Alpine
-          ### Alpine 3.17
-          - image: "alpine/3.17/8.1/Dockerfile"
-            tags: "8.1-alpine3.17"
-            platforms: "linux/amd64"
-          - image: "alpine/3.17/8.2/Dockerfile"
-            tags: "8.2-alpine3.17"
-            platforms: "linux/amd64"
-          - image: "alpine/3.17/8.3/Dockerfile"
-            tags: "8.3-alpine3.17"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.18
-          - image: "alpine/3.18/8.1/Dockerfile"
-            tags: "8.1-alpine3.18"
-            platforms: "linux/amd64"
-          - image: "alpine/3.18/8.2/Dockerfile"
-            tags: "8.2-alpine3.18"
-            platforms: "linux/amd64"
-          - image: "alpine/3.18/8.3/Dockerfile"
-            tags: "8.3-alpine3.18"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.19
-          - image: "alpine/3.19/8.1/Dockerfile"
-            tags: "8.1-alpine3.19"
-            platforms: "linux/amd64"
-          - image: "alpine/3.19/8.2/Dockerfile"
-            tags: "8.2-alpine3.19"
-            platforms: "linux/amd64"
-          - image: "alpine/3.19/8.3/Dockerfile"
-            tags: "8.3-alpine3.19"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.20
-          - image: "alpine/3.20/8.1/Dockerfile"
-            tags: "8.1-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.2/Dockerfile"
-            tags: "8.2-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.3/Dockerfile"
-            tags: "8.3-alpine3.20"
-            platforms: "linux/amd64"
-
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build and push
-        id: docker-build
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
-          platforms: ${{ matrix.platforms }}
-
-      - name: Scan Docker image
-        id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
-        with:
-          repository: ${{ secrets.AWS_ECR_REPO }}
-          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
-
-      - name: Delete images after scan images
-        run: |
-          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
-
-      - run: |
-          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
-
-      - name: Set Date and Time
-        id: set-date
-        if: github.event.schedule == '0 9 * * *'
-        run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
-
-      - name: Set Color
-        id: set-color
-        if: github.event.schedule == '0 9 * * *'
-        run: |
-          if [[ "${{ true }}" ]]; then
-            COLOR="#008000"
-          else
-            COLOR="#ff0000"
-          fi
-          echo "::set-output name=color::$COLOR"
-
-      - name: Send GitHub Action trigger data to Slack workflow
-        id: slack
-        if: github.event.schedule == '0 9 * * *'
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "text": "Scanned image tag *${{ matrix.tags }}*.",
-              "attachments": [
-                {
-                  "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
-                  "color": "${{ steps.set-color.outputs.color }}",
-                  "fields": [
-                    {
-                      "title": "Status",
-                      "short": true,
-                      "value": "*${{ steps.docker-scan.outputs.total }}* total vulnerabilities"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-      - name: Fail the execution
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
-        run: exit 1
+#name: Vulnerability detection
+#
+#on:
+#  schedule:
+#    - cron: '0 9 * * *'
+#  push:
+#    branches-ignore:
+#      - master
+#
+#jobs:
+#  vulnerability-detection:
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          ## Alpine
+#          ### Alpine 3.17
+#          - image: "alpine/3.17/8.1/Dockerfile"
+#            tags: "8.1-alpine3.17"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.17/8.2/Dockerfile"
+#            tags: "8.2-alpine3.17"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.17/8.3/Dockerfile"
+#            tags: "8.3-alpine3.17"
+#            platforms: "linux/amd64"
+#
+#          ### Alpine 3.18
+#          - image: "alpine/3.18/8.1/Dockerfile"
+#            tags: "8.1-alpine3.18"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.18/8.2/Dockerfile"
+#            tags: "8.2-alpine3.18"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.18/8.3/Dockerfile"
+#            tags: "8.3-alpine3.18"
+#            platforms: "linux/amd64"
+#
+#          ### Alpine 3.19
+#          - image: "alpine/3.19/8.1/Dockerfile"
+#            tags: "8.1-alpine3.19"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.19/8.2/Dockerfile"
+#            tags: "8.2-alpine3.19"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.19/8.3/Dockerfile"
+#            tags: "8.3-alpine3.19"
+#            platforms: "linux/amd64"
+#
+#          ### Alpine 3.20
+#          - image: "alpine/3.20/8.1/Dockerfile"
+#            tags: "8.1-alpine3.20"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.20/8.2/Dockerfile"
+#            tags: "8.2-alpine3.20"
+#            platforms: "linux/amd64"
+#          - image: "alpine/3.20/8.3/Dockerfile"
+#            tags: "8.3-alpine3.20"
+#            platforms: "linux/amd64"
+#
+#    steps:
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: ${{ secrets.AWS_REGION }}
+#
+#      - name: Login to AWS ECR
+#        uses: aws-actions/amazon-ecr-login@v1
+#
+#      - name: Build and push
+#        id: docker-build
+#        uses: docker/build-push-action@v2
+#        with:
+#          push: true
+#          file: ${{ matrix.image }}
+#          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
+#          platforms: ${{ matrix.platforms }}
+#
+#      - name: Scan Docker image
+#        id: docker-scan
+#        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
+#        with:
+#          repository: ${{ secrets.AWS_ECR_REPO }}
+#          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
+#
+#      - name: Delete images after scan images
+#        run: |
+#          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
+#
+#      - run: |
+#          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+#
+#      - name: Set Date and Time
+#        id: set-date
+#        if: github.event.schedule == '0 9 * * *'
+#        run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
+#
+#      - name: Set Color
+#        id: set-color
+#        if: github.event.schedule == '0 9 * * *'
+#        run: |
+#          if [[ "${{ true }}" ]]; then
+#            COLOR="#008000"
+#          else
+#            COLOR="#ff0000"
+#          fi
+#          echo "::set-output name=color::$COLOR"
+#
+#      - name: Send GitHub Action trigger data to Slack workflow
+#        id: slack
+#        if: github.event.schedule == '0 9 * * *'
+#        uses: slackapi/slack-github-action@v1.24.0
+#        with:
+#          payload: |
+#            {
+#              "text": "Scanned image tag *${{ matrix.tags }}*.",
+#              "attachments": [
+#                {
+#                  "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
+#                  "color": "${{ steps.set-color.outputs.color }}",
+#                  "fields": [
+#                    {
+#                      "title": "Status",
+#                      "short": true,
+#                      "value": "*${{ steps.docker-scan.outputs.total }}* total vulnerabilities"
+#                    }
+#                  ]
+#                }
+#              ]
+#            }
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+#
+#      - name: Fail the execution
+#        if: ${{ steps.docker-scan.outputs.total > 0 }}
+#        run: exit 1
