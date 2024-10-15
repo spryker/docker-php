@@ -36,6 +36,7 @@ jobs:
           fi
 
       - name: Send Slack Notification
+        if: github.event.schedule == '0 10 * * *'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
