@@ -20,6 +20,11 @@ jobs:
           sudo apt-get update && sudo apt-get install -y git curl jq
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
 
+      - name: Display File Structure
+        run: |
+          echo "Displaying file structure..."
+          find . -type f 
+
       - name: Run TruffleHog Scan
         env:
           SCAN_PATH: "."
