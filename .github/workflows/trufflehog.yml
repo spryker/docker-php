@@ -8,7 +8,7 @@ on:
       - master
 
 jobs:
-  vulnerability-detection:
+  trufflehog-vulnerability-detection:
     runs-on: ubuntu-latest
 
     steps:
