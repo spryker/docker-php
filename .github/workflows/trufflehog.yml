@@ -35,15 +35,15 @@ jobs:
       - name: Extract Trufflehog Scan Data for Slack
         id: extract_trufflehog_data
         run: |
-          # Extract fields from JSON
-          SCAN_DURATION=$(jq -r '.scan_duration' trufflehog_output.json)
-          CHUNKS=$(jq -r '.chunks' trufflehog_output.json)
-          BYTES=$(jq -r '.bytes' trufflehog_output.json)
-          VERIFIED_SECRETS=$(jq -r '.verified_secrets' trufflehog_output.json)
-          UNVERIFIED_SECRETS=$(jq -r '.unverified_secrets' trufflehog_output.json)
-          VERSION=$(jq -r '.trufflehog_version' trufflehog_output.json)
+          RESULT=$(tail -n 1 trufflehog_output.json)
+          
+          SCAN_DURATION=$(echo $RESULT | jq -r '.scan_duration')
+          CHUNKS=$(echo $RESULT | jq -r '.chunks')
+          BYTES=$(echo $RESULT | jq -r '.bytes')
+          VERIFIED_SECRETS=$(echo $RESULT | jq -r '.verified_secrets')
+          UNVERIFIED_SECRETS=$(echo $RESULT | jq -r '.unverified_secrets')
+          VERSION=$(echo $RESULT | jq -r '.trufflehog_version')
 
-          # Save variables to environment file for future steps
           echo "SCAN_DURATION=$SCAN_DURATION" >> $GITHUB_ENV
           echo "CHUNKS=$CHUNKS" >> $GITHUB_ENV
           echo "BYTES=$BYTES" >> $GITHUB_ENV
