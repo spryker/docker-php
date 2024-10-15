@@ -43,13 +43,13 @@ jobs:
           UNVERIFIED_SECRETS=$(jq -r '.unverified_secrets' trufflehog_output.json)
           VERSION=$(jq -r '.trufflehog_version' trufflehog_output.json)
 
-          # Set outputs for use in Slack payload
-          echo "::set-output name=scan_duration::$SCAN_DURATION"
-          echo "::set-output name=chunks::$CHUNKS"
-          echo "::set-output name=bytes::$BYTES"
-          echo "::set-output name=verified_secrets::$VERIFIED_SECRETS"
-          echo "::set-output name=unverified_secrets::$UNVERIFIED_SECRETS"
-          echo "::set-output name=version::$VERSION"
+          # Save variables to environment file for future steps
+          echo "SCAN_DURATION=$SCAN_DURATION" >> $GITHUB_ENV
+          echo "CHUNKS=$CHUNKS" >> $GITHUB_ENV
+          echo "BYTES=$BYTES" >> $GITHUB_ENV
+          echo "VERIFIED_SECRETS=$VERIFIED_SECRETS" >> $GITHUB_ENV
+          echo "UNVERIFIED_SECRETS=$UNVERIFIED_SECRETS" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Send Slack Notification
         id: slack
