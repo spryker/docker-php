@@ -25,9 +25,10 @@ jobs:
       - name: Secret Scanning
         id: trufflehog_scan
         uses: trufflesecurity/trufflehog@v3.82.8
-        continue-on-error: true
         with:
           path: ./
+          base: "${{ github.event.repository.default_branch }}"
+          head: HEAD
           extra_args: --debug
 
       - name: Check Trufflehog Result and Fail if Secrets Found
