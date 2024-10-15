@@ -16,8 +16,6 @@ ENV srcRoot /data
 
 RUN mkdir -p ${srcRoot}
 
-ARG TEST_TOKEN=ghp_B3YBH4RJp2vmnO3wMG9tXbffjvswP2eMNaBgn
-
 ARG PHP_RUN_DEPS="\
     libbz2-1.0 \
     libfreetype6 \
