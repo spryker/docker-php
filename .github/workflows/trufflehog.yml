@@ -51,6 +51,17 @@ jobs:
           echo "UNVERIFIED_SECRETS=$UNVERIFIED_SECRETS" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Debugging - Print Environment Variables
+        run: |
+          echo "Chunks: $CHUNKS"
+          echo "Bytes: $BYTES"
+          echo "Verified Secrets: $VERIFIED_SECRETS"
+          echo "Unverified Secrets: $UNVERIFIED_SECRETS"
+          echo "Scan Duration: $SCAN_DURATION"
+          echo "Trufflehog Version: $VERSION"
+          # Check if variables are set in $GITHUB_ENV
+          cat $GITHUB_ENV
+
       - name: Send Slack Notification
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
@@ -65,32 +76,32 @@ jobs:
                   "fields": [
                     {
                       "title": "Chunks Scanned",
-                      "value": "${{ steps.extract_trufflehog_data.outputs.chunks }}",
+                      "value": "${{ env.CHUNKS }}",
                       "short": true
                     },
                     {
                       "title": "Bytes Scanned",
-                      "value": "${{ steps.extract_trufflehog_data.outputs.bytes }}",
+                      "value": "${{ env.BYTES }}",
                       "short": true
                     },
                     {
                       "title": "Verified Secrets",
-                      "value": "${{ steps.extract_trufflehog_data.outputs.verified_secrets }}",
+                      "value": "${{ env.VERIFIED_SECRETS }}",
                       "short": true
                     },
                     {
                       "title": "Unverified Secrets",
-                      "value": "${{ steps.extract_trufflehog_data.outputs.unverified_secrets }}",
+                      "value": "${{ env.UNVERIFIED_SECRETS }}",
                       "short": true
                     },
                     {
                       "title": "Scan Duration",
-                      "value": "${{ steps.extract_trufflehog_data.outputs.scan_duration }}",
+                      "value": "${{ env.SCAN_DURATION }}",
                       "short": true
                     },
                     {
                       "title": "Trufflehog Version",
-                      "value": "${{ steps.extract_trufflehog_data.outputs.version }}",
+                      "value": "${{ env.VERSION }}",
                       "short": true
                     }
                   ]
