@@ -23,91 +23,48 @@ jobs:
           find . -type f 
 
       - name: Secret Scanning
+        id: trufflehog_scan
         uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --only-verified
 
-#      - name: Print TruffleHog Output (Debugging Step)
-#        run: |
-#          echo "Contents of trufflehog_output.json:"
-#          cat trufflehog_output.json
-#
-#      - name: Extract Trufflehog Scan Data for Slack
-#        id: extract_trufflehog_data
-#        run: |
-#          RESULT=$(tail -n 1 trufflehog_output.json)
-#
-#          SCAN_DURATION=$(echo $RESULT | jq -r '.scan_duration')
-#          CHUNKS=$(echo $RESULT | jq -r '.chunks')
-#          BYTES=$(echo $RESULT | jq -r '.bytes')
-#          VERIFIED_SECRETS=$(echo $RESULT | jq -r '.verified_secrets')
-#          UNVERIFIED_SECRETS=$(echo $RESULT | jq -r '.unverified_secrets')
-#          VERSION=$(echo $RESULT | jq -r '.trufflehog_version')
-#
-#          echo "SCAN_DURATION=$SCAN_DURATION" >> $GITHUB_ENV
-#          echo "CHUNKS=$CHUNKS" >> $GITHUB_ENV
-#          echo "BYTES=$BYTES" >> $GITHUB_ENV
-#          echo "VERIFIED_SECRETS=$VERIFIED_SECRETS" >> $GITHUB_ENV
-#          echo "UNVERIFIED_SECRETS=$UNVERIFIED_SECRETS" >> $GITHUB_ENV
-#          echo "VERSION=$VERSION" >> $GITHUB_ENV
-#
-#      - name: Debugging - Print Environment Variables
-#        run: |
-#          echo "Chunks: $CHUNKS"
-#          echo "Bytes: $BYTES"
-#          echo "Verified Secrets: $VERIFIED_SECRETS"
-#          echo "Unverified Secrets: $UNVERIFIED_SECRETS"
-#          echo "Scan Duration: $SCAN_DURATION"
-#          echo "Trufflehog Version: $VERSION"
-#          # Check if variables are set in $GITHUB_ENV
-#          cat $GITHUB_ENV
-#
-#      - name: Send Slack Notification
-#        id: slack
-#        uses: slackapi/slack-github-action@v1.24.0
-#        with:
-#          payload: |
-#            {
-#              "text": "Trufflehog scan completed for ${{ github.repository }}",
-#              "attachments": [
-#                {
-#                  "pretext": "Trufflehog scan details:",
-#                  "color": "#36a64f",
-#                  "fields": [
-#                    {
-#                      "title": "Chunks Scanned",
-#                      "value": "${{ env.CHUNKS }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Bytes Scanned",
-#                      "value": "${{ env.BYTES }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Verified Secrets",
-#                      "value": "${{ env.VERIFIED_SECRETS }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Unverified Secrets",
-#                      "value": "${{ env.UNVERIFIED_SECRETS }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Scan Duration",
-#                      "value": "${{ env.SCAN_DURATION }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Trufflehog Version",
-#                      "value": "${{ env.VERSION }}",
-#                      "short": true
-#                    }
-#                  ]
-#                }
-#              ]
-#            }
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Check Trufflehog Result and Fail if Secrets Found
+        run: |
+          if [ "${{ steps.trufflehog_scan.outcome }}" == "failure" ]; then
+            echo "Secrets were found by Trufflehog!"
+            exit 1  # This will fail the workflow
+          fi
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Trufflehog scan completed for ${{ github.repository }}",
+              "attachments": [
+                {
+                  "pretext": "Trufflehog Scan Results",
+                  "color": "${{ steps.trufflehog_scan.outcome == 'success' && 'good' || 'danger' }}",
+                  "fields": [
+                    {
+                      "title": "Outcome",
+                      "value": "${{ steps.trufflehog_scan.outcome == 'success' && 'No secrets found' || 'Secrets were found' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit",
+                      "value": "${{ github.sha }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
