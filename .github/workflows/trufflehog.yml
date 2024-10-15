@@ -32,6 +32,11 @@ jobs:
         run: |
           trufflehog filesystem "$SCAN_PATH" --only-verified --fail --json | tee trufflehog_output.json
 
+      - name: Print TruffleHog Output (Debugging Step)
+        run: |
+          echo "Contents of trufflehog_output.json:"
+          cat trufflehog_output.json
+
       - name: Extract Trufflehog Scan Data for Slack
         id: extract_trufflehog_data
         run: |
