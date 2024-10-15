@@ -76,6 +76,12 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
 ARG GRAPHVIZ_BUILD_DEPS="\
     expat-dev"
 
+ARG GO_VERSION=1.23.1
+RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
+    && rm go${GO_VERSION}.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}
+
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk upgrade \
