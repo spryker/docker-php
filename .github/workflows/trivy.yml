@@ -21,3 +21,4 @@ jobs:
           security-checks: 'secret'
           severity: 'LOW,MEDIUM,HIGH,CRITICAL'
           ignore-unfixed: true
+          exit-code: '1'
