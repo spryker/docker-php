@@ -87,7 +87,7 @@ jobs:
       - name: Scan Docker image with Trufflehog - Secrets
         continue-on-error: false
         run: |
-          docker run --rm trufflesecurity/secrets:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
+          docker run --rm trufflesecurity/secrets docker --image spryker/php:${{ matrix.tags }} --only-verified
 
 
       - name: Scan Docker image with Trivy
