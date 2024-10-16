@@ -1,4 +1,4 @@
-name: Build and Scan Docker Images with Trivy
+name: Build and Scan Docker Images with Trivy && Trufflehog
 
 on:
 #  schedule:
@@ -8,7 +8,7 @@ on:
       - master  # Skip triggering for the master branch
 
 jobs:
-  build-and-scan:
+  build-and-scan-images-for-vulnerabilities:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -77,16 +77,21 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --platform ${{ matrix.platforms }} -t my-docker-image:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
+          docker build --platform ${{ matrix.platforms }} -t spryker/php:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: "my-docker-image:${{ matrix.tags }}"
+          image-ref: "spryker/php:${{ matrix.tags }}"
           exit-code: '1'
           severity: 'LOW,MEDIUM,HIGH,CRITICAL'
           ignore-unfixed: true
 
+      - name: Scan Docker image with Trufflehog
+        continue-on-error: false
+        run: |
+          docker run --rm trufflesecurity/trufflehog:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
+
       - name: Show scan result
         run: |
-          echo "Trivy scan completed for my-docker-image:${{ matrix.tags }}"
+          echo "Trivy scan completed for spryker/php:${{ matrix.tags }}"
