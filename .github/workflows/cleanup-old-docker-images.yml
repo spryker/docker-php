@@ -26,7 +26,6 @@ jobs:
           TODAY=$(date +%s)
           THRESHOLD=$((180 * 24 * 60 * 60)) # 180 days in seconds
           
-          # Regex pattern to match tags that end with a hash (40-character hexadecimal)
           HASH_PATTERN=".*-[a-f0-9]{40}$"
           IMAGES_DELETED=false
 
