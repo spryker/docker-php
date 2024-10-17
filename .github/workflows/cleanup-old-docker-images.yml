@@ -73,10 +73,9 @@ jobs:
         with:
           payload: |
             {
-              "text": "Docker Cleanup completed for repository: ${{ github.repository }}",
               "attachments": [
                 {
-                  "pretext": "Docker Cleanup Results",
+                  "pretext": "Docker Cleanup completed for repository: ${{ github.repository }}",
                   "color": "good",
                   "fields": [
                     {
