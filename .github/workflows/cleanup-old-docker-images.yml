@@ -2,7 +2,7 @@ name: Cleanup Old Docker Images > 6 months by the scheduler
 
 on:
   push:
-    branches-ignore:
+    branches:
       - master
 
 jobs:
