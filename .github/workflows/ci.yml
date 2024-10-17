@@ -71,6 +71,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: ${{ github.ref == 'refs/heads/master' }}
+          load: true
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
