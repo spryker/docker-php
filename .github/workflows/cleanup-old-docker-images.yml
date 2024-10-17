@@ -82,7 +82,7 @@ jobs:
                       "title": "Deleted Images",
                       "value": "$(cat deleted_images.txt)",
                       "short": false
-                    },
+                    }
                   ]
                 }
               ]
