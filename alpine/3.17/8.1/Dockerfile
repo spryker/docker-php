@@ -36,6 +36,10 @@ ARG PHP_BUILD_DEPS="\
     bzip2-dev \
     freetype-dev \
     gmp-dev \
+    icu-dev \
+    icu-data-full \
+    libjpeg-turbo-dev \
+    libpng-dev \
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
@@ -48,6 +52,10 @@ ARG PHP_EXTENSIONS="\
     bz2 \
     gd \
     gmp \
+    intl \
+    mysqli \
+    opcache \
+    pcntl \
     pdo_mysql \
     pdo_pgsql \
     pgsql \
