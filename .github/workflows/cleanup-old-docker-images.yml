@@ -30,6 +30,7 @@ jobs:
           
           # Regex pattern to match tags that end with a hash (40-character hexadecimal)
           HASH_PATTERN=".*-[a-f0-9]{40}$"
+          IMAGES_DELETED=false
 
           for TAG in $(jq -r '.results[] | @base64' < tags.json); do
             _jq() {
@@ -44,9 +45,10 @@ jobs:
 
             if [[ ${AGE} -ge ${THRESHOLD} ]] && [[ ${TAG_NAME} =~ ${HASH_PATTERN} ]]; then
               echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
+              IMAGES_DELETED=true
             fi
-          
-            if [[ ${IMAGES_DELETED} == false ]]; then
+          done
+
+          if [[ ${IMAGES_DELETED} == false ]]; then
             echo "No images matching the pattern were found for deletion."
           fi
-          done
