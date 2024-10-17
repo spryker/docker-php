@@ -2,7 +2,7 @@ name: Cleanup Old Docker Images > 6 months by the scheduler
 
 on:
   schedule:
-    - cron: '0 11 * * *' # Schedule to run at 11:00 UTC every day
+    - cron: '0 11 * * *'
   push:
     branches-ignore:
       - master
@@ -44,7 +44,9 @@ jobs:
 
             if [[ ${AGE} -ge ${THRESHOLD} ]] && [[ ${TAG_NAME} =~ ${HASH_PATTERN} ]]; then
               echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
-          
-              # Uncomment the following lines to enable image deletion
             fi
+          
+            if [[ ${IMAGES_DELETED} == false ]]; then
+            echo "No images matching the pattern were found for deletion."
+          fi
           done
