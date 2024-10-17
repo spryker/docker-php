@@ -75,7 +75,7 @@ jobs:
             {
               "attachments": [
                 {
-                  "pretext": "Docker Cleanup completed for repository: *${{ github.repository }}*",
+                  "pretext": "Outdated docker images cleanup ~ 180 days: *${{ github.repository }}*",
                   "color": "good",
                   "fields": [
                     {
