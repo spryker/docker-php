@@ -120,15 +120,24 @@ jobs:
             docker push $NEW_TAG
           done
 
-      - name: Build and push
+      - name: Build for diff and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.ref == 'refs/heads/master' }}
+          push: false
           load: true
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
-          platforms: ${{ join(matrix.platforms) }}
+          platforms: "linux/amd64"
+
+#      - name: Build and push
+#        id: docker_build
+#        uses: docker/build-push-action@v2
+#        with:
+#          push: ${{ github.ref == 'refs/heads/master' }}
+#          file: ${{ matrix.image }}
+#          tags: ${{ join(matrix.tags) }}
+#          platforms: ${{ join(matrix.platforms) }}
 
       - name: Current image report
         run: |
@@ -152,6 +161,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Send Slack Notification
+        if: ${{ github.ref == 'refs/heads/master' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |

@@ -1,8 +1,6 @@
 name: Trivy security scan
 
 on:
-#  schedule:
-#    - cron: '0 10 * * *'
   push:
     branches-ignore:
       - master
