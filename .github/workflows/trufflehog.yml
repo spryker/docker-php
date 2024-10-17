@@ -1,8 +1,8 @@
 name: Trufflehog security scan
 
 on:
-  schedule:
-    - cron: '0 10 * * *'
+#  schedule:
+#    - cron: '0 10 * * *'
   push:
     branches-ignore:
       - master

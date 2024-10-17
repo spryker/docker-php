@@ -1,97 +1,95 @@
-#name: Build and Scan Docker Images with Trivy && Trufflehog
-#
-#on:
-##  schedule:
-##    - cron: '0 9 * * *'
-#  push:
-#    branches-ignore:
-#      - master  # Skip triggering for the master branch
-#
-#jobs:
-#  build-and-scan-images-for-vulnerabilities:
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          ## Alpine
-#          ### Alpine 3.17
-#          - context: "alpine/3.17/8.1"
-#            dockerfile: "Dockerfile"
-#            tags: "8.1-alpine3.17"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.17/8.2"
-#            dockerfile: "Dockerfile"
-#            tags: "8.2-alpine3.17"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.17/8.3"
-#            dockerfile: "Dockerfile"
-#            tags: "8.3-alpine3.17"
-#            platforms: "linux/amd64"
-#
-#          ### Alpine 3.18
-#          - context: "alpine/3.18/8.1"
-#            dockerfile: "Dockerfile"
-#            tags: "8.1-alpine3.18"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.18/8.2"
-#            dockerfile: "Dockerfile"
-#            tags: "8.2-alpine3.18"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.18/8.3"
-#            dockerfile: "Dockerfile"
-#            tags: "8.3-alpine3.18"
-#            platforms: "linux/amd64"
-#
-#          ### Alpine 3.19
-#          - context: "alpine/3.19/8.1"
-#            dockerfile: "Dockerfile"
-#            tags: "8.1-alpine3.19"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.19/8.2"
-#            dockerfile: "Dockerfile"
-#            tags: "8.2-alpine3.19"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.19/8.3"
-#            dockerfile: "Dockerfile"
-#            tags: "8.3-alpine3.19"
-#            platforms: "linux/amd64"
-#
-#          ### Alpine 3.20
-#          - context: "alpine/3.20/8.1"
-#            dockerfile: "Dockerfile"
-#            tags: "8.1-alpine3.20"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.20/8.2"
-#            dockerfile: "Dockerfile"
-#            tags: "8.2-alpine3.20"
-#            platforms: "linux/amd64"
-#          - context: "alpine/3.20/8.3"
-#            dockerfile: "Dockerfile"
-#            tags: "8.3-alpine3.20"
-#            platforms: "linux/amd64"
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Build Docker image
-#        run: |
-#          docker build --platform ${{ matrix.platforms }} -t spryker/php:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
-#
-#      - name: Scan Docker image with Trufflehog
-#        continue-on-error: false
-#        run: |
-#          docker run --rm trufflesecurity/trufflehog:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
-#
-#      - name: Scan Docker image with Trivy
-#        uses: aquasecurity/trivy-action@0.28.0
-#        with:
-#          image-ref: "spryker/php:${{ matrix.tags }}"
-#          exit-code: '1'
-#          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
-#          ignore-unfixed: true
-#
-#      - name: Show scan result
-#        run: |
-#          echo "Trivy scan completed for spryker/php:${{ matrix.tags }}"
+name: Build and Scan Docker Images with Trivy && Trufflehog
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  build-and-scan-images-for-vulnerabilities:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          ## Alpine
+          ### Alpine 3.17
+          - context: "alpine/3.17/8.1"
+            dockerfile: "Dockerfile"
+            tags: "8.1-alpine3.17"
+            platforms: "linux/amd64"
+          - context: "alpine/3.17/8.2"
+            dockerfile: "Dockerfile"
+            tags: "8.2-alpine3.17"
+            platforms: "linux/amd64"
+          - context: "alpine/3.17/8.3"
+            dockerfile: "Dockerfile"
+            tags: "8.3-alpine3.17"
+            platforms: "linux/amd64"
+
+          ### Alpine 3.18
+          - context: "alpine/3.18/8.1"
+            dockerfile: "Dockerfile"
+            tags: "8.1-alpine3.18"
+            platforms: "linux/amd64"
+          - context: "alpine/3.18/8.2"
+            dockerfile: "Dockerfile"
+            tags: "8.2-alpine3.18"
+            platforms: "linux/amd64"
+          - context: "alpine/3.18/8.3"
+            dockerfile: "Dockerfile"
+            tags: "8.3-alpine3.18"
+            platforms: "linux/amd64"
+
+          ### Alpine 3.19
+          - context: "alpine/3.19/8.1"
+            dockerfile: "Dockerfile"
+            tags: "8.1-alpine3.19"
+            platforms: "linux/amd64"
+          - context: "alpine/3.19/8.2"
+            dockerfile: "Dockerfile"
+            tags: "8.2-alpine3.19"
+            platforms: "linux/amd64"
+          - context: "alpine/3.19/8.3"
+            dockerfile: "Dockerfile"
+            tags: "8.3-alpine3.19"
+            platforms: "linux/amd64"
+
+          ### Alpine 3.20
+          - context: "alpine/3.20/8.1"
+            dockerfile: "Dockerfile"
+            tags: "8.1-alpine3.20"
+            platforms: "linux/amd64"
+          - context: "alpine/3.20/8.2"
+            dockerfile: "Dockerfile"
+            tags: "8.2-alpine3.20"
+            platforms: "linux/amd64"
+          - context: "alpine/3.20/8.3"
+            dockerfile: "Dockerfile"
+            tags: "8.3-alpine3.20"
+            platforms: "linux/amd64"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: |
+          docker build --platform ${{ matrix.platforms }} -t spryker/php:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
+
+      - name: Scan Docker image with Trufflehog
+        continue-on-error: false
+        run: |
+          docker run --rm trufflesecurity/trufflehog:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "spryker/php:${{ matrix.tags }}"
+          exit-code: '1'
+          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
+          ignore-unfixed: true
+
+      - name: Show scan result
+        run: |
+          echo "Trivy scan completed for spryker/php:${{ matrix.tags }}"
