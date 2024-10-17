@@ -64,7 +64,9 @@ jobs:
         id: read_deleted_images
         run: |
           DELETED_IMAGES=$(cat deleted_images.txt)
-          echo "::set-output name=deleted_images::$DELETED_IMAGES"
+          echo "Deleted images: ${DELETED_IMAGES}"
+          echo "::set-output name=deleted_images::${DELETED_IMAGES}"
+        shell: bash
 
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.24.0
