@@ -161,7 +161,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: ${{ github.ref == 'refs/heads/master' }}
+#        if: ${{ github.ref == 'refs/heads/master' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
