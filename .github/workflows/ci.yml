@@ -75,6 +75,14 @@ jobs:
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
 
+      - name: Verify local image exists
+        run: |
+          # Get the image tag from the matrix
+          IMAGE_TAG=${{ matrix.tags[0] }}
+
+          # List local Docker images to confirm the image exists
+          docker images
+
       - name: Current image report
         run: |
           CURRENT_TAG=${{ matrix.tags[0] }}
