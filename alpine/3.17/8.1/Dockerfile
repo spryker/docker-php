@@ -4,11 +4,11 @@ ARG SPRYKER_PHP_VERSION=8.1.26
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.17
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.8.1
+ARG COMPOSER_VERSION=2.5.1
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=81
 ARG NEWRELIC_VERSION=10.22.0.12
-ARG TIDEWAYS_VERSION=5.5.14
+ARG TIDEWAYS_VERSION=5.13.0
 ARG TIDEWAYS_PHP_VERSION=8.1
 
 ENV srcRoot /data
@@ -36,10 +36,6 @@ ARG PHP_BUILD_DEPS="\
     bzip2-dev \
     freetype-dev \
     gmp-dev \
-    icu-dev \
-    icu-data-full \
-    libjpeg-turbo-dev \
-    libpng-dev \
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
@@ -52,10 +48,6 @@ ARG PHP_EXTENSIONS="\
     bz2 \
     gd \
     gmp \
-    intl \
-    mysqli \
-    opcache \
-    pcntl \
     pdo_mysql \
     pdo_pgsql \
     pgsql \
