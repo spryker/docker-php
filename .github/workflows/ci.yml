@@ -72,11 +72,26 @@ jobs:
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
 
-      - name: Output image report
+      - name: Current image report
         run: |
           CURRENT_TAG=${{ matrix.tags[0] }}
-          bash .github/compare-images.sh > image-report.txt || true
-          cat image-report.txt
+          bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
+          cat current-image-report.txt
+
+      - name: Previous image report
+        run: |
+          PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
+          bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
+          cat previous-image-report.txt
+
+      - name: Run the diff
+        run: |
+          DIFF_OUTPUT = diff current-image-report.txt previous-image-report.txt
+          echo "$DIFF_OUTPUT"
+          
+          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
+          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
 #      - name: Compare images and capture diff
 #        run: |
