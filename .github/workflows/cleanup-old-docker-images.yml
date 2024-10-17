@@ -2,7 +2,7 @@ name: Cleanup Old Docker Images > 6 months by the scheduler
 
 on:
   push:
-    branches-ignore:
+    branches:
       - master
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
             {
               "attachments": [
                 {
-                  "pretext": "Outdated docker images cleanup ~ 180 days: *${{ github.repository }}*",
+                  "pretext": "Outdated docker images cleanup (180 days) for *${{ github.repository }}* repository",
                   "color": "good",
                   "fields": [
                     {
