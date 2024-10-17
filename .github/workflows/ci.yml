@@ -14,61 +14,7 @@ jobs:
           - image: "alpine/3.17/8.1/Dockerfile"
             tags: [ "spryker/php:8.1-alpine3.17" ]
             platforms: [ "linux/amd64" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.17/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.17" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.17/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.17" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
 
-#          ### Alpine 3.18
-#          - image: "alpine/3.18/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.18/8.2/Dockerfile"
-#            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.18/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.19
-#          - image: "alpine/3.19/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.19/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.19/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.20
-#          - image: "alpine/3.20/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.20/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.20/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ## Debian
-#          ### Debian bullseye
-#          - image: "debian/bullseye/8.0/Dockerfile"
-#            tags: [ "spryker/php:8.0-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -77,9 +23,19 @@ jobs:
 
       - name: Get the previous commit hash
         id: previous_commit
-        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+          else
+            PREV_COMMIT_HASH=$(git rev-parse origin/master)
+            IMAGE_TAG="${{ matrix.tags[0] }}"
+            echo "Pulling image $IMAGE_TAG"
+            docker pull "$IMAGE_TAG"
+          
+            NEW_TAG="${IMAGE_TAG}-${PREV_COMMIT_HASH}"
+            echo "Re-tagging image to $NEW_TAG"
+            docker tag "$IMAGE_TAG" "$NEW_TAG"
+          fi
           echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV   
 
       - name: Set up QEMU
@@ -115,3 +71,50 @@ jobs:
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ join(matrix.platforms) }}
+
+      - name: Compare images and capture diff
+        run: |
+          CURRENT_TAG=${{ matrix.tags[0] }}
+          PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
+          bash compare-images.sh $CURRENT_TAG $PREVIOUS_TAG > image-diff.txt || true
+
+      - name: Read diff output
+        id: read_diff
+        run: |
+          DIFF_OUTPUT=$(cat image-diff.txt)
+          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
+          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "pretext": "spryker/php:",
+                  "color": "good",
+                  "fields": [
+                    {
+                      "title": "Image diff:",
+                      "value": "${{ env.DIFF_OUTPUT }}",
+                      "short": false
+                    },
+                    {
+                      "title": "Branch:",
+                      "value": "${{ github.ref }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit:",
+                      "value": "${{ github.sha }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
