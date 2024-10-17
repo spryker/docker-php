@@ -21,12 +21,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: List Docker Hub images and delete old ones
+      - name: List Docker Hub images and delete ones matching the pattern
         run: |
           REPO="spryker/php"
           curl -s "https://hub.docker.com/v2/repositories/${REPO}/tags?page_size=1000" > tags.json
           TODAY=$(date +%s)
           THRESHOLD=$((180 * 24 * 60 * 60)) # 180 days in seconds
+          
+          # Regex pattern to match tags that end with a hash (40-character hexadecimal)
+          HASH_PATTERN=".*-[a-f0-9]{40}$"
 
           for TAG in $(jq -r '.results[] | @base64' < tags.json); do
             _jq() {
@@ -39,9 +42,12 @@ jobs:
 
             AGE=$((TODAY - LAST_UPDATED_DATE))
 
-            if [[ ${AGE} -ge ${THRESHOLD} ]]; then
+            if [[ ${AGE} -ge ${THRESHOLD} ]] && [[ ${TAG_NAME} =~ ${HASH_PATTERN} ]]; then
               echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
           
               # Uncomment the following lines to enable image deletion
+#              curl -X DELETE \
+#                -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+#                "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG_NAME}/"
             fi
           done
