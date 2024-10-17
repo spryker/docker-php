@@ -105,20 +105,6 @@ jobs:
           echo "$DIFF_OUTPUT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Compare images and capture diff
-        run: |
-          CURRENT_TAG=${{ matrix.tags[0] }}
-          PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
-          bash .github/compare-images.sh $CURRENT_TAG $PREVIOUS_TAG > image-diff.txt || true
-
-      - name: Read diff output
-        id: read_diff
-        run: |
-          DIFF_OUTPUT=$(cat image-diff.txt)
-          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
-          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.24.0
         with:
