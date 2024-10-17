@@ -86,7 +86,7 @@ jobs:
 
       - name: Run the diff
         run: |
-          DIFF_OUTPUT = diff current-image-report.txt previous-image-report.txt
+          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt || true)
           echo "$DIFF_OUTPUT"
           
           echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
