@@ -1,8 +1,9 @@
 name: Cleanup Old Docker Images > 6 months by the scheduler
 
 on:
-  schedule:
-    - cron: '0 11 * * *'
+  push:
+#  schedule:
+#    - cron: '0 11 * * *'
 
 jobs:
   cleanup:
