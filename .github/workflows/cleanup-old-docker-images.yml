@@ -75,21 +75,21 @@ jobs:
             {
               "attachments": [
                 {
-                  "pretext": "Docker Cleanup completed for repository: ${{ github.repository }}",
+                  "pretext": "Docker Cleanup completed for repository: *${{ github.repository }}*",
                   "color": "good",
                   "fields": [
                     {
-                      "title": "Outcome",
+                      "title": "Images:",
                       "value": "${{ steps.read_deleted_images.outputs.deleted_images }}",
                       "short": false
                     },
                     {
-                      "title": "Branch",
+                      "title": "Branch:",
                       "value": "${{ github.ref }}",
                       "short": true
                     },
                     {
-                      "title": "Commit",
+                      "title": "Commit:",
                       "value": "${{ github.sha }}",
                       "short": true
                     }
