@@ -11,6 +11,10 @@ IMAGE_TAG=$1
 
 # Run the Docker image and output the required information
 docker run -i --rm "$IMAGE_TAG" sh -s <<'EOF'
+    echo "=== Alpine Version ==="
+    cat /etc/alpine-release
+
+    echo ""
     echo "=== Installed PHP Extensions ==="
     docker-php-source extract
     for ext in `ls /usr/src/php/ext`; do
