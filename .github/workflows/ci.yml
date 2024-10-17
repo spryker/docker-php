@@ -76,7 +76,7 @@ jobs:
         run: |
           CURRENT_TAG=${{ matrix.tags[0] }}
           PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
-          bash compare-images.sh $CURRENT_TAG $PREVIOUS_TAG > image-diff.txt || true
+          bash .github/compare-images.sh $CURRENT_TAG $PREVIOUS_TAG > image-diff.txt || true
 
       - name: Read diff output
         id: read_diff
