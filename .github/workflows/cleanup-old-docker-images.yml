@@ -46,8 +46,5 @@ jobs:
               echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
           
               # Uncomment the following lines to enable image deletion
-#              curl -X DELETE \
-#                -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
-#                "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG_NAME}/"
             fi
           done
