@@ -93,23 +93,13 @@ jobs:
             {
               "attachments": [
                 {
-                  "pretext": "spryker/php:",
+                  "pretext": "Release changes for *spryker/php:${{ matrix.tags[0] }}*",
                   "color": "good",
                   "fields": [
                     {
                       "title": "Image diff:",
                       "value": "${{ env.DIFF_OUTPUT }}",
                       "short": false
-                    },
-                    {
-                      "title": "Branch:",
-                      "value": "${{ github.ref }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Commit:",
-                      "value": "${{ github.sha }}",
-                      "short": true
                     }
                   ]
                 }

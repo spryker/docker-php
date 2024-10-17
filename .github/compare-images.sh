@@ -42,9 +42,6 @@ docker run -i --rm "$CURRENT_TAG" sh -s <<'EOF' > current-output.txt
     apk info -vv | sort
 EOF
 
-# Pull the previous image if it exists and capture output
-docker pull "$PREVIOUS_TAG" || { echo "Previous image not found."; exit 0; }
-
 docker run -i --rm "$PREVIOUS_TAG" sh -s <<'EOF' > previous-output.txt
     # Output installed PHP extensions
     docker-php-source extract
