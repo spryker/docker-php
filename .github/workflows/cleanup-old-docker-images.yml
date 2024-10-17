@@ -1,0 +1,43 @@
+name: Cleanup Old Docker Images > 6 months by the scheduler
+
+on:
+  schedule:
+    - cron: '0 11 * * *'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Authenticate with Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: List Docker Hub images and delete old ones
+        run: |
+          REPO="spryker/php"
+          curl -s "https://hub.docker.com/v2/repositories/${REPO}/tags?page_size=1000" > tags.json
+          TODAY=$(date +%s)
+          THRESHOLD=$((180 * 24 * 60 * 60)) # 180 days in seconds
+
+          for TAG in $(jq -r '.results[] | @base64' < tags.json); do
+            _jq() {
+              echo ${TAG} | base64 --decode | jq -r ${1}
+            }
+
+            TAG_NAME=$(_jq '.name')
+            LAST_UPDATED=$(_jq '.last_updated')
+            LAST_UPDATED_DATE=$(date -d "${LAST_UPDATED}" +%s)
+
+            AGE=$((TODAY - LAST_UPDATED_DATE))
+
+            if [[ ${AGE} -ge ${THRESHOLD} ]]; then
+              echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
+               Delete the image using Docker Hub API
+#              curl -X DELETE \
+#                -u "${{ secrets.DOCKER_HUB_USERNAME }}:${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" \
+#                "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG_NAME}/"
+            fi
+          done
