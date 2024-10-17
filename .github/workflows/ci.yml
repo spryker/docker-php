@@ -35,6 +35,9 @@ jobs:
             NEW_TAG="${IMAGE_TAG}-${PREV_COMMIT_HASH}"
             echo "Re-tagging image to $NEW_TAG"
             docker tag "$IMAGE_TAG" "$NEW_TAG"
+          
+            echo "Removing the pulled image $IMAGE_TAG"
+            docker rmi "$IMAGE_TAG" || true
           fi
           echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV   
 
