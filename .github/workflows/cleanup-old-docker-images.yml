@@ -2,7 +2,7 @@ name: Cleanup Old Docker Images > 6 months by the scheduler
 
 on:
   push:
-    branches:
+    branches-ignore:
       - master
 
 jobs:
@@ -26,8 +26,10 @@ jobs:
           TODAY=$(date +%s)
           THRESHOLD=$((180 * 24 * 60 * 60)) # 180 days in seconds
           
+          # Regex pattern to match tags that end with a hash (40-character hexadecimal)
           HASH_PATTERN=".*-[a-f0-9]{40}$"
           IMAGES_DELETED=false
+          DELETED_IMAGES=""
 
           for TAG in $(jq -r '.results[] | @base64' < tags.json); do
             _jq() {
@@ -43,14 +45,47 @@ jobs:
             if [[ ${AGE} -ge ${THRESHOLD} ]] && [[ ${TAG_NAME} =~ ${HASH_PATTERN} ]]; then
               echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
               IMAGES_DELETED=true
-          
+              DELETED_IMAGES="${DELETED_IMAGES}\n${TAG_NAME}"
+
+              # Uncomment the following lines to enable image deletion
               curl -X DELETE \
                 -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
                 "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG_NAME}/"
-          
             fi
           done
 
           if [[ ${IMAGES_DELETED} == false ]]; then
             echo "No images matching the pattern were found for deletion."
+            echo "No images found" > deleted_images.txt
+          else
+            echo -e "Deleted images: ${DELETED_IMAGES}"
+            echo "${DELETED_IMAGES}" > deleted_images.txt
           fi
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Docker Cleanup completed for repository: ${{ github.repository }}",
+              "attachments": [
+                {
+                  "pretext": "Deleted Docker Images",
+                  "color": "${{ steps.cleanup.outcome == 'success' && 'good' || 'danger' }}",
+                  "fields": [
+                    {
+                      "title": "Outcome",
+                      "value": "${{ steps.cleanup.outcome == 'success' && 'Images were deleted' || 'No images deleted' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Deleted Images",
+                      "value": "$(cat deleted_images.txt)",
+                      "short": false
+                    },
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
