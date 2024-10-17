@@ -55,12 +55,16 @@ jobs:
           done
 
           if [[ ${IMAGES_DELETED} == false ]]; then
-            echo "No images matching the pattern were found for deletion."
-            echo "No images found" > deleted_images.txt
+            echo "No images found for deletion" > deleted_images.txt
           else
-            echo -e "Deleted images: ${DELETED_IMAGES}"
-            echo "${DELETED_IMAGES}" > deleted_images.txt
+            echo -e "Deleted images: ${DELETED_IMAGES}" > deleted_images.txt
           fi
+
+      - name: Read Deleted Images
+        id: read_deleted_images
+        run: |
+          DELETED_IMAGES=$(cat deleted_images.txt)
+          echo "::set-output name=deleted_images::$DELETED_IMAGES"
 
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.24.0
@@ -70,18 +74,23 @@ jobs:
               "text": "Docker Cleanup completed for repository: ${{ github.repository }}",
               "attachments": [
                 {
-                  "pretext": "Deleted Docker Images",
-                  "color": "${{ steps.cleanup.outcome == 'success' && 'good' || 'danger' }}",
+                  "pretext": "Docker Cleanup Results",
+                  "color": "good",
                   "fields": [
                     {
                       "title": "Outcome",
-                      "value": "${{ steps.cleanup.outcome == 'success' && 'Images were deleted' || 'No images deleted' }}",
+                      "value": "${{ steps.read_deleted_images.outputs.deleted_images }}",
+                      "short": false
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref }}",
                       "short": true
                     },
                     {
-                      "title": "Deleted Images",
-                      "value": "$(cat deleted_images.txt)",
-                      "short": false
+                      "title": "Commit",
+                      "value": "${{ github.sha }}",
+                      "short": true
                     }
                   ]
                 }
