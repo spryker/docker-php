@@ -2,7 +2,7 @@ name: Cleanup Old Docker Images > 6 months by the scheduler
 
 on:
   schedule:
-    - cron: '0 11 * * *'
+    - cron: '0 11 * * *' # Schedule to run at 11:00 UTC every day
   push:
     branches-ignore:
       - master
@@ -41,9 +41,7 @@ jobs:
 
             if [[ ${AGE} -ge ${THRESHOLD} ]]; then
               echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
-               Delete the image using Docker Hub API
-#              curl -X DELETE \
-#                -u "${{ secrets.DOCKER_HUB_USERNAME }}:${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}" \
-#                "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG_NAME}/"
+          
+              # Uncomment the following lines to enable image deletion
             fi
           done
