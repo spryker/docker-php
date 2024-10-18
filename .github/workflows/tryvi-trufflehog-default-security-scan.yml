@@ -5,6 +5,10 @@ on:
     branches-ignore:
       - master
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-scan-images-for-vulnerabilities:
     runs-on: ubuntu-latest

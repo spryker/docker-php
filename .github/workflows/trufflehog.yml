@@ -1,11 +1,13 @@
-name: Trufflehog security scan
+name: Trufflehog secrets scan
 
 on:
-#  schedule:
-#    - cron: '0 10 * * *'
   push:
     branches-ignore:
       - master
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   trufflehog-vulnerability-detection:
@@ -35,38 +37,3 @@ jobs:
             echo "Secrets were found by Trufflehog!"
             exit 1  # This will fail the workflow
           fi
-
-#      - name: Send Slack Notification
-#        if: github.event.schedule == '0 10 * * *'
-#        uses: slackapi/slack-github-action@v1.24.0
-#        with:
-#          payload: |
-#            {
-#              "text": "Trufflehog scan completed for ${{ github.repository }}",
-#              "attachments": [
-#                {
-#                  "pretext": "Trufflehog Scan Results",
-#                  "color": "${{ steps.trufflehog_scan.outcome == 'success' && 'good' || 'danger' }}",
-#                  "fields": [
-#                    {
-#                      "title": "Outcome",
-#                      "value": "${{ steps.trufflehog_scan.outcome == 'success' && 'No secrets found' || 'Secrets were found' }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Branch",
-#                      "value": "${{ github.ref }}",
-#                      "short": true
-#                    },
-#                    {
-#                      "title": "Commit",
-#                      "value": "${{ github.sha }}",
-#                      "short": true
-#                    }
-#                  ]
-#                }
-#              ]
-#            }
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

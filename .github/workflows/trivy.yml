@@ -1,9 +1,13 @@
-name: Trivy security scan
+name: Trivy secrets scan
 
 on:
   push:
     branches-ignore:
       - master
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   trivy-secrets-scan:

@@ -1,6 +1,10 @@
-name: CI
+name: CI/CD
 
 on: push
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -152,8 +156,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: ${{ env.DIFF_OUTPUT != '' }}
-#        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
