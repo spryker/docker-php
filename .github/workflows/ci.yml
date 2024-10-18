@@ -120,16 +120,6 @@ jobs:
             docker push $NEW_TAG
           done
 
-#      - name: Build for diff and push
-#        id: docker_build
-#        uses: docker/build-push-action@v2
-#        with:
-#          push: false
-#          load: true
-#          file: ${{ matrix.image }}
-#          tags: ${{ join(matrix.tags) }}
-#          platforms: "linux/amd64"
-
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
