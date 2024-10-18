@@ -16,7 +16,4 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
-          security-checks: 'secret'
-          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
-          ignore-unfixed: true
-          exit-code: '1'
+          trivy-config: .trivy/trivy.yaml
