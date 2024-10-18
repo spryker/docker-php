@@ -179,7 +179,7 @@ Disabled extensions
 ====================
  [ ] amqp 2.1.2
  [ ] blackfire 1.87.1~linux-musl-x64-non_zts82
- [ ] newrelic 10.22.0.12
+ [ ] newrelic 11.2.0.15
  [ ] pcov 1.0.11
  [ ] tideways 5.5.14
  [ ] xhprof 2.3.10
