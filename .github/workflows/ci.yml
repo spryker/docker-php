@@ -1,187 +1,187 @@
-#name: CI
-#
-#on: push
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          ## Alpine
-#          ### Alpine 3.17
-#          - image: "alpine/3.17/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-alpine3.17" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.17/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.17" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.17/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.17" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.18
-#          - image: "alpine/3.18/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.18/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.18/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.19
-#          - image: "alpine/3.19/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.19/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.19/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.20
-#          - image: "alpine/3.20/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.20/8.2/Dockerfile"
-#            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.20/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ## Debian
-#          ### Debian bullseye
-#          - image: "debian/bullseye/8.0/Dockerfile"
-#            tags: [ "spryker/php:8.0-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#    steps:
-#      - name: Check out repository
-#        uses: actions/checkout@v3
-#        with:
-#          fetch-depth: 0
-#
-#      - name: Get the previous commit hash
-#        id: previous_commit
-#        run: |
-#          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
-#            PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
-#          else
-#            PREV_COMMIT_HASH=$(git rev-parse origin/master)
-#            IMAGE_TAG="${{ matrix.tags[0] }}"
-#            echo "Pulling image $IMAGE_TAG"
-#            docker pull "$IMAGE_TAG"
-#
-#            NEW_TAG="${IMAGE_TAG}-${PREV_COMMIT_HASH}"
-#            echo "Re-tagging image to $NEW_TAG"
-#            docker tag "$IMAGE_TAG" "$NEW_TAG"
-#
-#            echo "Removing the pulled image $IMAGE_TAG"
-#            docker rmi "$IMAGE_TAG" || true
-#          fi
-#          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV
-#
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v2
-#
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v2
-#
-#      - name: Login to DockerHub
-#        uses: docker/login-action@v1
-#        with:
-#          username: ${{ secrets.DOCKER_USERNAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
-#
-#      - name: Re-tag images with previous commit hash
-#        if: ${{ github.ref == 'refs/heads/master' }}
-#        run: |
-#          PREV_HASH=${{ env.PREV_COMMIT_HASH }}
-#          IMAGE_TAGS="${{ join(matrix.tags, ' ') }}"
-#          for IMAGE_TAG in $IMAGE_TAGS; do
-#            docker pull "$IMAGE_TAG"
-#            NEW_TAG="${IMAGE_TAG}-${PREV_HASH}"
-#            docker tag "$IMAGE_TAG" "$NEW_TAG"
-#            echo "Re-tagged image: $NEW_TAG"
-#            docker push $NEW_TAG
-#          done
-#
-##      - name: Build for diff and push
-##        id: docker_build
-##        uses: docker/build-push-action@v2
-##        with:
-##          push: false
-##          load: true
-##          file: ${{ matrix.image }}
-##          tags: ${{ join(matrix.tags) }}
-##          platforms: "linux/amd64"
-#
-#      - name: Build and push
+name: CI
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          ## Alpine
+          ### Alpine 3.17
+          - image: "alpine/3.17/8.1/Dockerfile"
+            tags: [ "spryker/php:8.1-alpine3.17" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.17/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-alpine3.17" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.17/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-alpine3.17" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
+          ### Alpine 3.18
+          - image: "alpine/3.18/8.1/Dockerfile"
+            tags: [ "spryker/php:8.1-alpine3.18" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.18/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-alpine3.18" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.18/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-alpine3.18" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
+          ### Alpine 3.19
+          - image: "alpine/3.19/8.1/Dockerfile"
+            tags: [ "spryker/php:8.1-alpine3.19" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.19/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-alpine3.19" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.19/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-alpine3.19" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
+          ### Alpine 3.20
+          - image: "alpine/3.20/8.1/Dockerfile"
+            tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.20" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.20/8.2/Dockerfile"
+            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.20/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
+          ## Debian
+          ### Debian bullseye
+          - image: "debian/bullseye/8.0/Dockerfile"
+            tags: [ "spryker/php:8.0-debian" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "debian/bullseye/8.1/Dockerfile"
+            tags: [ "spryker/php:8.1-debian" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "debian/bullseye/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-debian" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "debian/bullseye/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-debian" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get the previous commit hash
+        id: previous_commit
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+          else
+            PREV_COMMIT_HASH=$(git rev-parse origin/master)
+            IMAGE_TAG="${{ matrix.tags[0] }}"
+            echo "Pulling image $IMAGE_TAG"
+            docker pull "$IMAGE_TAG"
+
+            NEW_TAG="${IMAGE_TAG}-${PREV_COMMIT_HASH}"
+            echo "Re-tagging image to $NEW_TAG"
+            docker tag "$IMAGE_TAG" "$NEW_TAG"
+
+            echo "Removing the pulled image $IMAGE_TAG"
+            docker rmi "$IMAGE_TAG" || true
+          fi
+          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Re-tag images with previous commit hash
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          PREV_HASH=${{ env.PREV_COMMIT_HASH }}
+          IMAGE_TAGS="${{ join(matrix.tags, ' ') }}"
+          for IMAGE_TAG in $IMAGE_TAGS; do
+            docker pull "$IMAGE_TAG"
+            NEW_TAG="${IMAGE_TAG}-${PREV_HASH}"
+            docker tag "$IMAGE_TAG" "$NEW_TAG"
+            echo "Re-tagged image: $NEW_TAG"
+            docker push $NEW_TAG
+          done
+
+#      - name: Build for diff and push
 #        id: docker_build
 #        uses: docker/build-push-action@v2
 #        with:
-#          push: ${{ github.ref == 'refs/heads/master' }}
-#          load: ${{ github.ref != 'refs/heads/master' }}
+#          push: false
+#          load: true
 #          file: ${{ matrix.image }}
 #          tags: ${{ join(matrix.tags) }}
-#          platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
-#
-#      - name: Current image report
-#        run: |
-#          CURRENT_TAG=${{ matrix.tags[0] }}
-#          bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
-#          cat current-image-report.txt
-#
-#      - name: Previous image report
-#        run: |
-#          PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
-#          bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
-#          cat previous-image-report.txt
-#
-#      - name: Run the diff
-#        run: |
-#          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt | sed ':a;N;$!ba;s/\n/\\n/g' || true)
-#          echo "$DIFF_OUTPUT"
-#
-#          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
-#          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
-#          echo "EOF" >> $GITHUB_ENV
-#
-#      - name: Send Slack Notification
-#        if: ${{ env.DIFF_OUTPUT != '' }}
-##        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
-#        uses: slackapi/slack-github-action@v1.24.0
-#        with:
-#          payload: |
-#            {
-#              "attachments": [
-#                {
-#                  "pretext": "Release changes for *spryker/php:${{ matrix.tags[0] }}*",
-#                  "color": "good",
-#                  "fields": [
-#                    {
-#                      "title": "Image diff:",
-#                      "value": "${{ env.DIFF_OUTPUT }}",
-#                      "short": false
-#                    }
-#                  ]
-#                }
-#              ]
-#            }
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+#          platforms: "linux/amd64"
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ github.ref == 'refs/heads/master' }}
+          load: ${{ github.ref != 'refs/heads/master' }}
+          file: ${{ matrix.image }}
+          tags: ${{ join(matrix.tags) }}
+          platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
+
+      - name: Current image report
+        run: |
+          CURRENT_TAG=${{ matrix.tags[0] }}
+          bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
+          cat current-image-report.txt
+
+      - name: Previous image report
+        run: |
+          PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
+          bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
+          cat previous-image-report.txt
+
+      - name: Run the diff
+        run: |
+          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt | sed ':a;N;$!ba;s/\n/\\n/g' || true)
+          echo "$DIFF_OUTPUT"
+
+          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
+          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Send Slack Notification
+        if: ${{ env.DIFF_OUTPUT != '' }}
+#        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "pretext": "Release changes for *spryker/php:${{ matrix.tags[0] }}*",
+                  "color": "good",
+                  "fields": [
+                    {
+                      "title": "Image diff:",
+                      "value": "${{ env.DIFF_OUTPUT }}",
+                      "short": false
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
