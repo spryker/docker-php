@@ -8,5 +8,5 @@ severity:
   - HIGH
   - CRITICAL
 exit-code: 1
-debug: true
 #ignorefile: .trivy/.trivyignore.yaml
+debug: true
