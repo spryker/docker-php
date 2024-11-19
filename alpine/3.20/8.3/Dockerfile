@@ -124,47 +124,47 @@ RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linu
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
     && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
-## New Relic
-#ENV NEWRELIC_ENABLED=0
-#ENV NEWRELIC_LICENSE=''
-#ENV NEWRELIC_APPNAME='Spryker'
-#ENV NEWRELIC_DISTRIBUTED_TRACING_ENABLED=0
-#ENV NEWRELIC_TRANSACTION_TRACER_ENABLED=0
-#ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
-#ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
-#ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
-#
-#RUN bash -c 'curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
-#  && export NR_INSTALL_USE_CP_NOT_LN=1 \
-#  && export NR_INSTALL_SILENT=1 \
-#  && /tmp/newrelic-php5-*/newrelic-install install \
-#  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
-#  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
-#  && rm /usr/local/etc/php/conf.d/newrelic.ini'
+# New Relic
+ENV NEWRELIC_ENABLED=0
+ENV NEWRELIC_LICENSE=''
+ENV NEWRELIC_APPNAME='Spryker'
+ENV NEWRELIC_DISTRIBUTED_TRACING_ENABLED=0
+ENV NEWRELIC_TRANSACTION_TRACER_ENABLED=0
+ENV NEWRELIC_SPAN_EVENTS_ENABLED=0
+ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
+ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
-## Tideways
-#ENV TIDEWAYS_APIKEY=''
-#ENV TIDEWAYS_DAEMON_URI=''
-#ENV TIDEWAYS_CLI_ENABLED=0
-#RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-#    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-#    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-#    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
-#
-#RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-#    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
-#    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
-#    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+RUN bash -c 'curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz" | tar -C /tmp -zx \
+  && export NR_INSTALL_USE_CP_NOT_LN=1 \
+  && export NR_INSTALL_SILENT=1 \
+  && /tmp/newrelic-php5-*/newrelic-install install \
+  && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+  && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+  && rm /usr/local/etc/php/conf.d/newrelic.ini'
 
-## GraphViz 7.0.5
-#RUN cd /tmp && \
-#    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
-#    cd /tmp/graphviz-7.0.5 && \
-#    ./configure && \
-#    make && \
-#    make install && \
-#    rm -rf /tmp/graphviz-7.0.5 && \
-#    apk del --no-cache .graphviz-build-deps
+# Tideways
+ENV TIDEWAYS_APIKEY=''
+ENV TIDEWAYS_DAEMON_URI=''
+ENV TIDEWAYS_CLI_ENABLED=0
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
+    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+
+# GraphViz 7.0.5
+RUN cd /tmp && \
+    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
+    cd /tmp/graphviz-7.0.5 && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf /tmp/graphviz-7.0.5 && \
+    apk del --no-cache .graphviz-build-deps
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
