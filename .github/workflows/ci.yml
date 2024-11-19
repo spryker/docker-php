@@ -14,17 +14,6 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.17
-          - image: "alpine/3.17/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.17" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.17/8.2/Dockerfile"
-            tags: [ "spryker/php:8.2-alpine3.17" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.17/8.3/Dockerfile"
-            tags: [ "spryker/php:8.3-alpine3.17" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-
           ### Alpine 3.18
           - image: "alpine/3.18/8.1/Dockerfile"
             tags: [ "spryker/php:8.1-alpine3.18" ]
