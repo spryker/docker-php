@@ -135,35 +135,36 @@ jobs:
           bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
           cat previous-image-report.txt
 
-      - name: Run the diff and format output
+      - name: Compare versions and generate diff
         run: |
           diff_section() {
           section="$1"
           current_file="current-image-report.txt"
           previous_file="previous-image-report.txt"
+    
+          # Extract specific section from the files
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
+    
+          # Compare lines and generate diff
           awk '
           BEGIN {
            FS = "- ";
-           ORS = "";
           }
           NR==FNR {
-           # Process the previous section
-           split($0, parts, "- ");
-           prev_pkgs[parts[1]] = $0;
+           prev_pkgs[$1] = $0;
            next;
           }
           {
-           # Process the current section
-           split($0, parts, "- ");
-           pkg_name = parts[1];
+           pkg_name = $1;
+           current_line = $0;
            if (pkg_name in prev_pkgs) {
              old_line = prev_pkgs[pkg_name];
              delete prev_pkgs[pkg_name];
-             if (old_line != $0) {
+             if (old_line != current_line) {
                split(old_line, old_parts, "- ");
-               printf "%s: %s -> %s\n", parts[2], old_parts[1], parts[1];
+               split(current_line, new_parts, "- ");
+               printf "%s: %s -> %s\n", new_parts[2], old_parts[1], new_parts[1];
              }
            }
           }
@@ -179,11 +180,14 @@ jobs:
            FORMATTED_DIFF+="$section_diff\n"
           fi
           done
+          
+          # Print and export the diff
           echo "Formatted Diff Output:"
           echo -e "$FORMATTED_DIFF"
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
 
 
       - name: Send Slack Notification
