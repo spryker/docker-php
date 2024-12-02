@@ -143,7 +143,7 @@ jobs:
           previous_file="previous-image-report.txt"
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
-          awk -v section="$section" '
+          awk '
           BEGIN {
            FS = "- ";
            ORS = "";
@@ -161,17 +161,17 @@ jobs:
              if (old_line != current_line) {
                split(old_line, old_parts, "- ");
                split(current_line, new_parts, "- ");
-               printf "%s %s -> %s\n", pkg_name, old_parts[2], new_parts[2];
+               printf "%s %s -> %s\n", old_parts[2], old_parts[1], new_parts[1];
              }
            } else {
              split(current_line, new_parts, "- ");
-             printf "%s %s -> (added)\n", pkg_name, new_parts[2];
+             printf "%s %s -> (added)\n", new_parts[2], new_parts[1];
            }
           }
           END {
            for (pkg_name in prev_pkgs) {
              split(prev_pkgs[pkg_name], old_parts, "- ");
-             printf "%s %s -> (removed)\n", pkg_name, old_parts[2];
+             printf "%s %s -> (removed)\n", old_parts[2], old_parts[1];
            }
           }
           ' <(echo "$previous_section") <(echo "$current_section")
@@ -191,6 +191,7 @@ jobs:
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
 
       - name: Send Slack Notification
 #        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
