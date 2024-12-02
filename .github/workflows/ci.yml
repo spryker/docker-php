@@ -159,31 +159,19 @@ jobs:
              old_line = prev_pkgs[pkg_name];
              delete prev_pkgs[pkg_name];
              if (old_line != current_line) {
-               if (section == "Installed System Packages") {
-                 split(old_line, old_parts, "- ");
-                 split(current_line, new_parts, "- ");
-                 printf "%s %s -> %s\n", old_parts[2], old_parts[1], new_parts[1];
-               } else if (section == "PECL Extensions") {
-                 split(old_line, old_parts, " ");
-                 split(current_line, new_parts, " ");
-                 printf "%s: %s %s -> %s %s\n", old_parts[1], old_parts[2], old_parts[3], new_parts[2], new_parts[3];
-               } else if (section == "Disabled PHP Extensions") {
-                 split(old_line, old_parts, " ");
-                 split(current_line, new_parts, " ");
-                 printf "%s: %s -> %s\n", old_parts[3], old_parts[4], new_parts[4];
-               } else if (section == "Alpine Version") {
-                 printf "Alpine version: %s -> %s\n", old_line, current_line;
-               } else {
-                 printf "%s -> %s\n", old_line, current_line;
-               }
+               split(old_line, old_parts, "- ");
+               split(current_line, new_parts, "- ");
+               printf "%s %s -> %s\n", pkg_name, old_parts[2], new_parts[2];
              }
            } else {
-             printf "(added) %s\n", current_line;
+             split(current_line, new_parts, "- ");
+             printf "%s %s -> (added)\n", pkg_name, new_parts[2];
            }
           }
           END {
            for (pkg_name in prev_pkgs) {
-             printf "(removed) %s\n", prev_pkgs[pkg_name];
+             split(prev_pkgs[pkg_name], old_parts, "- ");
+             printf "%s %s -> (removed)\n", pkg_name, old_parts[2];
            }
           }
           ' <(echo "$previous_section") <(echo "$current_section")
