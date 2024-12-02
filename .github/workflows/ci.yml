@@ -141,13 +141,19 @@ jobs:
           section="$1"
           current_file="current-image-report.txt"
           previous_file="previous-image-report.txt"
-    
+        
           # Extract specific section from the files
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
-    
+        
+          # Debug section extraction
+          echo "DEBUG: Current section for $section"
+          echo "$current_section"
+          echo "DEBUG: Previous section for $section"
+          echo "$previous_section"
+        
           # Compare lines and generate diff
-          awk '
+          section_diff=$(awk '
           BEGIN {
            FS = "- ";
           }
@@ -168,7 +174,13 @@ jobs:
              }
            }
           }
-          ' <(echo "$previous_section") <(echo "$current_section")
+          ' <(echo "$previous_section") <(echo "$current_section"))
+        
+          # Debug awk output
+          echo "DEBUG: Diff output for $section"
+          echo "$section_diff"
+        
+          echo "$section_diff"
           }
           
           SECTIONS=("Alpine Version" "Installed PHP Extensions" "Disabled PHP Extensions" "PECL Extensions" "Installed System Packages")
@@ -178,10 +190,10 @@ jobs:
           if [[ -n "$section_diff" ]]; then
            FORMATTED_DIFF+="=== $section Diff ===\n"
            FORMATTED_DIFF+="$section_diff\n"
+           echo "DEBUG: Appended diff for $section\n$section_diff\n"
           fi
           done
           
-          # Print and export the diff
           echo "Formatted Diff Output:"
           echo -e "$FORMATTED_DIFF"
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
