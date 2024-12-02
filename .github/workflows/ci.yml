@@ -137,44 +137,60 @@ jobs:
 
       - name: Run the diff and format output
         run: |
-          # Function to extract and diff sections
           diff_section() {
           section="$1"
           current_file="current-image-report.txt"
           previous_file="previous-image-report.txt"
-          
-          # Extract the specific section from current and previous files
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
-    
-          # Generate formatted diff
-          diff <(echo "$previous_section") <(echo "$current_section") | awk '
-           /^</ {
-             old_line=$0;
-             sub(/^<\s*/, "", old_line);  # Remove leading marker
-             old_data = old_line;
-           }
-           /^>/ {
-             new_line=$0;
-             sub(/^>\s*/, "", new_line);  # Remove leading marker
-             new_data = new_line;
-             if (old_data != "") {
-               print old_data " -> " new_data;  # Combine old and new data in one line
-             } else {
-               print new_data " (added)";
+          awk -v section="$section" '
+          BEGIN {
+           FS = "- ";
+           ORS = "";
+          }
+          NR==FNR {
+           prev_pkgs[$1] = $0;
+           next;
+          }
+          {
+           pkg_name = $1;
+           current_line = $0;
+           if (pkg_name in prev_pkgs) {
+             old_line = prev_pkgs[pkg_name];
+             delete prev_pkgs[pkg_name];
+             if (old_line != current_line) {
+               if (section == "Installed System Packages") {
+                 split(old_line, old_parts, "- ");
+                 split(current_line, new_parts, "- ");
+                 printf "%s %s -> %s\n", old_parts[2], old_parts[1], new_parts[1];
+               } else if (section == "PECL Extensions") {
+                 split(old_line, old_parts, " ");
+                 split(current_line, new_parts, " ");
+                 printf "%s: %s %s -> %s %s\n", old_parts[1], old_parts[2], old_parts[3], new_parts[2], new_parts[3];
+               } else if (section == "Disabled PHP Extensions") {
+                 split(old_line, old_parts, " ");
+                 split(current_line, new_parts, " ");
+                 printf "%s: %s -> %s\n", old_parts[3], old_parts[4], new_parts[4];
+               } else if (section == "Alpine Version") {
+                 printf "Alpine version: %s -> %s\n", old_line, current_line;
+               } else {
+                 printf "%s -> %s\n", old_line, current_line;
+               }
              }
-             old_data = "";  # Reset old_data
+           } else {
+             printf "(added) %s\n", current_line;
            }
-          '
+          }
+          END {
+           for (pkg_name in prev_pkgs) {
+             printf "(removed) %s\n", prev_pkgs[pkg_name];
+           }
+          }
+          ' <(echo "$previous_section") <(echo "$current_section")
           }
           
-          # Sections to diff
           SECTIONS=("Alpine Version" "Installed PHP Extensions" "Disabled PHP Extensions" "PECL Extensions" "Installed System Packages")
-          
-          # Initialize formatted diff
           FORMATTED_DIFF=""
-          
-          # Generate diff for each section
           for section in "${SECTIONS[@]}"; do
           section_diff=$(diff_section "$section")
           if [[ -n "$section_diff" ]]; then
@@ -182,12 +198,8 @@ jobs:
            FORMATTED_DIFF+="$section_diff\n"
           fi
           done
-          
-          # Print the formatted diff
           echo "Formatted Diff Output:"
           echo -e "$FORMATTED_DIFF"
-          
-          # Export the formatted diff for Slack notification
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
