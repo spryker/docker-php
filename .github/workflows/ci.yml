@@ -146,6 +146,9 @@ jobs:
               /^>/ { new=$0; sub(/^>\s*\[?\s*\]?\s*/, "", new); new_name_ver=new; sub(/ - .*/, "", new_name_ver); version_new=substr(new, length(name)+2); printf "- %s: %s -> %s\n", name, version_old, version_new }
           ')
           
+          echo "Formatted Diff Output:"
+          echo "$FORMATTED_DIFF"
+          
           # Export the formatted diff for Slack notification
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo "$FORMATTED_DIFF" >> $GITHUB_ENV
