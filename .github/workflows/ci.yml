@@ -140,23 +140,24 @@ jobs:
           # Get the diff output
           DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt || true)
           
-          # Parse the diff output into a structured format
+          # Parse the diff and format the output
           FORMATTED_DIFF=$(echo "$DIFF_OUTPUT" | awk '
-            /^</ {
-            old_line=$0;
-            sub(/^<\s*\[?\s*\]?\s*/, "", old_line);
-            split(old_line, old_parts, "-");
-            package=old_parts[1];
-            version_old=old_parts[2];
-            gsub(/^ +| +$/, "", package);  # Trim spaces
-          }
-            /^>/ {
-            new_line=$0;
-            sub(/^>\s*\[?\s*\]?\s*/, "", new_line);
-            split(new_line, new_parts, "-");
-            version_new=new_parts[2];
-            printf "- %s: %s -> %s\n", package, version_old, version_new;
-          }
+              /^</ {
+              old_line=$0;
+              sub(/^<\s*/, "", old_line);  # Remove leading diff marker
+              split(old_line, old_parts, "-");
+              package=old_parts[1];  # Extract package name
+              version_old=old_parts[2];  # Extract version
+              description_old=substr(old_line, index(old_line, "-") + 1);  # Extract description
+            }
+              /^>/ {
+              new_line=$0;
+              sub(/^>\s*/, "", new_line);  # Remove leading diff marker
+              split(new_line, new_parts, "-");
+              version_new=new_parts[2];  # Extract version
+              description_new=substr(new_line, index(new_line, "-") + 1);  # Extract description
+            printf "- %s: %s -> %s (%s)\n", package, version_old, version_new, description_new;  # Format output
+            }
           ')
           
           echo "Formatted Diff Output:"
