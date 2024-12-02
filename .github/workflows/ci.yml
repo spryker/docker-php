@@ -142,8 +142,24 @@ jobs:
           
           # Parse the diff output into a structured format
           FORMATTED_DIFF=$(echo "$DIFF_OUTPUT" | awk '
-              /^</ { old=$0; sub(/^<\s*\[?\s*\]?\s*/, "", old); old_name_ver=old; sub(/ - .*/, "", old_name_ver); name=old_name_ver; sub(/ .*/, "", name); version_old=substr(old, length(name)+2) }
-              /^>/ { new=$0; sub(/^>\s*\[?\s*\]?\s*/, "", new); new_name_ver=new; sub(/ - .*/, "", new_name_ver); version_new=substr(new, length(name)+2); printf "- %s: %s -> %s\n", name, version_old, version_new }
+              /^</ { 
+                  old=$0; 
+                  sub(/^<\s*\[?\s*\]?\s*/, "", old); 
+                  name_ver=old; 
+                  sub(/ - .*/, "", name_ver); 
+                  split(name_ver, parts, "-"); 
+                  name=parts[1]; 
+                  version_old=parts[2]; 
+              }
+              /^>/ { 
+                  new=$0; 
+                  sub(/^>\s*\[?\s*\]?\s*/, "", new); 
+                  name_ver=new; 
+                  sub(/ - .*/, "", name_ver); 
+                  split(name_ver, parts, "-"); 
+                  version_new=parts[2]; 
+                  printf "- %s: %s -> %s\n", name, version_old, version_new 
+              }
           ')
           
           echo "Formatted Diff Output:"
