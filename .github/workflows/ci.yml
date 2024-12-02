@@ -136,52 +136,7 @@ jobs:
           cat previous-image-report.txt
 
       - name: Run the diff and format output
-        run: |
-          diff_section() {
-          section="$1"
-          current_file="current-image-report.txt"
-          previous_file="previous-image-report.txt"
-    
-          current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '1d;$d')
-          previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '1d;$d')
-    
-          if [[ "$section" == "Installed System Packages" ]]; then
-           # Special formatting for Installed System Packages
-           diff_output=$(diff <(echo "$previous_section") <(echo "$current_section") | awk '
-           /^</ { old_line = substr($0, 3); split(old_line, parts, " - "); old_pkg = parts[1]; old_version_desc = parts[2]; }
-           /^>/ { new_line = substr($0, 3); split(new_line, parts, " - "); new_pkg = parts[1]; new_version_desc = parts[2];
-             if (old_pkg == new_pkg) {
-               print old_pkg ": " old_version_desc " -> " new_version_desc;
-             }
-           }')
-          else
-           # Generic formatting for other sections
-           diff_output=$(diff <(echo "$previous_section") <(echo "$current_section") | awk '
-           /^</ { old_line = substr($0, 3); }
-           /^>/ { new_line = substr($0, 3); print old_line " -> " new_line; }')
-          fi
-    
-          echo "$diff_output"
-          }
-          
-          # Initialize formatted diff
-          SECTIONS=("Alpine Version" "Installed PHP Extensions" "Disabled PHP Extensions" "PECL Extensions" "Installed System Packages")
-          FORMATTED_DIFF=""
-          
-          for section in "${SECTIONS[@]}"; do
-          section_diff=$(diff_section "$section")
-          if [[ -n "$section_diff" ]]; then
-           FORMATTED_DIFF+="=== $section Diff ===\n"
-           FORMATTED_DIFF+="$section_diff\n"
-          fi
-          done
-          
-          echo -e "Formatted Diff Output:\n$FORMATTED_DIFF"
-          
-          # Export the formatted diff for Slack notification
-          echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
-          echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+        run: bash .github/format-output.sh
 
       - name: Send Slack Notification
 #        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
