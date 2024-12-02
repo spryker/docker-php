@@ -139,19 +139,18 @@ jobs:
         run: bash .github/format-output.sh
 
       - name: Send Slack Notification
-#        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
               "attachments": [
                 {
-                  "pretext": "New version of image *spryker/php:${{ matrix.tags[0] }}* has been published.",
                   "color": "good",
                   "fields": [
                     {
-                      "title": "Release changes for *spryker/php:${{ matrix.tags[0] }}*:",
-                      "value": "${{ env.FORMATTED_DIFF }}",
+                      "title": "New version of image *spryker/php:${{ matrix.tags[0] }}* has been published.",
+                      "value": "Release changes for *spryker/php:${{ matrix.tags[0] }}*: \n${{ env.FORMATTED_DIFF }}",
                       "short": false
                     }
                   ]
