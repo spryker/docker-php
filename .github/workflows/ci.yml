@@ -137,35 +137,44 @@ jobs:
 
       - name: Run the diff and format output
         run: |
-          # Get the diff output
-          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt || true)
+          diff_section() {
+          section="$1"
+          current_file="current-image-report.txt"
+          previous_file="previous-image-report.txt"
           
-          # Parse the diff and format the output
-          FORMATTED_DIFF=$(echo "$DIFF_OUTPUT" | awk '
-              /^</ {
-              old_line=$0;
-              sub(/^<\s*/, "", old_line);  # Remove leading diff marker
-              split(old_line, old_parts, "-");
-              package=old_parts[1];  # Extract package name
-              version_old=old_parts[2];  # Extract version
-              description_old=substr(old_line, index(old_line, "-") + 1);  # Extract description
-            }
-              /^>/ {
-              new_line=$0;
-              sub(/^>\s*/, "", new_line);  # Remove leading diff marker
-              split(new_line, new_parts, "-");
-              version_new=new_parts[2];  # Extract version
-              description_new=substr(new_line, index(new_line, "-") + 1);  # Extract description
-            printf "- %s: %s -> %s (%s)\n", package, version_old, version_new, description_new;  # Format output
-            }
-          ')
+          current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
+          previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
+    
+          echo "=== $section Diff ==="
+          diff <(echo "$previous_section") <(echo "$current_section") | awk '
+           /^</ {
+             old_line=$0;
+             sub(/^<\s*/, "", old_line);
+             print "- OLD: " old_line;
+           }
+           /^>/ {
+             new_line=$0;
+             sub(/^>\s*/, "", new_line);
+             print "- NEW: " new_line;
+           }
+          '
+          echo
+          }
+          
+          SECTIONS=("Alpine Version" "Installed PHP Extensions" "Disabled PHP Extensions" "PECL Extensions" "Installed System Packages")
+          
+          FORMATTED_DIFF=""
+          
+          for section in "${SECTIONS[@]}"; do
+          section_diff=$(diff_section "$section")
+          FORMATTED_DIFF+="$section_diff\n"
+          done
           
           echo "Formatted Diff Output:"
-          echo "$FORMATTED_DIFF"
+          echo -e "$FORMATTED_DIFF"
           
-          # Export the formatted diff for Slack notification
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
-          echo "$FORMATTED_DIFF" >> $GITHUB_ENV
+          echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - name: Send Slack Notification
