@@ -135,71 +135,59 @@ jobs:
           bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
           cat previous-image-report.txt
 
-      - name: Compare versions and generate diff
+      - name: Run the diff and format output
         run: |
           diff_section() {
           section="$1"
           current_file="current-image-report.txt"
           previous_file="previous-image-report.txt"
-        
-          # Extract specific section from the files
+    
+          # Extract section content
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
-        
-          # Debug section extraction
-          echo "DEBUG: Current section for $section"
+    
+          echo "DEBUG: Extracted current section for $section:"
           echo "$current_section"
-          echo "DEBUG: Previous section for $section"
+          echo "DEBUG: Extracted previous section for $section:"
           echo "$previous_section"
-        
-          # Compare lines and generate diff
-          section_diff=$(awk '
-          BEGIN {
-           FS = "- ";
+    
+          # Compare extracted sections
+          diff_output=$(diff <(echo "$previous_section") <(echo "$current_section") | awk '
+          /^</ {
+           old_line = substr($0, 3);  # Remove "< " prefix
           }
-          NR==FNR {
-           prev_pkgs[$1] = $0;
-           next;
-          }
-          {
-           pkg_name = $1;
-           current_line = $0;
-           if (pkg_name in prev_pkgs) {
-             old_line = prev_pkgs[pkg_name];
-             delete prev_pkgs[pkg_name];
-             if (old_line != current_line) {
-               split(old_line, old_parts, "- ");
-               split(current_line, new_parts, "- ");
-               printf "%s: %s -> %s\n", new_parts[2], old_parts[1], new_parts[1];
-             }
+          /^>/ {
+           new_line = substr($0, 3);  # Remove "> " prefix
+           if (old_line != "") {
+             print old_line " -> " new_line;
+             old_line = "";
            }
-          }
-          ' <(echo "$previous_section") <(echo "$current_section"))
-        
-          # Debug awk output
-          echo "DEBUG: Diff output for $section"
-          echo "$section_diff"
-        
-          echo "$section_diff"
+          }')
+    
+          echo "DEBUG: Diff output for $section:"
+          echo "$diff_output"
+    
+          echo "$diff_output"
           }
           
+          # Initialize formatted diff
           SECTIONS=("Alpine Version" "Installed PHP Extensions" "Disabled PHP Extensions" "PECL Extensions" "Installed System Packages")
           FORMATTED_DIFF=""
+          
           for section in "${SECTIONS[@]}"; do
           section_diff=$(diff_section "$section")
           if [[ -n "$section_diff" ]]; then
            FORMATTED_DIFF+="=== $section Diff ===\n"
            FORMATTED_DIFF+="$section_diff\n"
-           echo "DEBUG: Appended diff for $section\n$section_diff\n"
           fi
           done
           
-          echo "Formatted Diff Output:"
-          echo -e "$FORMATTED_DIFF"
+          echo -e "Formatted Diff Output:\n$FORMATTED_DIFF"
+          
+          # Export the formatted diff for Slack notification
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-
 
 
       - name: Send Slack Notification
