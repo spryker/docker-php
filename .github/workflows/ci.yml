@@ -137,42 +137,57 @@ jobs:
 
       - name: Run the diff and format output
         run: |
+          # Function to extract and diff sections
           diff_section() {
           section="$1"
           current_file="current-image-report.txt"
           previous_file="previous-image-report.txt"
           
+          # Extract the specific section from current and previous files
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
     
-          echo "=== $section Diff ==="
+          # Generate formatted diff
           diff <(echo "$previous_section") <(echo "$current_section") | awk '
            /^</ {
              old_line=$0;
-             sub(/^<\s*/, "", old_line);
-             print "- OLD: " old_line;
+             sub(/^<\s*/, "", old_line);  # Remove leading marker
+             old_data = old_line;
            }
            /^>/ {
              new_line=$0;
-             sub(/^>\s*/, "", new_line);
-             print "- NEW: " new_line;
+             sub(/^>\s*/, "", new_line);  # Remove leading marker
+             new_data = new_line;
+             if (old_data != "") {
+               print old_data " -> " new_data;  # Combine old and new data in one line
+             } else {
+               print new_data " (added)";
+             }
+             old_data = "";  # Reset old_data
            }
           '
-          echo
           }
           
+          # Sections to diff
           SECTIONS=("Alpine Version" "Installed PHP Extensions" "Disabled PHP Extensions" "PECL Extensions" "Installed System Packages")
           
+          # Initialize formatted diff
           FORMATTED_DIFF=""
           
+          # Generate diff for each section
           for section in "${SECTIONS[@]}"; do
           section_diff=$(diff_section "$section")
-          FORMATTED_DIFF+="$section_diff\n"
+          if [[ -n "$section_diff" ]]; then
+           FORMATTED_DIFF+="=== $section Diff ===\n"
+           FORMATTED_DIFF+="$section_diff\n"
+          fi
           done
           
+          # Print the formatted diff
           echo "Formatted Diff Output:"
           echo -e "$FORMATTED_DIFF"
           
+          # Export the formatted diff for Slack notification
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
