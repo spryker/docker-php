@@ -135,29 +135,36 @@ jobs:
           bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
           cat previous-image-report.txt
 
-      - name: Run the diff
+      - name: Run the diff and format output
         run: |
-          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt | sed ':a;N;$!ba;s/\n/\\n/g' || true)
-          echo "$DIFF_OUTPUT"
-
-          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
-          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
+          # Get the diff output
+          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt || true)
+          
+          # Parse the diff output into a structured format
+          FORMATTED_DIFF=$(echo "$DIFF_OUTPUT" | awk '
+              /^</ { old=$0; sub(/^<\s*\[?\s*\]?\s*/, "", old); old_name_ver=old; sub(/ - .*/, "", old_name_ver); name=old_name_ver; sub(/ .*/, "", name); version_old=substr(old, length(name)+2) }
+              /^>/ { new=$0; sub(/^>\s*\[?\s*\]?\s*/, "", new); new_name_ver=new; sub(/ - .*/, "", new_name_ver); version_new=substr(new, length(name)+2); printf "- %s: %s -> %s\n", name, version_old, version_new }
+          ')
+          
+          # Export the formatted diff for Slack notification
+          echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
+          echo "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - name: Send Slack Notification
-        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+#        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
               "attachments": [
                 {
-                  "pretext": "Release changes for *spryker/php:${{ matrix.tags[0] }}*",
+                  "pretext": "New version of image *spryker/php:${{ matrix.tags[0] }}* has been published.",
                   "color": "good",
                   "fields": [
                     {
-                      "title": "Image diff:",
-                      "value": "${{ env.DIFF_OUTPUT }}",
+                      "title": "Release changes for *spryker/php:${{ matrix.tags[0] }}*:",
+                      "value": "${{ env.FORMATTED_DIFF }}",
                       "short": false
                     }
                   ]
