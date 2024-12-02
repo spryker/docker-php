@@ -142,22 +142,24 @@ jobs:
           current_file="current-image-report.txt"
           previous_file="previous-image-report.txt"
     
-          # Extract section content
           current_section=$(sed -n "/=== $section ===/,/=== /p" "$current_file" | sed '$d')
           previous_section=$(sed -n "/=== $section ===/,/=== /p" "$previous_file" | sed '$d')
     
-          # Compare extracted sections
-          diff_output=$(diff <(echo "$previous_section") <(echo "$current_section") | awk '
-          /^</ {
-           old_line = substr($0, 3);  # Remove "< " prefix
-          }
-          /^>/ {
-           new_line = substr($0, 3);  # Remove "> " prefix
-           if (old_line != "") {
-             print old_line " -> " new_line;
-             old_line = "";
-           }
-          }')
+          if [[ "$section" == "Installed System Packages" ]]; then
+           # Special formatting for Installed System Packages
+           diff_output=$(diff <(echo "$previous_section") <(echo "$current_section") | awk '
+           /^</ { old_line = substr($0, 3); split(old_line, parts, " - "); old_pkg = parts[1]; old_desc = parts[2]; }
+           /^>/ { new_line = substr($0, 3); split(new_line, parts, " - "); new_pkg = parts[1]; new_desc = parts[2]; 
+             if (old_pkg == new_pkg) {
+               print new_pkg ": " old_pkg " -> " new_pkg;
+             }
+           }')
+          else
+           # Generic formatting for other sections
+           diff_output=$(diff <(echo "$previous_section") <(echo "$current_section") | awk '
+           /^</ { old_line = substr($0, 3); }
+           /^>/ { new_line = substr($0, 3); print old_line " -> " new_line; }')
+          fi
     
           echo "$diff_output"
           }
@@ -180,8 +182,6 @@ jobs:
           echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
           echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-
-
 
       - name: Send Slack Notification
 #        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
