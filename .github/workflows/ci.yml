@@ -124,6 +124,7 @@ jobs:
           platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
 
       - name: Current image report
+        id: manifest
         run: |
           CURRENT_TAG=${{ matrix.tags[0] }}
           bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
@@ -135,14 +136,23 @@ jobs:
           bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
           cat previous-image-report.txt
 
-      - name: Run the diff
-        run: |
-          DIFF_OUTPUT=$(diff current-image-report.txt previous-image-report.txt | sed ':a;N;$!ba;s/\n/\\n/g' || true)
-          echo "$DIFF_OUTPUT"
+      - name: Run the diff and format output
+        id: diff
+        run: bash .github/format-output.sh
 
-          echo "DIFF_OUTPUT<<EOF" >> $GITHUB_ENV
-          echo "$DIFF_OUTPUT" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+      - name: Fetch Job ID
+        id: fetch_job_id
+        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          JOBS_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
+          echo "$JOBS_JSON" > jobs-response.json
+          cat jobs-response.json
+          JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
+          echo "Extracted Job ID: $JOB_ID"
+          echo "::set-output name=job_id::$JOB_ID"
 
       - name: Send Slack Notification
         if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
@@ -152,12 +162,11 @@ jobs:
             {
               "attachments": [
                 {
-                  "pretext": "Release changes for *spryker/php:${{ matrix.tags[0] }}*",
-                  "color": "good",
+                  "color": "good", 
                   "fields": [
                     {
-                      "title": "Image diff:",
-                      "value": "${{ env.DIFF_OUTPUT }}",
+                      "title": "New version of ${{ matrix.tags[0] }} has been published",
+                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
                       "short": false
                     }
                   ]
