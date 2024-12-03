@@ -68,6 +68,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Print All Environment Variables
+        run: printenv
+
       - name: Get the previous commit hash
         id: previous_commit
         run: |
