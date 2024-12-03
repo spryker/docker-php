@@ -142,23 +142,23 @@ jobs:
       - name: Send Slack Notification
         # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
         uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "good", 
-                  "fields": [
-                    {
-                      "title": "New version of spryker/php:${{ matrix.tags[0] }} has been published.",
-                      "value": "You can check the [manifest](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) and [diff](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#step:diff:1) between the new and current version.\nThis version was built out of [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).",
-                      "short": false
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          with:
+            payload: |
+              {
+                "attachments": [
+                  {
+                    "color": "good", 
+                    "fields": [
+                      {
+                        "title": "New version of spryker/php:${{ matrix.tags[0] }} has been published",
+                        "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }}-${{ github.run_number }}|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }}-${{ github.run_number }}#step:diff:1|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
+                        "short": false
+                      }
+                    ]
+                  }
+                ]
+              }
+          env:
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+            SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
