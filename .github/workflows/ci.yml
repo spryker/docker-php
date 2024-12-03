@@ -141,6 +141,22 @@ jobs:
         id: diff
         run: bash .github/format-output.sh
 
+      - name: Get Job ID using REST API
+        # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        id: fetch_job_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          JOB_NAME="build" # This should match your job ID in the workflow
+          RUN_ID=${{ github.run_id }}
+          REPO=${{ github.repository }}
+          JOB_INFO=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs" \
+            | jq -r --arg JOB_NAME "$JOB_NAME" '.jobs[] | select(.name == $JOB_NAME) | .id')
+          echo "job_id=$JOB_INFO" >> $GITHUB_ENV
+          echo "job_id ID: $JOB_INFO"
+
+
       - name: Send Slack Notification
         # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
         uses: slackapi/slack-github-action@v1.24.0
@@ -153,7 +169,7 @@ jobs:
                   "fields": [
                     {
                       "title": "New version of spryker/php:${{ matrix.tags[0] }} has been published",
-                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ job.container.id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ job.container.id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
+                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
                       "short": false
                     }
                   ]
