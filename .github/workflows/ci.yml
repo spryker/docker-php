@@ -129,7 +129,6 @@ jobs:
           CURRENT_TAG=${{ matrix.tags[0] }}
           bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
           cat current-image-report.txt
-#          echo "step_id=$(echo $GITHUB_STEP_ID)" >> $GITHUB_OUTPUT
 
       - name: Previous image report
         run: |
@@ -153,7 +152,7 @@ jobs:
           cat jobs-response.json
           JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
           echo "Extracted Job ID: $JOB_ID"
-          echo "job_id=$JOB_ID" >> $GITHUB_ENV
+          echo "::set-output name=job_id::$JOB_ID"
 
       - name: Send Slack Notification
         # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}

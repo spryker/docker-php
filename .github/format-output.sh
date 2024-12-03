@@ -71,5 +71,3 @@ echo -e "Formatted Diff Output:\n$FORMATTED_DIFF"
 echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
 echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
 echo "EOF" >> $GITHUB_ENV
-
-#echo "step_id=$(echo $GITHUB_STEP_ID)" >> $GITHUB_OUTPUT
