@@ -76,22 +76,19 @@ jobs:
           # Fetch job details for the current run
           JOBS_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
-
-          # Debug the full response
+          
+          # Save API response for debugging
           echo "$JOBS_JSON" > jobs-response.json
           cat jobs-response.json
-
-          # Safely extract the job ID using jq
-          JOB_ID=$(echo "$JOBS_JSON" | jq -r --arg JOB_NAME "fetch-job-id" '.jobs[]? | select(.name == $JOB_NAME) | .id')
-
-          # Handle cases where the job ID is not found
-          if [ -z "$JOB_ID" ]; then
-            echo "Error: Could not find job ID for job named 'fetch-job-id'."
-            exit 1
-          fi
-
+          
+          # Extract the first job ID (replace logic if selecting a specific job by name)
+          JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
+          
+          # Debug output
+          echo "Extracted Job ID: $JOB_ID"
+          
+          # Save to environment for future steps
           echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
-          echo "Job ID: $JOB_ID"
 
       - name: Get the previous commit hash
         id: previous_commit
