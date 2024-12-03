@@ -10,7 +10,7 @@ IMAGE_TAG=$1
 if [[ "$IMAGE_TAG" == *"debian"* ]]; then
   docker run -i --rm "$IMAGE_TAG" sh -s <<'EOF'
       echo "=== PHP Version ==="
-      /usr/local/bin/php -v | awk 'NR==1 {print $1, $2}
+      /usr/local/bin/php -v | awk 'NR==1 {print $1, $2}'
 
       echo ""
       echo "=== Debian Version ==="
@@ -45,7 +45,7 @@ EOF
 else
   docker run -i --rm "$IMAGE_TAG" sh -s <<'EOF'
       echo "=== PHP Version ==="
-      /usr/local/bin/php -v | awk 'NR==1 {print $1, $2}
+      /usr/local/bin/php -v | awk 'NR==1 {print $1, $2}'
 
       echo ""
       echo "=== Alpine Version ==="

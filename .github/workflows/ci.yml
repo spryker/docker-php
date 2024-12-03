@@ -140,7 +140,7 @@ jobs:
         run: bash .github/format-output.sh
 
       - name: Send Slack Notification
-#        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -152,7 +152,7 @@ jobs:
                   "fields": [
                     {
                       "title": "New version of spryker/php:${{ matrix.tags[0] }} has been published.",
-                      "value": "You can check the [diff](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#step:9:1) between the new and current version.\\nThis version was built out of [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).",
+                      "value": "You can check the [pipeline diff step](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#step:9:1) between the new and current version.\\nThis version was built out of [commit hash](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).",
                       "short": false
                     }
                   ]

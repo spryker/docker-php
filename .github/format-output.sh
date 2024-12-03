@@ -61,8 +61,8 @@ FORMATTED_DIFF=""
 for section in "${SECTIONS[@]}"; do
   section_diff=$(diff_section "$section")
   if [[ -n "$section_diff" ]]; then
-    FORMATTED_DIFF+="=== $section ===\n"
-    FORMATTED_DIFF+="$section_diff\n"
+    FORMATTED_DIFF+="=== $section ===\\n"
+    FORMATTED_DIFF+="${section_diff//[$'\n']/\\n}\\n"
   fi
 done
 
