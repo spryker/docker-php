@@ -68,8 +68,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Print All Environment Variables
-        run: printenv
+      - name: Output GitHub Context
+        run: |
+          echo "${{ toJson(github) }}" > github-context.json
+          cat github-context.json
+
+      - name: Output Job Context
+        run: |
+          echo "${{ toJson(job) }}" > job-context.json
+          cat job-context.json
+
+      - name: Output Matrix Context
+        run: |
+          echo "${{ toJson(matrix) }}" > matrix-context.json
+          cat matrix-context.json
 
       - name: Get the previous commit hash
         id: previous_commit
