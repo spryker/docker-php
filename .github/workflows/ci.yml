@@ -68,20 +68,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Output GitHub Context
+      - name: Fetch Job ID
+        id: fetch_job_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${{ toJson(github) }}" > github-context.json
-          cat github-context.json
-
-      - name: Output Job Context
-        run: |
-          echo "${{ toJson(job) }}" > job-context.json
-          cat job-context.json
-
-      - name: Output Matrix Context
-        run: |
-          echo "${{ toJson(matrix) }}" > matrix-context.json
-          cat matrix-context.json
+          # Define the job name
+          JOB_NAME="fetch-job-id" # Replace with your job ID if necessary
+          # Fetch job details
+          JOBS_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ env.REPO }}/actions/runs/${{ env.RUN_ID }}/jobs")
+          # Extract the job ID for the current job
+          JOB_ID=$(echo "$JOBS_JSON" | jq -r --arg JOB_NAME "$JOB_NAME" '.jobs[] | select(.name == $JOB_NAME) | .id')
+          echo "Job ID: $JOB_ID"
+          echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
 
       - name: Get the previous commit hash
         id: previous_commit
@@ -155,22 +155,6 @@ jobs:
       - name: Run the diff and format output
         id: diff
         run: bash .github/format-output.sh
-
-      - name: Get Job ID using REST API
-        # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
-        id: fetch_job_id
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          JOB_NAME="build" # This should match your job ID in the workflow
-          RUN_ID=${{ github.run_id }}
-          REPO=${{ github.repository }}
-          JOB_INFO=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs" \
-            | jq -r --arg JOB_NAME "$JOB_NAME" '.jobs[] | select(.name == $JOB_NAME) | .id')
-          echo "job_id=$JOB_INFO" >> $GITHUB_ENV
-          echo "job_id ID: $JOB_INFO"
-
 
       - name: Send Slack Notification
         # if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
