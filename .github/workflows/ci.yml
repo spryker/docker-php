@@ -18,49 +18,49 @@ jobs:
           - image: "alpine/3.18/8.1/Dockerfile"
             tags: [ "spryker/php:8.1-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.18/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.18/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.18" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.19
-#          - image: "alpine/3.19/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.19/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.19/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-alpine3.19" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ### Alpine 3.20
-#          - image: "alpine/3.20/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.20/8.2/Dockerfile"
-#            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "alpine/3.20/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#
-#          ## Debian
-#          ### Debian bullseye
-#          - image: "debian/bullseye/8.0/Dockerfile"
-#            tags: [ "spryker/php:8.0-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.1/Dockerfile"
-#            tags: [ "spryker/php:8.1-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.2/Dockerfile"
-#            tags: [ "spryker/php:8.2-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
-#          - image: "debian/bullseye/8.3/Dockerfile"
-#            tags: [ "spryker/php:8.3-debian" ]
-#            platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "alpine/3.18/8.2/Dockerfile"
+           tags: [ "spryker/php:8.2-alpine3.18" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "alpine/3.18/8.3/Dockerfile"
+           tags: [ "spryker/php:8.3-alpine3.18" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+
+         ### Alpine 3.19
+         - image: "alpine/3.19/8.1/Dockerfile"
+           tags: [ "spryker/php:8.1-alpine3.19" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "alpine/3.19/8.2/Dockerfile"
+           tags: [ "spryker/php:8.2-alpine3.19" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "alpine/3.19/8.3/Dockerfile"
+           tags: [ "spryker/php:8.3-alpine3.19" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+
+         ### Alpine 3.20
+         - image: "alpine/3.20/8.1/Dockerfile"
+           tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.20" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "alpine/3.20/8.2/Dockerfile"
+           tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "alpine/3.20/8.3/Dockerfile"
+           tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+
+         ## Debian
+         ### Debian bullseye
+         - image: "debian/bullseye/8.0/Dockerfile"
+           tags: [ "spryker/php:8.0-debian" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "debian/bullseye/8.1/Dockerfile"
+           tags: [ "spryker/php:8.1-debian" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "debian/bullseye/8.2/Dockerfile"
+           tags: [ "spryker/php:8.2-debian" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
+         - image: "debian/bullseye/8.3/Dockerfile"
+           tags: [ "spryker/php:8.3-debian" ]
+           platforms: [ "linux/amd64", "linux/arm64" ]
 
     steps:
       - name: Check out repository
@@ -165,7 +165,7 @@ jobs:
                   "color": "good", 
                   "fields": [
                     {
-                      "title": "New version of spryker/php:${{ matrix.tags[0] }} has been published",
+                      "title": "New version of ${{ matrix.tags[0] }} has been published",
                       "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
                       "short": false
                     }
