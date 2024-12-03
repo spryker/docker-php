@@ -124,10 +124,12 @@ jobs:
           platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
 
       - name: Current image report
+        id: manifest
         run: |
           CURRENT_TAG=${{ matrix.tags[0] }}
           bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
           cat current-image-report.txt
+          echo "job_id=$GITHUB_JOB" >> $GITHUB_OUTPUT
 
       - name: Previous image report
         run: |
@@ -151,7 +153,7 @@ jobs:
                   "fields": [
                     {
                       "title": "New version of spryker/php:${{ matrix.tags[0] }} has been published",
-                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.run_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.run_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
+                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.manifest.outputs.job_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.diff.outputs.job_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
                       "short": false
                     }
                   ]

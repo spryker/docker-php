@@ -71,3 +71,5 @@ echo -e "Formatted Diff Output:\n$FORMATTED_DIFF"
 echo "FORMATTED_DIFF<<EOF" >> $GITHUB_ENV
 echo -e "$FORMATTED_DIFF" >> $GITHUB_ENV
 echo "EOF" >> $GITHUB_ENV
+
+echo "job_id=$GITHUB_JOB" >> $GITHUB_OUTPUT
