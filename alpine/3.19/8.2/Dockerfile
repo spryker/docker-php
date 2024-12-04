@@ -1,13 +1,13 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.18
+ARG SPRYKER_PHP_VERSION=8.2.24
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.19
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.6.6
+ARG COMPOSER_VERSION=2.8.1
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=82
-ARG NEWRELIC_VERSION=10.16.0.5
+ARG NEWRELIC_VERSION=10.22.0.12
 ARG TIDEWAYS_VERSION=5.5.14
 ARG TIDEWAYS_PHP_VERSION=8.2
 
@@ -28,8 +28,8 @@ ARG PHP_RUN_DEPS="\
     libxml2 \
     libxpm \
     libxslt \
-    libzip"
-
+    libzip \
+    rabbitmq-c"
 
 ARG PHP_BUILD_DEPS="\
     autoconf \
@@ -44,7 +44,8 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
-    postgresql-dev"
+    postgresql-dev \
+    rabbitmq-c-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -70,10 +71,11 @@ ARG PHP_PECL_EXTENSIONS="\
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
+    xhprof \
+    amqp \
     opentelemetry \
     protobuf \
-    grpc \
-    xhprof"
+    grpc"
 
 ARG GRAPHVIZ_BUILD_DEPS="\
     expat-dev"

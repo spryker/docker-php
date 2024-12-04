@@ -4,10 +4,10 @@ ARG SPRYKER_PHP_VERSION=8.0.30
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.6.6
+ARG COMPOSER_VERSION=2.8.1
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=80
-ARG NEWRELIC_VERSION=10.16.0.5
+ARG NEWRELIC_VERSION=10.22.0.12
 ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.0
 ARG GOLANG_VERSION=1.20.3
@@ -29,7 +29,6 @@ ARG PHP_RUN_DEPS="\
     libxslt1.1 \
     libzip4"
 
-
 ARG PHP_BUILD_DEPS="\
     libbz2-dev \
     libfreetype6-dev \
@@ -41,7 +40,8 @@ ARG PHP_BUILD_DEPS="\
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
-    libzip-dev"
+    libzip-dev \
+    librabbitmq-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -66,10 +66,11 @@ ARG PHP_PECL_EXTENSIONS="\
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
+    xhprof \
+    amqp \
     opentelemetry \
     protobuf \
-    grpc \
-    xhprof"
+    grpc"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
