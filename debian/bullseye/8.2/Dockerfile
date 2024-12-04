@@ -68,7 +68,10 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
-    amqp"
+    amqp \
+    opentelemetry \
+    protobuf \
+    grpc"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \

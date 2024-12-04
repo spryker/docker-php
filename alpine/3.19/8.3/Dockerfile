@@ -72,7 +72,10 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
-    amqp"
+    amqp \
+    opentelemetry \
+    protobuf \
+    grpc"
 
 ARG GRAPHVIZ_BUILD_DEPS="\
     expat-dev"
