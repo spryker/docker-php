@@ -27,6 +27,8 @@ ARG PHP_RUN_DEPS="\
     libxpm \
     libxslt \
     libzip \
+    protobuf \
+    grpc \
     rabbitmq-c"
 
 ARG PHP_BUILD_DEPS="\
@@ -44,6 +46,8 @@ ARG PHP_BUILD_DEPS="\
     libzip-dev \
     postgresql-dev \
     rabbitmq-c-dev \
+    protobuf-dev \
+    grpc-dev \
     g++"
 
 ARG PHP_EXTENSIONS="\
@@ -71,6 +75,9 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
+    opentelemetry \
+    protobuf \
+    grpc \
     amqp"
 
 ARG GRAPHVIZ_BUILD_DEPS="\
