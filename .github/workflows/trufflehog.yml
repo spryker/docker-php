@@ -1,0 +1,39 @@
+name: Trufflehog secrets scan
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trufflehog-vulnerability-detection:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Display File Structure
+        run: |
+          echo "Displaying file structure..."
+          find . -type f 
+
+      - name: Secret Scanning
+        id: trufflehog_scan
+        uses: trufflesecurity/trufflehog@v3.82.8
+        with:
+          path: ./
+          base: "${{ github.event.repository.default_branch }}"
+          head: HEAD
+          extra_args: --debug
+
+      - name: Check Trufflehog Result and Fail if Secrets Found
+        run: |
+          if [ "${{ steps.trufflehog_scan.outcome }}" == "failure" ]; then
+            echo "Secrets were found by Trufflehog!"
+            exit 1  # This will fail the workflow
+          fi

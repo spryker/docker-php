@@ -1,0 +1,103 @@
+name: Cleanup Old Docker Images > 6 months by the scheduler
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: List Docker Hub images and delete ones matching the pattern
+        run: |
+          REPO="spryker/php"
+          curl -s "https://hub.docker.com/v2/repositories/${REPO}/tags?page_size=1000" > tags.json
+          TODAY=$(date +%s)
+          THRESHOLD=$((180 * 24 * 60 * 60)) # 180 days in seconds
+          
+          # Regex pattern to match tags that end with a hash (40-character hexadecimal)
+          HASH_PATTERN=".*-[a-f0-9]{40}$"
+          IMAGES_DELETED=false
+          DELETED_IMAGES=""
+
+          for TAG in $(jq -r '.results[] | @base64' < tags.json); do
+            _jq() {
+              echo ${TAG} | base64 --decode | jq -r ${1}
+            }
+
+            TAG_NAME=$(_jq '.name')
+            LAST_UPDATED=$(_jq '.last_updated')
+            LAST_UPDATED_DATE=$(date -d "${LAST_UPDATED}" +%s)
+
+            AGE=$((TODAY - LAST_UPDATED_DATE))
+
+            if [[ ${AGE} -ge ${THRESHOLD} ]] && [[ ${TAG_NAME} =~ ${HASH_PATTERN} ]]; then
+              echo "Deleting image tag ${TAG_NAME} (last updated: ${LAST_UPDATED})"
+              IMAGES_DELETED=true
+              DELETED_IMAGES="${DELETED_IMAGES}\n${TAG_NAME}"
+
+              # Uncomment the following lines to enable image deletion
+              curl -X DELETE \
+                -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+                "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG_NAME}/"
+            fi
+          done
+
+          if [[ ${IMAGES_DELETED} == false ]]; then
+            echo "No images found for deletion" > deleted_images.txt
+          else
+            echo -e "Deleted images: ${DELETED_IMAGES}" > deleted_images.txt
+          fi
+
+      - name: Read Deleted Images
+        id: read_deleted_images
+        run: |
+          DELETED_IMAGES=$(cat deleted_images.txt)
+          echo "Deleted images: ${DELETED_IMAGES}"
+          echo "::set-output name=deleted_images::${DELETED_IMAGES}"
+        shell: bash
+
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24.0
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "pretext": "Outdated docker images cleanup (180 days) for *${{ github.repository }} repository*",
+                  "color": "good",
+                  "fields": [
+                    {
+                      "title": "Images:",
+                      "value": "${{ steps.read_deleted_images.outputs.deleted_images }}",
+                      "short": false
+                    },
+                    {
+                      "title": "Branch:",
+                      "value": "${{ github.ref }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit:",
+                      "value": "${{ github.sha }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
