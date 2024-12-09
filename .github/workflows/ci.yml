@@ -123,6 +123,12 @@ jobs:
           tags: ${{ join(matrix.tags) }}
           platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
 
+      - name: Pull image for master branch
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "Pulling image for master branch"
+          docker pull ${{ matrix.tags[0] }}
+
       - name: Current image report
         id: manifest
         run: |
