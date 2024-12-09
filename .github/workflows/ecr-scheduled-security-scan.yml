@@ -1,10 +1,10 @@
-name: Vulnerability detection
+name: ECR vulnerability detection
 
 on:
   schedule:
     - cron: '0 9 * * *'
   push:
-    branches-ignore:
+    branches:
       - master
 
 jobs:
@@ -15,17 +15,6 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.17
-          - image: "alpine/3.17/8.1/Dockerfile"
-            tags: "8.1-alpine3.17"
-            platforms: "linux/amd64"
-          - image: "alpine/3.17/8.2/Dockerfile"
-            tags: "8.2-alpine3.17"
-            platforms: "linux/amd64"
-          - image: "alpine/3.17/8.3/Dockerfile"
-            tags: "8.3-alpine3.17"
-            platforms: "linux/amd64"
-
           ### Alpine 3.18
           - image: "alpine/3.18/8.1/Dockerfile"
             tags: "8.1-alpine3.18"
@@ -119,7 +108,7 @@ jobs:
               "text": "Scanned image tag *${{ matrix.tags }}*.",
               "attachments": [
                 {
-                  "pretext": "Vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
+                  "pretext": "ECR vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
                   "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
                     {

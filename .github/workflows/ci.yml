@@ -1,6 +1,10 @@
-name: CI
+name: CI/CD
 
 on: push
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -10,17 +14,6 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.17
-          - image: "alpine/3.17/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.17" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.17/8.2/Dockerfile"
-            tags: [ "spryker/php:8.2-alpine3.17" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.17/8.3/Dockerfile"
-            tags: [ "spryker/php:8.3-alpine3.17" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-
           ### Alpine 3.18
           - image: "alpine/3.18/8.1/Dockerfile"
             tags: [ "spryker/php:8.1-alpine3.18" ]
@@ -68,6 +61,7 @@ jobs:
           - image: "debian/bullseye/8.3/Dockerfile"
             tags: [ "spryker/php:8.3-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -76,10 +70,23 @@ jobs:
 
       - name: Get the previous commit hash
         id: previous_commit
-        if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
-          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV        
+          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+            PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+          else
+            PREV_COMMIT_HASH=$(git rev-parse origin/master)
+            IMAGE_TAG="${{ matrix.tags[0] }}"
+            echo "Pulling image $IMAGE_TAG"
+            docker pull "$IMAGE_TAG"
+
+            NEW_TAG="${IMAGE_TAG}-${PREV_COMMIT_HASH}"
+            echo "Re-tagging image to $NEW_TAG"
+            docker tag "$IMAGE_TAG" "$NEW_TAG"
+
+            echo "Removing the pulled image $IMAGE_TAG"
+            docker rmi "$IMAGE_TAG" || true
+          fi
+          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -111,6 +118,67 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: ${{ github.ref == 'refs/heads/master' }}
+          load: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
-          platforms: ${{ join(matrix.platforms) }}
+          platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
+
+      - name: Pull image for master branch
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "Pulling image for master branch"
+          docker pull ${{ matrix.tags[0] }}
+
+      - name: Current image report
+        id: manifest
+        run: |
+          CURRENT_TAG=${{ matrix.tags[0] }}
+          bash .github/compare-images.sh $CURRENT_TAG > current-image-report.txt || true
+          cat current-image-report.txt
+
+      - name: Previous image report
+        run: |
+          PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
+          bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
+          cat previous-image-report.txt
+
+      - name: Run the diff and format output
+        id: diff
+        run: bash .github/format-output.sh
+
+      - name: Fetch Job ID
+        id: fetch_job_id
+        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          JOBS_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
+          echo "$JOBS_JSON" > jobs-response.json
+          cat jobs-response.json
+          JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
+          echo "Extracted Job ID: $JOB_ID"
+          echo "::set-output name=job_id::$JOB_ID"
+
+      - name: Send Slack Notification
+        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "good", 
+                  "fields": [
+                    {
+                      "title": "New version of ${{ matrix.tags[0] }} has been published",
+                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
+                      "short": false
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CE_RELEASE_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
