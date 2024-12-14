@@ -44,6 +44,8 @@ ARG PHP_BUILD_DEPS="\
     libzip-dev \
     postgresql-dev \
     rabbitmq-c-dev \
+    protobuf-dev \
+    grpc-dev \
     g++"
 
 ARG PHP_EXTENSIONS="\
@@ -65,6 +67,9 @@ ARG PHP_EXTENSIONS="\
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
+    opentelemetry \
+    protobuf \
+    grpc \
     redis"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
@@ -110,7 +115,7 @@ RUN apk update \
       --with-webp=/usr \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
-    && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
+    && MAKEFLAGS="-j$(nproc)"  pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apk del --no-cache .php-build-deps
@@ -183,6 +188,15 @@ COPY context/php/php.ini /usr/local/etc/php/
 COPY context/php/conf.d/90-opcache.ini /usr/local/etc/php/conf.d/
 COPY context/php/conf.d/92-session.ini /usr/local/etc/php/conf.d/
 COPY context/php/disabled /usr/local/etc/php/disabled
+
+#OTEL: disable code instrumentattion by default
+ENV OTEL_SDK_DISABLED=true
+ENV OTEL_PHP_DISABLED_INSTRUMENTATIONS="all"
+
+#OTEL: Disable OTEL related extensions and keep original configs.
+RUN mv /usr/local/etc/php/conf.d/docker-php-ext-opentelemetry.ini /usr/local/etc/php/disabled/opentelemetry.ini
+RUN mv /usr/local/etc/php/conf.d/docker-php-ext-protobuf.ini /usr/local/etc/php/disabled/protobuf.ini
+RUN mv /usr/local/etc/php/conf.d/docker-php-ext-grpc.ini /usr/local/etc/php/disabled/grpc.ini
 
 WORKDIR /data
 
