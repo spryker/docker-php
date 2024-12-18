@@ -10,7 +10,7 @@ on:
       branch:
         description: 'Branch to build'
         required: false
-        default: ${{ github.ref_name }}
+        default: ${{ github.ref }}
 jobs:
   build-base:
     runs-on: ubuntu-latest
