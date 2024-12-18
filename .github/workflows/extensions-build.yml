@@ -5,12 +5,6 @@ on:
     branches:
       - master
       - otel-instrumentation-8.3-alpine-build
-  workflow_dispatch: # Manual trigger
-    inputs:
-      branch:
-        description: 'Branch to build'
-        required: false
-        default: ${{ github.ref }}
 jobs:
   build-base:
     runs-on: ubuntu-latest
