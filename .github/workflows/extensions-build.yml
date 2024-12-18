@@ -12,8 +12,8 @@ jobs:
       max-parallel: 4
       fail-fast: false
       matrix:
-        php_version: [8.3]
-        alpine_version: ['3.20']
+        php_version: [8.1, 8.2, 8.3]
+        alpine_version: ['3.18', '3.19', '3.20']
 
     steps:
       - name: Checkout repository
@@ -46,6 +46,7 @@ jobs:
           fi
 
       - name: Build and push base image
+        id: docker_build
         if: env.exists == 'false'
         uses: docker/build-push-action@v5
         with:
