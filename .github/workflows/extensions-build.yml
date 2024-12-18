@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - master
-
+  workflow_dispatch: # Manual trigger
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: ${{ github.ref_name }}
 jobs:
   build-base:
     runs-on: ubuntu-latest
