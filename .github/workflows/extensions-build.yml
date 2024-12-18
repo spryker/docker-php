@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - otel-instrumentation-8.3-alpine-build
   workflow_dispatch: # Manual trigger
     inputs:
       branch:
