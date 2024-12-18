@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         php_version: [8.2, 8.3]
-        alpine_version: ['3.19', '3.20']
+        alpine_version: ['3.18', '3.19', '3.20']
 
     steps:
       - name: Checkout repository
