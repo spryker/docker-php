@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 6
       fail-fast: false
       matrix:
         include:
@@ -45,7 +46,7 @@ jobs:
 #            platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.20/8.3/Dockerfile"
             php_version: '8.3'
-            alpine_version: '3.20'
+            distro: 'alpine3.20'
             tags: ["spryker/php:8.3-alpine3.20-otel" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
@@ -73,17 +74,21 @@ jobs:
       - name: Check if image exists in Docker Hub
         id: check-image
         run: |
-          IMAGE_TAG="spryker/grpc-protobuf:${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}"
-          TOKEN=$(curl -s -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
-            "https://auth.docker.io/token?service=registry.docker.io&scope=repository:spryker/grpc-protobuf:pull" | jq -r .token)
-          EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer $TOKEN" \
-            "https://registry-1.docker.io/v2/spryker/grpc-protobuf/manifests/${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}")
-          if [ "$EXISTS" -eq 200 ]; then
-            echo "Image $IMAGE_TAG already exists in Docker Hub."
+          if [[ "${{ matrix.distro }}" =~ alpine ]]; then
+            IMAGE_TAG="spryker/grpc-protobuf:${{ matrix.php_version }}-${{ matrix.distro }}"
+            TOKEN=$(curl -s -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+              "https://auth.docker.io/token?service=registry.docker.io&scope=repository:spryker/grpc-protobuf:pull" | jq -r .token)
+            EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer $TOKEN" \
+              "https://registry-1.docker.io/v2/spryker/grpc-protobuf/manifests/${{ matrix.php_version }}-${{ matrix.distro }}")
+            if [ "$EXISTS" -eq 200 ]; then
+              echo "Image $IMAGE_TAG already exists in Docker Hub."
+            else
+              echo "Required base image $IMAGE_TAG does not exist. Failing workflow."
+              exit 1
+            fi
           else
-            echo "Required base image $IMAGE does not exist. Failing workflow."
-            exit 1
+            echo "Distro does not contain 'alpine'. Skipping."
           fi
 
 #      - name: Get the previous commit hash
