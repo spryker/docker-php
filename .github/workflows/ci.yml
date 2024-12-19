@@ -68,6 +68,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check if image exists in Docker Hub
+        id: check-image
+        run: |
+          IMAGE_TAG="spryker/grpc-protobuf:${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}"
+          TOKEN=$(curl -s -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+            "https://auth.docker.io/token?service=registry.docker.io&scope=repository:spryker/grpc-protobuf:pull" | jq -r .token)
+          EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://registry-1.docker.io/v2/spryker/grpc-protobuf/manifests/${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}")
+          if [ "$EXISTS" -eq 200 ]; then
+            echo "Image $IMAGE_TAG already exists in Docker Hub."
+          else
+            echo "Required base image $IMAGE does not exist. Failing workflow."
+            exit 1
+          fi
+
 #      - name: Get the previous commit hash
 #        id: previous_commit
 #        run: |
@@ -112,6 +128,7 @@ jobs:
 #            echo "Re-tagged image: $NEW_TAG"
 #            docker push $NEW_TAG
 #          done
+
 
       - name: Build and push
         id: docker_build
