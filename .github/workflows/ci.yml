@@ -64,7 +64,7 @@ jobs:
           - image: "alpine/3.20/8.3/Dockerfile"
             php_version: '8.3'
             distro: 'alpine3.20'
-            tags: ["spryker/php:8.3-alpine3.20-otel" ]
+            tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ## Debian
@@ -158,10 +158,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: ${{ github.ref == 'refs/heads/master' }}
-#          load: ${{ github.ref != 'refs/heads/master' }}
+          load: ${{ github.ref != 'refs/heads/master' }}
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
-          platforms: ${{ join(matrix.platforms) }}
+          platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
 
       - name: Pull image for master branch
         if: github.ref == 'refs/heads/master'
