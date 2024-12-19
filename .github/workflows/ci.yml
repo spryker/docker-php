@@ -1,6 +1,13 @@
 name: CI/CD
 
-on: push
+on:
+  workflow_run:
+    workflows: ["Build GRPC-Protobuf Base Images"]
+    types:
+      - completed
+  push:
+    branches-ignore: # Exclude on master because it executed via workflow
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -10,18 +17,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 13
       fail-fast: false
       matrix:
         include:
-          ## Alpine
+          # Alpine
           ### Alpine 3.18
           - image: "alpine/3.18/8.1/Dockerfile"
             tags: [ "spryker/php:8.1-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.18/8.2/Dockerfile"
+            php_version: '8.2'
+            distro: 'alpine3.18'
             tags: [ "spryker/php:8.2-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.18/8.3/Dockerfile"
+            php_version: '8.3'
+            distro: 'alpine3.18'
             tags: [ "spryker/php:8.3-alpine3.18" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
@@ -30,20 +42,28 @@ jobs:
             tags: [ "spryker/php:8.1-alpine3.19" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.19/8.2/Dockerfile"
+            php_version: '8.2'
+            distro: 'alpine3.19'
             tags: [ "spryker/php:8.2-alpine3.19" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.19/8.3/Dockerfile"
+            php_version: '8.3'
+            distro: 'alpine3.19'
             tags: [ "spryker/php:8.3-alpine3.19" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
-          ### Alpine 3.20
+          ## Alpine 3.20
           - image: "alpine/3.20/8.1/Dockerfile"
             tags: [ "spryker/php:8.1", "spryker/php:8.1-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.20/8.2/Dockerfile"
+            php_version: '8.2'
+            distro: 'alpine3.20'
             tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.20/8.3/Dockerfile"
+            php_version: '8.3'
+            distro: 'alpine3.20'
             tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
@@ -67,6 +87,26 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Check if image exists in Docker Hub
+        id: check-image
+        run: |
+          if [[ "${{ matrix.distro }}" =~ alpine ]]; then
+            IMAGE_TAG="spryker/grpc-protobuf:${{ matrix.php_version }}-${{ matrix.distro }}"
+            TOKEN=$(curl -s -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+              "https://auth.docker.io/token?service=registry.docker.io&scope=repository:spryker/grpc-protobuf:pull" | jq -r .token)
+            EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer $TOKEN" \
+              "https://registry-1.docker.io/v2/spryker/grpc-protobuf/manifests/${{ matrix.php_version }}-${{ matrix.distro }}")
+            if [ "$EXISTS" -eq 200 ]; then
+              echo "Image $IMAGE_TAG already exists in Docker Hub."
+            else
+              echo "Required base image $IMAGE_TAG does not exist. Failing workflow."
+              exit 1
+            fi
+          else
+            echo "Distro does not contain 'alpine'. Skipping."
+          fi
 
       - name: Get the previous commit hash
         id: previous_commit
@@ -115,7 +155,7 @@ jobs:
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           push: ${{ github.ref == 'refs/heads/master' }}
           load: ${{ github.ref != 'refs/heads/master' }}

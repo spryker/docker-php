@@ -1,0 +1,60 @@
+name: Build GRPC-Protobuf Base Images
+
+on:
+  push:
+    branches:
+      - master
+      - otel-instrumentation-8.3-alpine-build
+jobs:
+  build-base:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 6
+      fail-fast: false
+      matrix:
+        php_version: [8.2, 8.3]
+        alpine_version: ['3.18', '3.19', '3.20']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Check if image exists in Docker Hub
+        id: check-image
+        run: |
+          IMAGE_TAG="spryker/grpc-protobuf:${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}"
+          TOKEN=$(curl -s -u "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" \
+            "https://auth.docker.io/token?service=registry.docker.io&scope=repository:spryker/grpc-protobuf:pull" | jq -r .token)
+          EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://registry-1.docker.io/v2/spryker/grpc-protobuf/manifests/${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}")
+          if [ "$EXISTS" -eq 200 ]; then
+            echo "Image $IMAGE_TAG already exists in Docker Hub."
+            echo "exists=true" >> $GITHUB_ENV
+          else
+            echo "Image $IMAGE_TAG does not exist. Proceeding with build."
+            echo "exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push base image
+        id: docker_build
+        if: env.exists == 'false'
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: spryker/grpc-protobuf:${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}
+          file: alpine/extension/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          cache-to: type=gha,mode=max
+          build-args: |
+            MAJOR_PHP_VERSION=${{ matrix.php_version }}
+            ALPINE_VERSION=${{ matrix.alpine_version }}

@@ -1,5 +1,9 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=8.3.13
+ARG EXTENSION_IMAGE=spryker/grpc-protobuf:8.3-alpine3.20
+
+FROM ${EXTENSION_IMAGE} AS extension
+
 FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.20
 
 ARG TARGETPLATFORM
@@ -44,8 +48,6 @@ ARG PHP_BUILD_DEPS="\
     libzip-dev \
     postgresql-dev \
     rabbitmq-c-dev \
-    protobuf-dev \
-    grpc-dev \
     g++"
 
 ARG PHP_EXTENSIONS="\
@@ -68,8 +70,6 @@ ARG PHP_EXTENSIONS="\
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
     opentelemetry \
-    protobuf \
-    grpc \
     redis"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
@@ -193,10 +193,21 @@ COPY context/php/disabled /usr/local/etc/php/disabled
 ENV OTEL_SDK_DISABLED=true
 ENV OTEL_PHP_DISABLED_INSTRUMENTATIONS="all"
 
+# Copy extensions from extension image to tpm path
+COPY --from=extension /usr/local/lib/php/extensions/no-debug-non-zts-20230831/grpc.so /tmp/php-ext-dir-path/grpc.so
+COPY --from=extension /usr/local/lib/php/extensions/no-debug-non-zts-20230831/protobuf.so /tmp/php-ext-dir-path/protobuf.so
+
+#Calculate tarrget php extension folder and copy required extensions
+RUN PHP_EXT_DIR=$(php-config --extension-dir) \
+    && echo "Using PHP extension directory: $PHP_EXT_DIR" \
+    && cp /tmp/php-ext-dir-path/grpc.so $PHP_EXT_DIR/grpc.so \
+    && cp /tmp/php-ext-dir-path/protobuf.so $PHP_EXT_DIR/protobuf.so
+
+
 #OTEL: Disable OTEL related extensions and keep original configs.
+COPY --from=extension /usr/local/etc/php/conf.d/docker-php-ext-protobuf.ini /usr/local/etc/php/disabled/protobuf.ini
+COPY --from=extension /usr/local/etc/php/conf.d/docker-php-ext-grpc.ini /usr/local/etc/php/disabled/grpc.ini
 RUN mv /usr/local/etc/php/conf.d/docker-php-ext-opentelemetry.ini /usr/local/etc/php/disabled/opentelemetry.ini
-RUN mv /usr/local/etc/php/conf.d/docker-php-ext-protobuf.ini /usr/local/etc/php/disabled/protobuf.ini
-RUN mv /usr/local/etc/php/conf.d/docker-php-ext-grpc.ini /usr/local/etc/php/disabled/grpc.ini
 
 WORKDIR /data
 
