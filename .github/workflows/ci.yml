@@ -44,6 +44,8 @@ jobs:
 #            tags: [ "spryker/php:latest", "spryker/php:8.2", "spryker/php:8.2-alpine3.20" ]
 #            platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.20/8.3/Dockerfile"
+            php_version: '8.3'
+            alpine_version: '3.20'
             tags: ["spryker/php:8.3-alpine3.20-otel" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
