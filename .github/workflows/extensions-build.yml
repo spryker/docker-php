@@ -1,10 +1,7 @@
 name: Build GRPC-Protobuf Base Images
 
-on:
-  push:
-    branches:
-      - master
-      - otel-instrumentation-8.3-alpine-build
+on: push
+
 jobs:
   build-base:
     runs-on: ubuntu-latest
@@ -50,7 +47,7 @@ jobs:
         if: env.exists == 'false'
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: ${{ github.ref == 'refs/heads/master' }}
           tags: spryker/grpc-protobuf:${{ matrix.php_version }}-alpine${{ matrix.alpine_version }}
           file: alpine/extension/Dockerfile
           platforms: linux/amd64,linux/arm64
