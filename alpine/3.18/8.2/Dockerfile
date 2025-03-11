@@ -25,7 +25,7 @@ ARG PHP_RUN_DEPS="\
     libjpeg-turbo \
     libpng \
     libwebp \
-    libxml2 \
+    libxml2=2.9.14-r0 \
     libxpm \
     libxslt \
     libzip \
@@ -41,7 +41,7 @@ ARG PHP_BUILD_DEPS="\
     libjpeg-turbo-dev \
     libpng-dev \
     libwebp-dev \
-    libxml2-dev \
+    libxml2-dev=2.9.14-r0 \
     libxpm-dev \
     libzip-dev \
     postgresql-dev \
