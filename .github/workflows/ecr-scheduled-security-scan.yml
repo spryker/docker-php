@@ -15,17 +15,6 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.18
-          - image: "alpine/3.18/8.1/Dockerfile"
-            tags: "8.1-alpine3.18"
-            platforms: "linux/amd64"
-          - image: "alpine/3.18/8.2/Dockerfile"
-            tags: "8.2-alpine3.18"
-            platforms: "linux/amd64"
-          - image: "alpine/3.18/8.3/Dockerfile"
-            tags: "8.3-alpine3.18"
-            platforms: "linux/amd64"
-
           ### Alpine 3.19
           - image: "alpine/3.19/8.1/Dockerfile"
             tags: "8.1-alpine3.19"
@@ -46,6 +35,14 @@ jobs:
             platforms: "linux/amd64"
           - image: "alpine/3.20/8.3/Dockerfile"
             tags: "8.3-alpine3.20"
+            platforms: "linux/amd64"
+
+          ### Alpine 3.21
+          - image: "alpine/3.21/8.2/Dockerfile"
+            tags: "8.2-alpine3.21"
+            platforms: "linux/amd64"
+          - image: "alpine/3.21/8.3/Dockerfile"
+            tags: "8.3-alpine3.21"
             platforms: "linux/amd64"
 
     steps:

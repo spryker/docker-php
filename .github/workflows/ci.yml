@@ -47,6 +47,14 @@ jobs:
             tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
+          ### Alpine 3.21
+          - image: "alpine/3.21/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-alpine3.21" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.21/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-alpine3.20" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
           ## Debian
           ### Debian bullseye
           - image: "debian/bullseye/8.0/Dockerfile"
