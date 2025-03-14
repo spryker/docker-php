@@ -27,7 +27,9 @@ if [[ "$IMAGE_TAG" == *"debian"* ]]; then
       echo "=== Disabled PHP Extensions ==="
       for f in /usr/local/etc/php/disabled/*.ini; do
           disabled=$(basename $f | sed -e 's/\.ini$//');
-          echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")";
+          if [ "$disabled" != "otel" ]; then
+            echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")";
+          fi
       done
 
       echo ""
@@ -62,7 +64,9 @@ else
       echo "=== Disabled PHP Extensions ==="
       for f in /usr/local/etc/php/disabled/*.ini; do
           disabled=$(basename $f | sed -e 's/\.ini$//');
-          echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")";
+          if [ "$disabled" != "otel" ]; then
+            echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")";
+          fi
       done
 
       echo ""
