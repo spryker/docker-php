@@ -68,17 +68,14 @@ jobs:
           docker build --platform ${{ matrix.platforms }} -t spryker/php:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
 
       - name: Scan Docker image with Trufflehog
-        continue-on-error: false
-        run: |
-          docker run --rm trufflesecurity/trufflehog:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
+        uses: spryker-projects/gha-actions/.github/workflows/ecr-scheduled-security-scan.yml@SC-22224
+        with:
+          image_url: spryker/php:${{ matrix.tags }}
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: spryker-projects/gha-actions/.github/workflows/ecr-scheduled-security-scan.yml@SC-22224
         with:
-          image-ref: "spryker/php:${{ matrix.tags }}"
-          exit-code: '1'
-          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
-          ignore-unfixed: true
+          image_url: spryker/php:${{ matrix.tags }}
 
       - name: Show scan result
         run: |
