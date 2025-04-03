@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-scan-images-for-vulnerabilities:
+  build-images-for-vulnerabilities:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -63,19 +63,8 @@ jobs:
         run: |
           docker build --platform ${{ matrix.platforms }} -t spryker/php:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
 
-      - name: Scan Docker image with Trufflehog
-        continue-on-error: false
-        run: |
-          docker run --rm trufflesecurity/trufflehog:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
-
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: "spryker/php:${{ matrix.tags }}"
-          exit-code: '1'
-          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
-          ignore-unfixed: true
-
-      - name: Show scan result
-        run: |
-          echo "Trivy scan completed for spryker/php:${{ matrix.tags }}"
+  scan-images-for-vulnerabilities:
+    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+    needs: build-images-for-vulnerabilities
+    with:
+      image_url: spryker/php:8.1-alpine3.18
