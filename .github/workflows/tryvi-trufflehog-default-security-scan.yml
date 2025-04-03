@@ -68,7 +68,7 @@ jobs:
           docker build --platform ${{ matrix.platforms }} -t spryker/php:${{ matrix.tags }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
 
   scan-images-for-vulnerabilities:
-    uses: spryker-projects/gha-actions/.github/workflows/ecr-scheduled-security-scan.yml@SC-22224
+    uses: DenysSirchenko/gha-workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
     needs: build-images-for-vulnerabilities
     with:
       image_url: spryker/php:8.1-alpine3.18
