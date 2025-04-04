@@ -78,6 +78,6 @@ jobs:
       matrix:
         image_url: ${{ fromJson(needs.build-images-for-vulnerabilities.outputs.built_images) }}
 
-    uses: smth/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
     with:
       image_url: ${{ matrix.image_url }}
