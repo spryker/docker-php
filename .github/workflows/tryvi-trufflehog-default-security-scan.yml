@@ -17,33 +17,33 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.19
-          - context: "alpine/3.19/8.1"
-            dockerfile: "Dockerfile"
-            tags: "8.1-alpine3.19"
-            platforms: "linux/amd64"
-          - context: "alpine/3.19/8.2"
-            dockerfile: "Dockerfile"
-            tags: "8.2-alpine3.19"
-            platforms: "linux/amd64"
-          - context: "alpine/3.19/8.3"
-            dockerfile: "Dockerfile"
-            tags: "8.3-alpine3.19"
-            platforms: "linux/amd64"
+          # ### Alpine 3.19
+          # - context: "alpine/3.19/8.1"
+          #   dockerfile: "Dockerfile"
+          #   tags: "8.1-alpine3.19"
+          #   platforms: "linux/amd64"
+          # - context: "alpine/3.19/8.2"
+          #   dockerfile: "Dockerfile"
+          #   tags: "8.2-alpine3.19"
+          #   platforms: "linux/amd64"
+          # - context: "alpine/3.19/8.3"
+          #   dockerfile: "Dockerfile"
+          #   tags: "8.3-alpine3.19"
+          #   platforms: "linux/amd64"
 
-          ### Alpine 3.20
-          - context: "alpine/3.20/8.1"
-            dockerfile: "Dockerfile"
-            tags: "8.1-alpine3.20"
-            platforms: "linux/amd64"
-          - context: "alpine/3.20/8.2"
-            dockerfile: "Dockerfile"
-            tags: "8.2-alpine3.20"
-            platforms: "linux/amd64"
-          - context: "alpine/3.20/8.3"
-            dockerfile: "Dockerfile"
-            tags: "8.3-alpine3.20"
-            platforms: "linux/amd64"
+          # ### Alpine 3.20
+          # - context: "alpine/3.20/8.1"
+          #   dockerfile: "Dockerfile"
+          #   tags: "8.1-alpine3.20"
+          #   platforms: "linux/amd64"
+          # - context: "alpine/3.20/8.2"
+          #   dockerfile: "Dockerfile"
+          #   tags: "8.2-alpine3.20"
+          #   platforms: "linux/amd64"
+          # - context: "alpine/3.20/8.3"
+          #   dockerfile: "Dockerfile"
+          #   tags: "8.3-alpine3.20"
+          #   platforms: "linux/amd64"
 
           ### Alpine 3.18
           - context: "alpine/3.21/8.2"
@@ -78,6 +78,8 @@ jobs:
       matrix:
         image_url: ${{ fromJson(needs.build-images-for-vulnerabilities.outputs.built_images) }}
 
-    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
-    with:
-      image_url: ${{ matrix.image_url }}
+    steps:
+      - name: Scan Docker image with Trufflehog and Trivy
+        uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+        with:
+          image_url: ${{ matrix.image_url }}
