@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-images-for-vulnerabilities:
+  build-and-scan-images-for-vulnerabilities:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -59,26 +59,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker images
-        id: build_images
+      - name: Build Docker image
         run: |
-          images=()
-          for image in "${{ toJson(matrix.include) }}"; do
-            tag=$(echo "$image" | jq -r '.tags')
-            docker build --platform ${{ matrix.platforms }} -t spryker/php:${tag} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
-            images+=("spryker/php:${tag}")
-          done
-          echo "Built images: $images"
-          echo "::set-output name=built_images::$(IFS=,; echo "${images[*]}")"
+          docker build --platform ${{ matrix.platforms }} -t local/php:${{ matrix.tag }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
 
-  scan-images-for-vulnerabilities:
-    needs: build-images-for-vulnerabilities
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        image_url: ${{ fromJson(needs.build-images-for-vulnerabilities.outputs.built_images) }}
-    
-    # This is where we use the reusable workflow
-    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
-    with:
-      image_url: ${{ matrix.image_url }}
+      - name: Scan image with reusable workflow
+        uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+        with:
+          image_url: local/php:${{ matrix.tag }}
