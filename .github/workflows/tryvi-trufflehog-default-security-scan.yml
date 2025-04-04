@@ -77,9 +77,8 @@ jobs:
     strategy:
       matrix:
         image_url: ${{ fromJson(needs.build-images-for-vulnerabilities.outputs.built_images) }}
-
-    workflow_call:
-      # This triggers the reusable workflow
-      uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
-      with:
-        image_url: ${{ matrix.image_url }}
+    
+    # This is where we use the reusable workflow
+    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+    with:
+      image_url: ${{ matrix.image_url }}
