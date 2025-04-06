@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_scan:
+  build-and-scan-images-for-vulnerabilities:
     strategy:
       fail-fast: false
       matrix:
