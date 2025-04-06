@@ -10,60 +10,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-scan-images-for-vulnerabilities:
-    runs-on: ubuntu-latest
+  build_and_scan:
     strategy:
       fail-fast: false
       matrix:
         include:
           ## Alpine
-          # ### Alpine 3.19
-          # - context: "alpine/3.19/8.1"
-          #   dockerfile: "Dockerfile"
-          #   tags: "8.1-alpine3.19"
-          #   platforms: "linux/amd64"
-          # - context: "alpine/3.19/8.2"
-          #   dockerfile: "Dockerfile"
-          #   tags: "8.2-alpine3.19"
-          #   platforms: "linux/amd64"
-          # - context: "alpine/3.19/8.3"
-          #   dockerfile: "Dockerfile"
-          #   tags: "8.3-alpine3.19"
-          #   platforms: "linux/amd64"
+          ### Alpine 3.19
+          - context: "alpine/3.19/8.1"
+            dockerfile: "Dockerfile"
+            tag: "8.1-alpine3.19"
+            platforms: "linux/amd64"
+          - context: "alpine/3.19/8.2"
+            dockerfile: "Dockerfile"
+            tag: "8.2-alpine3.19"
+            platforms: "linux/amd64"
+          - context: "alpine/3.19/8.3"
+            dockerfile: "Dockerfile"
+            tag: "8.3-alpine3.19"
+            platforms: "linux/amd64"
 
-          # ### Alpine 3.20
-          # - context: "alpine/3.20/8.1"
-          #   dockerfile: "Dockerfile"
-          #   tags: "8.1-alpine3.20"
-          #   platforms: "linux/amd64"
-          # - context: "alpine/3.20/8.2"
-          #   dockerfile: "Dockerfile"
-          #   tags: "8.2-alpine3.20"
-          #   platforms: "linux/amd64"
-          # - context: "alpine/3.20/8.3"
-          #   dockerfile: "Dockerfile"
-          #   tags: "8.3-alpine3.20"
-          #   platforms: "linux/amd64"
+          ### Alpine 3.20
+          - context: "alpine/3.20/8.1"
+            dockerfile: "Dockerfile"
+            tag: "8.1-alpine3.20"
+            platforms: "linux/amd64"
+          - context: "alpine/3.20/8.2"
+            dockerfile: "Dockerfile"
+            tag: "8.2-alpine3.20"
+            platforms: "linux/amd64"
+          - context: "alpine/3.20/8.3"
+            dockerfile: "Dockerfile"
+            tag: "8.3-alpine3.20"
+            platforms: "linux/amd64"
 
-          ### Alpine 3.18
+          ### Alpine 3.21
           - context: "alpine/3.21/8.2"
             dockerfile: "Dockerfile"
-            tags: "8.2-alpine3.21"
+            tag: "8.2-alpine3.21"
             platforms: "linux/amd64"
           - context: "alpine/3.21/8.3"
             dockerfile: "Dockerfile"
-            tags: "8.3-alpine3.21"
+            tag: "8.3-alpine3.21"
             platforms: "linux/amd64"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: |
-          docker build --platform ${{ matrix.platforms }} -t local/php:${{ matrix.tag }} -f ${{ matrix.context }}/${{ matrix.dockerfile }} .
-
-      - name: Scan image with reusable workflow
-        uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
-        with:
-          image_url: local/php:${{ matrix.tag }}
+    name: Build and Scan - ${{ matrix.tag }}
+    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+    with:
+      context: ${{ matrix.context }}
+      dockerfile: ${{ matrix.dockerfile }}
+      tag: ${{ matrix.tag }}
+      platforms: ${{ matrix.platforms }}
+    secrets: inherit
