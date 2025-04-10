@@ -55,7 +55,7 @@ jobs:
             platforms: "linux/amd64"
 
     name: Build and Scan - ${{ matrix.image }}
-    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+    uses: spryker-projects/gha-actions/.github/workflows/trivy-trufflehog-default-security-scan.yml@SC-22224
     with:
       context: ${{ matrix.context }}
       dockerfile: ${{ matrix.dockerfile }}
