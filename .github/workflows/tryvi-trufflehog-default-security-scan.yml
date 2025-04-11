@@ -56,7 +56,7 @@ jobs:
 
     name: Build and Scan - ${{ matrix.image }}
     uses: spryker-projects/gha-reusable-workflows/.github/workflows/trivy-trufflehog-default-security-scan.yml@main
-    with:
+    with: 
       context: ${{ matrix.context }}
       dockerfile: ${{ matrix.dockerfile }}
       image: ${{ matrix.image }}
