@@ -1,12 +1,11 @@
 name: ECR PHP Vulnerability Scan
 
 on:
-  # schedule:
-  #   - cron: '0 9 * * *'
+  schedule:
+    - cron: '0 9 * * *'
   push:
     branches:
-      # - master
-      - SC-22224
+      - master
 
 jobs:
   vulnerability-detection:
@@ -20,38 +19,38 @@ jobs:
             tag: "8.1-alpine3.19"
             platforms: "linux/amd64"
             image_type: "PHP"
-          # - image: "alpine/3.19/8.2/Dockerfile"
-          #   tag: "8.2-alpine3.19"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
-          # - image: "alpine/3.19/8.3/Dockerfile"
-          #   tag: "8.3-alpine3.19"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
+          - image: "alpine/3.19/8.2/Dockerfile"
+            tag: "8.2-alpine3.19"
+            platforms: "linux/amd64"
+            image_type: "PHP"
+          - image: "alpine/3.19/8.3/Dockerfile"
+            tag: "8.3-alpine3.19"
+            platforms: "linux/amd64"
+            image_type: "PHP"
 
-          # ### Alpine 3.20
-          # - image: "alpine/3.20/8.1/Dockerfile"
-          #   tag: "8.1-alpine3.20"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
-          # - image: "alpine/3.20/8.2/Dockerfile"
-          #   tag: "8.2-alpine3.20"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
-          # - image: "alpine/3.20/8.3/Dockerfile"
-          #   tag: "8.3-alpine3.20"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
+          ### Alpine 3.20
+          - image: "alpine/3.20/8.1/Dockerfile"
+            tag: "8.1-alpine3.20"
+            platforms: "linux/amd64"
+            image_type: "PHP"
+          - image: "alpine/3.20/8.2/Dockerfile"
+            tag: "8.2-alpine3.20"
+            platforms: "linux/amd64"
+            image_type: "PHP"
+          - image: "alpine/3.20/8.3/Dockerfile"
+            tag: "8.3-alpine3.20"
+            platforms: "linux/amd64"
+            image_type: "PHP"
 
-          ### Alpine 3.21
-          # - image: "alpine/3.21/8.2/Dockerfile"
-          #   tag: "8.2-alpine3.21"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
-          # - image: "alpine/3.21/8.3/Dockerfile"
-          #   tag: "8.3-alpine3.21"
-          #   platforms: "linux/amd64"
-          #   image_type: "PHP"
+          ## Alpine 3.21
+          - image: "alpine/3.21/8.2/Dockerfile"
+            tag: "8.2-alpine3.21"
+            platforms: "linux/amd64"
+            image_type: "PHP"
+          - image: "alpine/3.21/8.3/Dockerfile"
+            tag: "8.3-alpine3.21"
+            platforms: "linux/amd64"
+            image_type: "PHP"
 
     uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
     with:
