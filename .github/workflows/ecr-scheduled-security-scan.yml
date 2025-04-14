@@ -13,8 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ## Alpine
-          # ### Alpine 3.19
+          ## Alpine
+          ### Alpine 3.19
           - image: "alpine/3.19/8.1/Dockerfile"
             tag: "8.1-alpine3.19"
             platforms: "linux/amd64"
@@ -42,7 +42,7 @@ jobs:
             platforms: "linux/amd64"
             image_type: "PHP"
 
-          ## Alpine 3.21
+          ### Alpine 3.21
           - image: "alpine/3.21/8.2/Dockerfile"
             tag: "8.2-alpine3.21"
             platforms: "linux/amd64"
