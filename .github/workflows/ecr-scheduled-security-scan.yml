@@ -52,7 +52,7 @@ jobs:
             platforms: "linux/amd64"
             image_type: "PHP"
 
-    uses: DenysSirchenko/gha_workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
+    uses: spryker-projects/gha-reusable-workflows/.github/workflows/ecr-scheduled-security-scan.yml@main
     with:
       image: ${{ matrix.image }}
       tag: ${{ matrix.tag }}
