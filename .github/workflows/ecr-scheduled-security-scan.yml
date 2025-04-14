@@ -1,11 +1,12 @@
 name: ECR PHP Vulnerability Scan
 
 on:
-  schedule:
-    - cron: '0 9 * * *'
+  # schedule:
+  #   - cron: '0 9 * * *'
   push:
     branches:
-      - master
+      # - master
+      - SC-22224
 
 jobs:
   vulnerability-detection:
