@@ -74,7 +74,8 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     amqp \
     grpc \
     protobuf \
-    opentelemetry"
+    opentelemetry \
+    excimer"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
