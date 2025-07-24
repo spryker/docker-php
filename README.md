@@ -27,7 +27,6 @@ Extends official PHP Docker images with extensions and tools to be able to run S
 > Note: Provided images require additional configuration for development, staging, and production use.
 
 ## Tags
-
 | Tag                                                                                         | PHP version | Linux distribution | Details                                                                                                                                                                                    | Dockerfile                                                                                 |
 |:--------------------------------------------------------------------------------------------|:------------|:-------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
 | [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                 | 8.2.25      | Alpine 3.20        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.20/8.2/Dockerfile)     |
