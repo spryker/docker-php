@@ -7,8 +7,8 @@ ARG COMPOSER_VERSION=2.8.10
 ARG BLACKFIRE_VERSION=1.92.28
 ARG BLACKFIRE_PHP_VERSION=83
 ARG NEWRELIC_VERSION=11.10.0.24
-ARG TIDEWAYS_VERSION=5.6.4
-ARG TIDEWAYS_PHP_VERSION=8.3
+ARG TIDEWAYS_VERSION=5.22.2
+ARG TIDEWAYS_PHP_VERSION=8.4
 
 ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
@@ -162,14 +162,14 @@ ENV TIDEWAYS_APIKEY=''
 ENV TIDEWAYS_DAEMON_URI=''
 ENV TIDEWAYS_CLI_ENABLED=0
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-x86_64.tar.gz" \
+    && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-x86_64.tar.gz \
+    && cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-    wget https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
+    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz" \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
-    && cp ./build/dist/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+    && cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # GraphViz 7.0.5
 RUN cd /tmp && \
