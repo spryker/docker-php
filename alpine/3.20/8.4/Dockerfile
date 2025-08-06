@@ -119,19 +119,11 @@ RUN apk update \
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
-# Otel
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v$(cut -d'.' -f1,2 /etc/alpine-release)/community" >> /etc/apk/repositories
-RUN PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && apk add --no-cache \
-       php${PHP_VERSION}-pecl-grpc \
-       php${PHP_VERSION}-pecl-protobuf \
-       php${PHP_VERSION}-pecl-opentelemetry
-
-RUN PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && EXT_DIR=$(php -r "echo ini_get('extension_dir');") \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/grpc.so $EXT_DIR/grpc.so \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/protobuf.so $EXT_DIR/protobuf.so \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/opentelemetry.so $EXT_DIR/opentelemetry.so
+## Blackfire
+ENV BLACKFIRE_AGENT_SOCKET=''
+RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
+    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 ## Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
