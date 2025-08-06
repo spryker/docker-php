@@ -35,6 +35,9 @@ jobs:
           - image: "alpine/3.20/8.3/Dockerfile"
             tags: [ "spryker/php:8.3", "spryker/php:8.3-alpine3.20" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.20/8.4/Dockerfile"
+            tags: [ "spryker/php:8.4", "spryker/php:8.4-alpine3.20" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
 
           ### Alpine 3.21
           - image: "alpine/3.21/8.2/Dockerfile"
@@ -42,6 +45,20 @@ jobs:
             platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "alpine/3.21/8.3/Dockerfile"
             tags: [ "spryker/php:8.3-alpine3.21" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.21/8.4/Dockerfile"
+            tags: [ "spryker/php:8.4-alpine3.21" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
+          ### Alpine 3.22
+          - image: "alpine/3.22/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-alpine3.22" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.22/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-alpine3.22" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.22/8.4/Dockerfile"
+            tags: [ "spryker/php:8.4-alpine3.22" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ## Debian

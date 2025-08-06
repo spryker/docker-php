@@ -45,14 +45,18 @@ jobs:
             tags: "8.3-alpine3.20"
             platforms: "linux/amd64"
 
-          ### Alpine 3.18
-          - context: "alpine/3.21/8.2"
+          ### Alpine 3.22
+          - context: "alpine/3.22/8.2"
             dockerfile: "Dockerfile"
-            tags: "8.2-alpine3.21"
+            tags: "8.2-alpine3.22"
             platforms: "linux/amd64"
-          - context: "alpine/3.21/8.3"
+          - context: "alpine/3.22/8.3"
             dockerfile: "Dockerfile"
-            tags: "8.3-alpine3.21"
+            tags: "8.3-alpine3.22"
+            platforms: "linux/amd64"
+          - context: "alpine/3.22/8.4"
+            dockerfile: "Dockerfile"
+            tags: "8.4-alpine3.22"
             platforms: "linux/amd64"
 
     steps:
