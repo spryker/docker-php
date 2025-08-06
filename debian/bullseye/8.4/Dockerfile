@@ -158,12 +158,12 @@ RUN bash -c 'curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
    tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
-   cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+   cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
-   cp ./tideways-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+   cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
