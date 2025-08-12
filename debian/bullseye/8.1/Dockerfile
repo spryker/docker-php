@@ -60,7 +60,9 @@ ARG PHP_EXTENSIONS="\
     pgsql \
     soap \
     sockets \
-    zip"
+    zip \
+    grpc \
+    protobuf"
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
@@ -71,8 +73,6 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     xdebug \
     xhprof \
     amqp \
-    grpc \
-    protobuf \
     opentelemetry"
 
 ARG CFLAGS="-I/usr/src/php"
