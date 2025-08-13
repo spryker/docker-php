@@ -61,13 +61,13 @@ ARG PHP_EXTENSIONS="\
     pgsql \
     soap \
     sockets \
-    zip \
-    grpc \
-    protobuf"
+    zip"
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
-    redis"
+    redis \
+    grpc \
+    protobuf"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
