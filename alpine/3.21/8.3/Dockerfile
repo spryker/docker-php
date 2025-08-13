@@ -130,8 +130,7 @@ RUN PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && EXT_DIR=$(php -r "echo ini_get('extension_dir');") \
     && ln -s /usr/lib/php${PHP_VERSION}/modules/grpc.so $EXT_DIR/grpc.so \
     && ln -s /usr/lib/php${PHP_VERSION}/modules/protobuf.so $EXT_DIR/protobuf.so \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/opentelemetry.so $EXT_DIR/opentelemetry.so \
-    && && docker-php-ext-enable grpc protobuf
+    && ln -s /usr/lib/php${PHP_VERSION}/modules/opentelemetry.so $EXT_DIR/opentelemetry.so
 
 ## Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''

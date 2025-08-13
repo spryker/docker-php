@@ -65,15 +65,15 @@ ARG PHP_EXTENSIONS="\
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
-    redis \
-    grpc \
-    protobuf"
+    redis"
 
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
     amqp \
+    grpc \
+    protobuf \
     opentelemetry"
 
 ARG CFLAGS="-I/usr/src/php"
