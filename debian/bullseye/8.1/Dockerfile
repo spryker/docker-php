@@ -1,13 +1,13 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.1.30
+ARG SPRYKER_PHP_VERSION=8.1.32
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.8.1
+ARG COMPOSER_VERSION=2.8.10
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=81
-ARG NEWRELIC_VERSION=11.2.0.15
+ARG NEWRELIC_VERSION=11.10.0.24
 ARG TIDEWAYS_VERSION=5.5.8
 ARG TIDEWAYS_PHP_VERSION=8.1
 ARG GOLANG_VERSION=1.20.3
@@ -41,7 +41,10 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
-    librabbitmq-dev"
+    librabbitmq-dev \
+    libgrpc-dev \
+    libprotobuf-dev \
+    protobuf-compiler"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -67,7 +70,10 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
-    amqp"
+    amqp \
+    grpc \
+    protobuf \
+    opentelemetry"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \

@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.28
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.20
+ARG SPRYKER_PHP_VERSION=8.2.29
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.21
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.8.10
@@ -113,8 +113,7 @@ RUN apk update \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps \
-    && rm -rf /tmp/icu*
+    && apk del --no-cache .php-build-deps
 
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
