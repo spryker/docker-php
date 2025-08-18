@@ -1,8 +1,9 @@
-# syntax = docker/dockerfile:1.0.2-experimental
+# syntax=docker/dockerfile:1.7
 ARG SPRYKER_PHP_VERSION=8.4.11
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.8.10
 ARG BLACKFIRE_VERSION=1.92.28
@@ -115,7 +116,7 @@ RUN apt update -y \
       --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && \
-    pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
+    set -eux; export MAKEFLAGS="-j$(nproc)"; pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} || true \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
     && apt remove -y $PHP_BUILD_DEPS \
