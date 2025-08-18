@@ -75,6 +75,9 @@ jobs:
           - image: "debian/bullseye/8.3/Dockerfile"
             tags: [ "spryker/php:8.3-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "debian/bullseye/8.4/Dockerfile"
+            tags: [ "spryker/php:8.4-debian" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
 
     steps:
       - name: Check out repository
@@ -82,31 +85,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get the previous commit hash
+      - name: Detect previous image and set PREV_COMMIT_HASH
         id: previous_commit
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+          IMAGE_TAG="${{ matrix.tags[0] }}"
+          HAS_PREVIOUS=false
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
             PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
+            if docker pull "$IMAGE_TAG" >/dev/null 2>&1; then HAS_PREVIOUS=true; fi
           else
-            PREV_COMMIT_HASH=$(git rev-parse origin/master)
-            IMAGE_TAG="${{ matrix.tags[0] }}"
-            echo "Pulling image $IMAGE_TAG"
-          
-            if ! docker pull "$IMAGE_TAG"; then
-              echo "Image $IMAGE_TAG does not exist. Setting PREV_COMMIT_HASH to empty string."
-              PREV_COMMIT_HASH=""
+            if docker pull "$IMAGE_TAG" >/dev/null 2>&1; then
+              PREV_COMMIT_HASH=$(git rev-parse origin/master)
+              HAS_PREVIOUS=true
             else
-              docker pull "$IMAGE_TAG"
-  
-              NEW_TAG="${IMAGE_TAG}-${PREV_COMMIT_HASH}"
-              echo "Re-tagging image to $NEW_TAG"
-              docker tag "$IMAGE_TAG" "$NEW_TAG"
-  
-              echo "Removing the pulled image $IMAGE_TAG"
-              docker rmi "$IMAGE_TAG" || true
+              PREV_COMMIT_HASH=""
             fi
           fi
-          echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH" >> $GITHUB_ENV
+          {
+            echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH"
+            echo "HAS_PREVIOUS=$HAS_PREVIOUS"
+          } >> "$GITHUB_ENV"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -121,7 +119,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Re-tag images with previous commit hash
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' && env.HAS_PREVIOUS == 'true' }}
         run: |
           PREV_HASH=${{ env.PREV_COMMIT_HASH }}
           if [ -z "$PREV_HASH" ]; then
@@ -161,6 +159,7 @@ jobs:
           cat current-image-report.txt
 
       - name: Previous image report
+        if: ${{ env.HAS_PREVIOUS == 'true' }}
         run: |
           PREVIOUS_TAG="${{ matrix.tags[0] }}-${{ env.PREV_COMMIT_HASH }}"
           bash .github/compare-images.sh $PREVIOUS_TAG > previous-image-report.txt || true
@@ -168,6 +167,7 @@ jobs:
 
       - name: Run the diff and format output
         id: diff
+        if: ${{ env.HAS_PREVIOUS == 'true' }}
         run: bash .github/format-output.sh
 
       - name: Fetch Job ID
