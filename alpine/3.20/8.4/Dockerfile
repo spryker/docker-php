@@ -71,7 +71,8 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
-    amqp"
+    amqp \
+    excimer"
 
 ARG GRAPHVIZ_BUILD_DEPS="\
     expat-dev"

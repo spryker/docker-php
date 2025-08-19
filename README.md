@@ -187,6 +187,7 @@ Disabled extensions
  [ ] pcov 1.0.11
  [ ] tideways 5.5.14
  [ ] xhprof 2.3.10
+ [ ] excimer 1.2.5
 
 INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
@@ -197,6 +198,7 @@ pcov    1.0.11  stable
 redis   6.1.0   stable
 xdebug  3.3.2   stable
 xhprof  2.3.10  stable
+excimer 1.2.5   stable
 
 Composer
 ====================
