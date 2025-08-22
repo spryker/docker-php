@@ -1,7 +1,6 @@
 name: ECR vulnerability detection
 
 on:
-  workflow_dispatch: {}
   schedule:
     - cron: '0 10 * * *'
   push:
@@ -11,59 +10,23 @@ on:
 jobs:
   vulnerability-detection:
     runs-on: ubuntu-latest
-    env:
-      PHP_VARIANT: cli
     strategy:
       fail-fast: false
       matrix:
         include:
-          ## Alpine
-          ### Alpine 3.19
-          - image: "alpine/3.19/8.1/Dockerfile"
-            tags: "8.1-alpine3.19"
-            platforms: "linux/amd64"
-          - image: "alpine/3.19/8.2/Dockerfile"
-            tags: "8.2-alpine3.19"
-            platforms: "linux/amd64"
-          - image: "alpine/3.19/8.3/Dockerfile"
-            tags: "8.3-alpine3.19"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.20
-          - image: "alpine/3.20/8.1/Dockerfile"
-            tags: "8.1-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.2/Dockerfile"
-            tags: "8.2-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.3/Dockerfile"
-            tags: "8.3-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.4/Dockerfile"
-            tags: "8.4-alpine3.20"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.21
-          - image: "alpine/3.21/8.2/Dockerfile"
-            tags: "8.2-alpine3.21"
-            platforms: "linux/amd64"
-          - image: "alpine/3.21/8.3/Dockerfile"
-            tags: "8.3-alpine3.21"
-            platforms: "linux/amd64"
-          - image: "alpine/3.21/8.4/Dockerfile"
-            tags: "8.4-alpine3.21"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.22
-          - image: "alpine/3.22/8.2/Dockerfile"
-            tags: "8.2-alpine3.22"
-            platforms: "linux/amd64"
-          - image: "alpine/3.22/8.3/Dockerfile"
-            tags: "8.3-alpine3.22"
-            platforms: "linux/amd64"
-          - image: "alpine/3.22/8.4/Dockerfile"
-            tags: "8.4-alpine3.22"
-            platforms: "linux/amd64"
+          - image_tag: "8.1-alpine3.19"
+          - image_tag: "8.2-alpine3.19"
+          - image_tag: "8.3-alpine3.19"
+          - image_tag: "8.1-alpine3.20"
+          - image_tag: "8.2-alpine3.20"
+          - image_tag: "8.3-alpine3.20"
+          - image_tag: "8.4-alpine3.20"
+          - image_tag: "8.2-alpine3.21"
+          - image_tag: "8.3-alpine3.21"
+          - image_tag: "8.4-alpine3.21"
+          - image_tag: "8.2-alpine3.22"
+          - image_tag: "8.3-alpine3.22"
+          - image_tag: "8.4-alpine3.22"
 
     steps:
       - name: Configure AWS credentials
@@ -81,57 +44,28 @@ jobs:
         run: |
           aws ecr describe-repositories --repository-names "${{ secrets.AWS_ECR_REPO }}" >/dev/null 2>&1 || \
           aws ecr create-repository --repository-name "${{ secrets.AWS_ECR_REPO }}" \
-            --image-scanning-configuration scanOnPush=true \
-            --tags Key=ManagedBy,Value=GitHubActions
-
-      - name: Resolve Docker Hub source & target tag from matrix
-        id: resolve
-        shell: bash
-        run: |
-          set -euo pipefail
-          IMAGE_PATH="${{ matrix.image }}"
-          ALPINE_VER="$(echo "$IMAGE_PATH" | awk -F/ '{print $2}')"
-          PHP_VER="$(echo "$IMAGE_PATH"   | awk -F/ '{print $3}')"
-          VARIANT="${PHP_VARIANT:-cli}"
-          SOURCE="php:${PHP_VER}-${VARIANT}-alpine${ALPINE_VER}"
-          if [[ -z "$ALPINE_VER" || -z "$PHP_VER" ]]; then
-            echo "Bad matrix.image: $IMAGE_PATH"
-            exit 1
-          fi
-          echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
-          echo "target_tag=${{ matrix.tags }}" >> "$GITHUB_OUTPUT"
-          echo "platform=${{ matrix.platforms }}" >> "$GITHUB_OUTPUT"
-          echo "Resolved SOURCE=$SOURCE; TARGET_TAG=${{ matrix.tags }}; PLATFORM=${{ matrix.platforms }}"
+            --image-scanning-configuration scanOnPush=true
 
       - name: Pull from Docker Hub
-        run: docker pull --platform "${{ steps.resolve.outputs.platform }}" "${{ steps.resolve.outputs.source }}"
+        run: docker pull "php:${{ matrix.image_tag }}"
 
-      - name: Compute content digest + final tag
-        id: meta
-        shell: bash
-        run: |
-          set -euo pipefail
-          REF="${{ steps.resolve.outputs.source }}"
-          DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "$REF" | awk -F@ '{print $2}')"
-          if [[ -z "${DIGEST:-}" ]]; then
-            echo "No digest for $REF"
-            docker inspect "$REF" || true
-            exit 1
-          fi
-          SHORT="${DIGEST#sha256:}"
-          SHORT="${SHORT:0:12}"
-          FINAL_TAG="${{ steps.resolve.outputs.target_tag }}-${SHORT}"
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          echo "final_tag=$FINAL_TAG" >> "$GITHUB_OUTPUT"
-
-      - name: Retag for ECR & push
+      - name: Tag & push to ECR
+        id: push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}"
-          docker tag "${{ steps.resolve.outputs.source }}" "${ECR_URI}"
-          docker push "${ECR_URI}"
-          echo "ECR_URI=${ECR_URI}" >> $GITHUB_ENV
+          ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ matrix.image_tag }}"
+          docker tag "php:${{ matrix.image_tag }}" "$ECR_URI"
+          docker push "$ECR_URI"
+          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+
+      - name: Resolve (compat outputs)
+        id: resolve
+        run: echo "source=php:${{ matrix.image_tag }}" >> $GITHUB_OUTPUT
+
+      - name: Meta (compat outputs)
+        id: meta
+        run: echo "final_tag=${{ matrix.image_tag }}" >> $GITHUB_OUTPUT
 
       - name: Scan Docker image (ECR)
         id: docker-scan
