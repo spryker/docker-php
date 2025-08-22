@@ -2,10 +2,10 @@ name: ECR vulnerability detection
 
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 10 * * *'
   push:
     branches:
-      - master
+      - feature/sc-23564/master-security-scan-on-latest-images
 
 jobs:
   vulnerability-detection:
@@ -64,72 +64,101 @@ jobs:
 
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push
-        id: docker-build
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
-          platforms: ${{ matrix.platforms }}
+      - name: Ensure ECR repo exists (scanOnPush on)
+        run: |
+          aws ecr describe-repositories --repository-names "${{ secrets.AWS_ECR_REPO }}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${{ secrets.AWS_ECR_REPO }}" \
+            --image-scanning-configuration scanOnPush=true \
+            --tags Key=ManagedBy,Value=GitHubActions
 
-      - name: Scan Docker image
+      - name: Pull from Docker Hub
+        run: |
+          docker pull "${{ matrix.source }}"
+
+      - name: Compute content digest + final tag
+        id: meta
+        shell: bash
+        run: |
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${{ matrix.source }}" | awk -F@ '{print $2}')
+          SHORT=${DIGEST#sha256:}
+          SHORT=${SHORT:0:12}
+          FINAL_TAG="${{ matrix.target_tag }}-${SHORT}"
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "final_tag=$FINAL_TAG" >> $GITHUB_OUTPUT
+
+      - name: Retag for ECR & push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}"
+          docker tag "${{ matrix.source }}" "${ECR_URI}"
+          docker push "${ECR_URI}"
+          echo "ECR_URI=${ECR_URI}" >> $GITHUB_ENV
+
+      - name: Scan Docker image (ECR)
         id: docker-scan
         uses: alexjurkiewicz/ecr-scan-image@v2.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
-          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
+          tag: ${{ steps.meta.outputs.final_tag }}
 
-      - name: Delete images after scan images
+      - name: Echo totals
         run: |
-          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
-
-      - run: |
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+          echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}"
 
+      - name: Delete image from ECR (optional cleanup)
+        if: always()
+        run: |
+          aws ecr batch-delete-image \
+            --repository-name "${{ secrets.AWS_ECR_REPO }}" \
+            --image-ids imageTag="${{ steps.meta.outputs.final_tag }}" || true
+
+      # --- Scheduled-only reporting to Slack ---
       - name: Set Date and Time
         id: set-date
-        if: github.event.schedule == '0 9 * * *'
-        run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
+        if: github.event_name == 'schedule'
+        run: echo "current_datetime=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Set Color
         id: set-color
-        if: github.event.schedule == '0 9 * * *'
+        if: github.event_name == 'schedule'
+        shell: bash
         run: |
-          if [[ "${{ true }}" ]]; then
-            COLOR="#008000"
+          if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
+            echo "color=#008000" >> $GITHUB_OUTPUT
           else
-            COLOR="#ff0000"
+            echo "color=#ff0000" >> $GITHUB_OUTPUT
           fi
-          echo "::set-output name=color::$COLOR"
 
-      - name: Send GitHub Action trigger data to Slack workflow
+      - name: Send GitHub Action trigger data to Slack
         id: slack
-        if: github.event.schedule == '0 9 * * *'
+        if: github.event_name == 'schedule'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "Scanned image tag *${{ matrix.tags }}*.",
+              "text": "Scanned image *${{ matrix.source }}* → *${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}*",
               "attachments": [
                 {
-                  "pretext": "ECR vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
+                  "pretext": "ECR vulnerability scan for ${{ steps.set-date.outputs.current_datetime }}",
                   "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
-                    {
-                      "title": "Status",
-                      "short": true,
-                      "value": "*${{ steps.docker-scan.outputs.total }}* total vulnerabilities"
-                    }
+                    { "title": "Total",     "short": true, "value": "*${{ steps.docker-scan.outputs.total }}*" },
+                    { "title": "Critical",  "short": true, "value": "${{ steps.docker-scan.outputs.critical }}" },
+                    { "title": "High",      "short": true, "value": "${{ steps.docker-scan.outputs.high }}" },
+                    { "title": "Medium",    "short": true, "value": "${{ steps.docker-scan.outputs.medium }}" },
+                    { "title": "Low",       "short": true, "value": "${{ steps.docker-scan.outputs.low }}" }
                   ]
                 }
               ]
@@ -138,6 +167,6 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-      - name: Fail the execution
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
+      - name: Fail the execution if vulns found
+        if: ${{ steps.docker-scan.outputs.total && steps.docker-scan.outputs.total != '0' }}
         run: exit 1
