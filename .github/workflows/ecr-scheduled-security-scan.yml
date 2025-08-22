@@ -69,7 +69,7 @@ jobs:
 
       - name: Scan Docker image (ECR)
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v3.0.0
+        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
           tag: ${{ steps.meta.outputs.final_tag }}
