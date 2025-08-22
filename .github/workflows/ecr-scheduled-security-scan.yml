@@ -1,6 +1,7 @@
 name: ECR vulnerability detection
 
 on:
+  workflow_dispatch: {}
   schedule:
     - cron: '0 10 * * *'
   push:
@@ -10,6 +11,8 @@ on:
 jobs:
   vulnerability-detection:
     runs-on: ubuntu-latest
+    env:
+      PHP_VARIANT: cli
     strategy:
       fail-fast: false
       matrix:
@@ -81,27 +84,52 @@ jobs:
             --image-scanning-configuration scanOnPush=true \
             --tags Key=ManagedBy,Value=GitHubActions
 
-      - name: Pull from Docker Hub
+      - name: Resolve Docker Hub source & target tag from matrix
+        id: resolve
+        shell: bash
         run: |
-          docker pull "${{ matrix.source }}"
+          set -euo pipefail
+          IMAGE_PATH="${{ matrix.image }}"
+          ALPINE_VER="$(echo "$IMAGE_PATH" | awk -F/ '{print $2}')"
+          PHP_VER="$(echo "$IMAGE_PATH"   | awk -F/ '{print $3}')"
+          VARIANT="${PHP_VARIANT:-cli}"
+          SOURCE="php:${PHP_VER}-${VARIANT}-alpine${ALPINE_VER}"
+          if [[ -z "$ALPINE_VER" || -z "$PHP_VER" ]]; then
+            echo "Bad matrix.image: $IMAGE_PATH"
+            exit 1
+          fi
+          echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
+          echo "target_tag=${{ matrix.tags }}" >> "$GITHUB_OUTPUT"
+          echo "platform=${{ matrix.platforms }}" >> "$GITHUB_OUTPUT"
+          echo "Resolved SOURCE=$SOURCE; TARGET_TAG=${{ matrix.tags }}; PLATFORM=${{ matrix.platforms }}"
+
+      - name: Pull from Docker Hub
+        run: docker pull --platform "${{ steps.resolve.outputs.platform }}" "${{ steps.resolve.outputs.source }}"
 
       - name: Compute content digest + final tag
         id: meta
         shell: bash
         run: |
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${{ matrix.source }}" | awk -F@ '{print $2}')
-          SHORT=${DIGEST#sha256:}
-          SHORT=${SHORT:0:12}
-          FINAL_TAG="${{ matrix.target_tag }}-${SHORT}"
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-          echo "final_tag=$FINAL_TAG" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          REF="${{ steps.resolve.outputs.source }}"
+          DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "$REF" | awk -F@ '{print $2}')"
+          if [[ -z "${DIGEST:-}" ]]; then
+            echo "No digest for $REF"
+            docker inspect "$REF" || true
+            exit 1
+          fi
+          SHORT="${DIGEST#sha256:}"
+          SHORT="${SHORT:0:12}"
+          FINAL_TAG="${{ steps.resolve.outputs.target_tag }}-${SHORT}"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "final_tag=$FINAL_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Retag for ECR & push
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}"
-          docker tag "${{ matrix.source }}" "${ECR_URI}"
+          docker tag "${{ steps.resolve.outputs.source }}" "${ECR_URI}"
           docker push "${ECR_URI}"
           echo "ECR_URI=${ECR_URI}" >> $GITHUB_ENV
 
@@ -124,7 +152,6 @@ jobs:
             --repository-name "${{ secrets.AWS_ECR_REPO }}" \
             --image-ids imageTag="${{ steps.meta.outputs.final_tag }}" || true
 
-      # --- Scheduled-only reporting to Slack ---
       - name: Set Date and Time
         id: set-date
         if: github.event_name == 'schedule'
@@ -148,7 +175,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "Scanned image *${{ matrix.source }}* → *${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}*",
+              "text": "Scanned image *${{ steps.resolve.outputs.source }}* → *${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}*",
               "attachments": [
                 {
                   "pretext": "ECR vulnerability scan for ${{ steps.set-date.outputs.current_datetime }}",
