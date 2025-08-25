@@ -71,7 +71,8 @@ jobs:
           repository: ${{ secrets.AWS_ECR_REPO }}
           tag: ${{ matrix.image_tag }}
 
-      - name: Echo totals
+      - name: Report
+        if: always()
         run: |
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
           echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
@@ -82,7 +83,7 @@ jobs:
         run: |
           aws ecr batch-delete-image \
             --repository-name "${{ secrets.AWS_ECR_REPO }}" \
-            --image-ids imageTag="${{ steps.push.outputs.ecr_uri }}" || true
+            --image-ids imageTag="${{ matrix.image_tag }}" || true
 
       - name: Set Date and Time
         id: set-date
