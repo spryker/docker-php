@@ -76,7 +76,10 @@ jobs:
         run: |
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
           echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
-          echo "Details of findings: ${{ steps.docker-scan.outputs.findingsDetails }}"
+          echo "Details of findings:"
+          cat <<'JSON'
+              ${{ steps.docker-scan.outputs.findingsDetails }}
+          JSON
 
       - name: Delete image from ECR (optional cleanup)
         if: always()
