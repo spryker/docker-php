@@ -14,19 +14,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image_tag: "8.1-alpine3.19"
-          - image_tag: "8.2-alpine3.19"
-          - image_tag: "8.3-alpine3.19"
-          - image_tag: "8.1-alpine3.20"
-          - image_tag: "8.2-alpine3.20"
-          - image_tag: "8.3-alpine3.20"
-          - image_tag: "8.4-alpine3.20"
-          - image_tag: "8.2-alpine3.21"
-          - image_tag: "8.3-alpine3.21"
-          - image_tag: "8.4-alpine3.21"
-          - image_tag: "8.2-alpine3.22"
-          - image_tag: "8.3-alpine3.22"
-          - image_tag: "8.4-alpine3.22"
+          - image_tag: "spryker/php:8.1-alpine3.19"
+          - image_tag: "spryker/php:8.2-alpine3.19"
+          - image_tag: "spryker/php:8.3-alpine3.19"
+          - image_tag: "spryker/php:8.1-alpine3.20"
+          - image_tag: "spryker/php:8.2-alpine3.20"
+          - image_tag: "spryker/php:8.3-alpine3.20"
+          - image_tag: "spryker/php:8.4-alpine3.20"
+          - image_tag: "spryker/php:8.2-alpine3.21"
+          - image_tag: "spryker/php:8.3-alpine3.21"
+          - image_tag: "spryker/php:8.4-alpine3.21"
+          - image_tag: "spryker/php:8.2-alpine3.22"
+          - image_tag: "spryker/php:8.3-alpine3.22"
+          - image_tag: "spryker/php:8.4-alpine3.22"
 
     steps:
       - name: Login to DockerHub
@@ -34,7 +34,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
 
       - name: Pull the latest image from the DockerHub
         run: docker pull "${{ matrix.image_tag }}"
