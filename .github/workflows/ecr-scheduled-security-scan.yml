@@ -70,7 +70,7 @@ jobs:
         uses: alexjurkiewicz/ecr-scan-image@v2.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
-          tag: ${{ steps.push.outputs.ecr_uri }}
+          tag: ${{ matrix.image_tag }}
 
       - name: Echo totals
         run: |
