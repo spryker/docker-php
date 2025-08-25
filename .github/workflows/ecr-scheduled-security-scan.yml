@@ -70,7 +70,7 @@ jobs:
           REPO="${{ secrets.AWS_ECR_REPO }}"
           TAG="${{ matrix.image_tag }}"
           REG="${{ secrets.AWS_REGION }}"
-          for i in {1..180}; do
+          for i in {1..6}; do
             out=$(aws ecr describe-image-scan-findings \
               --repository-name "$REPO" \
               --image-id imageTag="$TAG" \
@@ -145,8 +145,7 @@ jobs:
                     { "title": "Medium",        "short": true, "value": "${{ steps.docker-scan.outputs.medium }}" },
                     { "title": "Low",           "short": true, "value": "${{ steps.docker-scan.outputs.low }}" },
                     { "title": "Informational", "short": true, "value": "${{ steps.docker-scan.outputs.informational }}" },
-                    { "title": "Unknown",       "short": true, "value": "${{ steps.docker-scan.outputs.unknown }}" },
-            
+                    { "title": "Unknown",       "short": true, "value": "${{ steps.docker-scan.outputs.unknown || '0' }}" }
                   ]
                 }
               ]
