@@ -216,11 +216,11 @@ jobs:
                       "type": "section",
                       "fields": [
                         { "type": "mrkdwn", "text": "*Total*\n*${{ steps.docker-scan.outputs.total }}*" },
-                        { "type": "mrkdwn", "text": "*Critical* :rotating_light:\n${{ steps.docker-scan.outputs.critical }}" },
-                        { "type": "mrkdwn", "text": "*High* :fire:\n${{ steps.docker-scan.outputs.high }}" },
-                        { "type": "mrkdwn", "text": "*Medium* :warning:\n${{ steps.docker-scan.outputs.medium }}" },
-                        { "type": "mrkdwn", "text": "*Low* :white_check_mark:\n${{ steps.docker-scan.outputs.low }}" },
-                        { "type": "mrkdwn", "text": "*Info* :information_source:\n${{ steps.docker-scan.outputs.informational }}" }
+                        { "type": "mrkdwn", "text": "*Critical*\n${{ steps.docker-scan.outputs.critical }}" },
+                        { "type": "mrkdwn", "text": "*High*\n${{ steps.docker-scan.outputs.high }}" },
+                        { "type": "mrkdwn", "text": "*Medium*\n${{ steps.docker-scan.outputs.medium }}" },
+                        { "type": "mrkdwn", "text": "*Low*\n${{ steps.docker-scan.outputs.low }}" },
+                        { "type": "mrkdwn", "text": "*Info*\n${{ steps.docker-scan.outputs.informational }}" }
                       ]
                     },
                     {
