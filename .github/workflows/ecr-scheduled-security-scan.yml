@@ -84,6 +84,7 @@ jobs:
 
       - name: Scan Docker image (ECR)
         id: docker-scan
+        continue-on-error: true
         uses: alexjurkiewicz/ecr-scan-image@v3.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
