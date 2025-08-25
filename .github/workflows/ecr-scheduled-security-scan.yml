@@ -63,26 +63,27 @@ jobs:
           ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ matrix.image_tag }}"
           docker tag "spryker/php:${{ matrix.image_tag }}" "$ECR_URI"
           docker push "$ECR_URI"
-          echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
+          echo "ecr_uri=$ECR_URI" >> $GITHUB_ENV
 
       - name: Scan Docker image (ECR)
         id: docker-scan
         uses: alexjurkiewicz/ecr-scan-image@v2.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
-          tag: ${{ steps.meta.outputs.final_tag }}
+          tag: ${{ steps.push.outputs.ecr_uri }}
 
       - name: Echo totals
         run: |
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
-          echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}"
+          echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Unknown: ${{ steps.docker-scan.outputs.unknown }}"
+          echo "Details of findings: ${{ steps.docker-scan.outputs.findingsDetails }}"
 
       - name: Delete image from ECR (optional cleanup)
         if: always()
         run: |
           aws ecr batch-delete-image \
             --repository-name "${{ secrets.AWS_ECR_REPO }}" \
-            --image-ids imageTag="${{ steps.meta.outputs.final_tag }}" || true
+            --image-ids imageTag="${{ steps.push.outputs.ecr_uri }}" || true
 
       - name: Set Date and Time
         id: set-date
