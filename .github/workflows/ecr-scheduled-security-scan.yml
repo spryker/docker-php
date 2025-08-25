@@ -109,14 +109,12 @@ jobs:
 
       - name: Set Date and Time
         id: set-date
-        #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        if: ${{ github.event_name == 'schedule' && steps.docker-scan.outputs.total > 0 }}
         run: echo "current_datetime=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Set Color
         id: set-color
-        #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        if: ${{ github.event_name == 'schedule' && steps.docker-scan.outputs.total > 0 }}
         shell: bash
         run: |
           if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
@@ -127,12 +125,12 @@ jobs:
 
       - name: Build link to scan step
         id: scan-step-link
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        if: ${{ github.event_name == 'schedule' && steps.docker-scan.outputs.total > 0 }}
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
           TAG: ${{ matrix.image_tag }}
-          STEP_NAME: Scan Docker image (ECR)   # <-- must match the step's 'name'
+          STEP_NAME: Scan Docker image (ECR)
         run: |
           set -euo pipefail
           RES="$(curl -sS -H "Accept: application/vnd.github+json" \
@@ -160,38 +158,9 @@ jobs:
           echo "job_url=$JOB_URL"  >> "$GITHUB_OUTPUT"
           echo "step_url=$STEP_URL" >> "$GITHUB_OUTPUT"
 
-#      - name: Send GitHub Action trigger data to Slack
-#        id: slack
-#        #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
-#        if: ${{ steps.docker-scan.outputs.total > 0 }}
-#        uses: slackapi/slack-github-action@v1.24.0
-#        with:
-#          payload: |
-#            {
-#              "text": "ECR vulnerability scan for the *${{ matrix.image_tag }}* image",
-#              "attachments": [
-#                {
-#                  "pretext": "Scan time: *${{ steps.set-date.outputs.current_datetime }}*",
-#                  "color": "${{ steps.set-color.outputs.color }}",
-#                  "fields": [
-#                    { "title": "Total Vulnerabilities", "short": false, "value": "*${{ steps.docker-scan.outputs.total }}*" },
-#                    {
-#                      "title": "Scanned image",
-#                      "value": "*${{ matrix.image_tag }}* • <${{ steps.scan-step-link.outputs.step_url }}|Open scan step>",
-#                      "short": false
-#                    }
-#                  ]
-#                }
-#              ]
-#            }
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-
       - name: Send GitHub Action trigger data to Slack
         id: slack
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
+        if: ${{ github.event_name == 'schedule' && steps.docker-scan.outputs.total > 0 }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
