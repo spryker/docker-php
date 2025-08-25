@@ -29,6 +29,9 @@ jobs:
           - image_tag: "8.4-alpine3.22"
 
     steps:
+      - name: Pull the latest image from the DockerHub
+        run: docker pull "docker/php:${{ matrix.image_tag }}"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -45,9 +48,6 @@ jobs:
           aws ecr describe-repositories --repository-names "${{ secrets.AWS_ECR_REPO }}" >/dev/null 2>&1 || \
           aws ecr create-repository --repository-name "${{ secrets.AWS_ECR_REPO }}" \
             --image-scanning-configuration scanOnPush=true
-
-      - name: Pull from Docker Hub
-        run: docker pull "docker/php:${{ matrix.image_tag }}"
 
       - name: Tag & push to ECR
         id: push
