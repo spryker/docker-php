@@ -15,18 +15,18 @@ jobs:
       matrix:
         include:
           - image_tag: "8.1-alpine3.19"
-#          - image_tag: "8.2-alpine3.19"
-#          - image_tag: "8.3-alpine3.19"
-#          - image_tag: "8.1-alpine3.20"
-#          - image_tag: "8.2-alpine3.20"
-#          - image_tag: "8.3-alpine3.20"
-#          - image_tag: "8.4-alpine3.20"
-#          - image_tag: "8.2-alpine3.21"
-#          - image_tag: "8.3-alpine3.21"
-#          - image_tag: "8.4-alpine3.21"
-#          - image_tag: "8.2-alpine3.22"
-#          - image_tag: "8.3-alpine3.22"
-#          - image_tag: "8.4-alpine3.22"
+          - image_tag: "8.2-alpine3.19"
+          - image_tag: "8.3-alpine3.19"
+          - image_tag: "8.1-alpine3.20"
+          - image_tag: "8.2-alpine3.20"
+          - image_tag: "8.3-alpine3.20"
+          - image_tag: "8.4-alpine3.20"
+          - image_tag: "8.2-alpine3.21"
+          - image_tag: "8.3-alpine3.21"
+          - image_tag: "8.4-alpine3.21"
+          - image_tag: "8.2-alpine3.22"
+          - image_tag: "8.3-alpine3.22"
+          - image_tag: "8.4-alpine3.22"
 
     steps:
       - name: Login to DockerHub
@@ -208,7 +208,7 @@ jobs:
                       "type": "context",
                       "elements": [
                         { "type": "mrkdwn", "text": "*Scan time:* ${{ steps.set-date.outputs.current_datetime }}" },
-                        { "type": "mrkdwn", "text": "<${{ steps.scan-step-link.outputs.step_url }}|Open scan step>" }
+                        { "type": "mrkdwn", "text": "<${{ steps.scan-step-link.outputs.step_url }}|Open scan report>" }
                       ]
                     },
                     { "type": "divider" },
@@ -228,7 +228,7 @@ jobs:
                       "elements": [
                         {
                           "type": "button",
-                          "text": { "type": "plain_text", "text": "Open scan step" },
+                          "text": { "type": "plain_text", "text": "Open scan report" },
                           "url": "${{ steps.scan-step-link.outputs.step_url }}"
                         }
                       ]
