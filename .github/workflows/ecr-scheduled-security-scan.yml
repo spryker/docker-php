@@ -64,6 +64,24 @@ jobs:
           docker push "$ECR_URI"
           echo "ecr_uri=$ECR_URI" >> $GITHUB_ENV
 
+      - name: Wait for enhanced scan results
+        run: |
+          set -euo pipefail
+          REPO="${{ secrets.AWS_ECR_REPO }}"
+          TAG="${{ matrix.image_tag }}"
+          REG="${{ secrets.AWS_REGION }}"
+          for i in {1..180}; do
+            out=$(aws ecr describe-image-scan-findings \
+              --repository-name "$REPO" \
+              --image-id imageTag="$TAG" \
+              --region "$REG" 2>/dev/null || true)
+            status=$(echo "$out" | jq -r '.imageScanStatus.status // ""')
+            has_obj=$(echo "$out" | jq -r '.imageScanFindings != null')
+            echo "Status: ${status:-<none>} | has findings obj: $has_obj"
+            if [[ "$status" != "" && "$has_obj" == "true" ]]; then break; fi
+            sleep 10
+          done
+
       - name: Scan Docker image (ECR)
         id: docker-scan
         uses: alexjurkiewicz/ecr-scan-image@v3.0.0
