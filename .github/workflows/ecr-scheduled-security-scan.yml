@@ -129,17 +129,20 @@ jobs:
         with:
           payload: |
             {
-              "text": "Scanned image *${{ steps.resolve.outputs.source }}* → *${{ secrets.AWS_ECR_REPO }}:${{ steps.meta.outputs.final_tag }}*",
+              "text": "Scanned image *${{ matrix.image_tag }}*",
               "attachments": [
                 {
                   "pretext": "ECR vulnerability scan for ${{ steps.set-date.outputs.current_datetime }}",
                   "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
-                    { "title": "Total",     "short": true, "value": "*${{ steps.docker-scan.outputs.total }}*" },
-                    { "title": "Critical",  "short": true, "value": "${{ steps.docker-scan.outputs.critical }}" },
-                    { "title": "High",      "short": true, "value": "${{ steps.docker-scan.outputs.high }}" },
-                    { "title": "Medium",    "short": true, "value": "${{ steps.docker-scan.outputs.medium }}" },
-                    { "title": "Low",       "short": true, "value": "${{ steps.docker-scan.outputs.low }}" }
+                    { "title": "Total",         "short": true, "value": "*${{ steps.docker-scan.outputs.total }}*" },
+                    { "title": "Critical",      "short": true, "value": "${{ steps.docker-scan.outputs.critical }}" },
+                    { "title": "High",          "short": true, "value": "${{ steps.docker-scan.outputs.high }}" },
+                    { "title": "Medium",        "short": true, "value": "${{ steps.docker-scan.outputs.medium }}" },
+                    { "title": "Low",           "short": true, "value": "${{ steps.docker-scan.outputs.low }}" },
+                    { "title": "Informational", "short": true, "value": "${{ steps.docker-scan.outputs.informational }}" },
+                    { "title": "Unknown",       "short": true, "value": "${{ steps.docker-scan.outputs.unknown }}" },
+            
                   ]
                 }
               ]
