@@ -110,13 +110,13 @@ jobs:
       - name: Set Date and Time
         id: set-date
         #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
-        if: ${{ fromJSON(steps.docker-scan.outputs.total) > 0 }}
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
         run: echo "current_datetime=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Set Color
         id: set-color
         #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
-        if: ${{ fromJSON(steps.docker-scan.outputs.total) > 0 }}
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
         shell: bash
         run: |
           if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
@@ -125,27 +125,60 @@ jobs:
             echo "color=#ff0000" >> $GITHUB_OUTPUT
           fi
 
+      - name: Build link to scan step
+        id: scan-step-link
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          TAG: ${{ matrix.image_tag }}
+          STEP_NAME: Scan Docker image (ECR)   # <-- must match the step's 'name'
+        run: |
+          set -euo pipefail
+          RES="$(curl -sS -H "Accept: application/vnd.github+json" \
+                       -H "Authorization: Bearer $GH_TOKEN" \
+                       "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs?per_page=100")"
+          
+          JOB="$(jq -c --arg tag "$TAG" '
+            .jobs
+            | (map(select(.name | endswith("(image_tag: " + $tag + ")"))) | .[0])
+              // .[0]
+          ' <<<"$RES")"
+          
+          JOB_URL="$(jq -r '.html_url' <<<"$JOB")"
+          
+          STEP_NUM="$(jq -r --arg n "$STEP_NAME" '
+            .steps | map(select(.name == $n)) | .[0].number
+          ' <<<"$JOB")"
+          
+          if [ -n "$STEP_NUM" ] && [ "$STEP_NUM" != "null" ]; then
+            STEP_URL="${JOB_URL}#step:${STEP_NUM}:1"
+          else
+            STEP_URL="$JOB_URL"
+          fi
+          
+          echo "job_url=$JOB_URL"  >> "$GITHUB_OUTPUT"
+          echo "step_url=$STEP_URL" >> "$GITHUB_OUTPUT"
+
       - name: Send GitHub Action trigger data to Slack
         id: slack
         #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
-        if: ${{ fromJSON(steps.docker-scan.outputs.total) > 0 }}
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "Scanned image *${{ matrix.image_tag }}*",
+              "text": "ECR vulnerability scan for the *${{ matrix.image_tag }}* image",
               "attachments": [
                 {
-                  "pretext": "ECR vulnerability scan for ${{ steps.set-date.outputs.current_datetime }}",
+                  "pretext": "Scan time: *${{ steps.set-date.outputs.current_datetime }}*",
                   "color": "${{ steps.set-color.outputs.color }}",
                   "fields": [
-                    { "title": "Total",         "short": true, "value": "*${{ steps.docker-scan.outputs.total }}*" },
-                    { "title": "Critical",      "short": true, "value": "${{ steps.docker-scan.outputs.critical }}" },
-                    { "title": "High",          "short": true, "value": "${{ steps.docker-scan.outputs.high }}" },
-                    { "title": "Medium",        "short": true, "value": "${{ steps.docker-scan.outputs.medium }}" },
-                    { "title": "Low",           "short": true, "value": "${{ steps.docker-scan.outputs.low }}" },
-                    { "title": "Informational", "short": true, "value": "${{ steps.docker-scan.outputs.informational }}" },
-                    { "title": "Unknown",       "short": true, "value": "${{ steps.docker-scan.outputs.unknown || '0' }}" }
+                    { "title": "Total", "short": false, "value": "*${{ steps.docker-scan.outputs.total }}*" },
+                    {                 
+                      "title": "Scan Report",
+                      "value": "Scanned image *${{ matrix.image_tag }}* • <${{ steps.scan-step-link.outputs.step_url }}|Open scan step>",
+                      "short": false
+                    }
                   ]
                 }
               ]
