@@ -29,8 +29,15 @@ jobs:
           - image_tag: "8.4-alpine3.22"
 
     steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+
       - name: Pull the latest image from the DockerHub
-        run: docker pull "docker/php:${{ matrix.image_tag }}"
+        run: docker pull "${{ matrix.image_tag }}"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -55,7 +62,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ matrix.image_tag }}"
-          docker tag "docker/php:${{ matrix.image_tag }}" "$ECR_URI"
+          docker tag "${{ matrix.image_tag }}" "$ECR_URI"
           docker push "$ECR_URI"
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
 
