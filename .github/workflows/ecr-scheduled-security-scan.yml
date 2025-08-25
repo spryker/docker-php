@@ -14,19 +14,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image_tag: "spryker/php:8.1-alpine3.19"
-          - image_tag: "spryker/php:8.2-alpine3.19"
-          - image_tag: "spryker/php:8.3-alpine3.19"
-          - image_tag: "spryker/php:8.1-alpine3.20"
-          - image_tag: "spryker/php:8.2-alpine3.20"
-          - image_tag: "spryker/php:8.3-alpine3.20"
-          - image_tag: "spryker/php:8.4-alpine3.20"
-          - image_tag: "spryker/php:8.2-alpine3.21"
-          - image_tag: "spryker/php:8.3-alpine3.21"
-          - image_tag: "spryker/php:8.4-alpine3.21"
-          - image_tag: "spryker/php:8.2-alpine3.22"
-          - image_tag: "spryker/php:8.3-alpine3.22"
-          - image_tag: "spryker/php:8.4-alpine3.22"
+          - image_tag: "8.1-alpine3.19"
+          - image_tag: "8.2-alpine3.19"
+          - image_tag: "8.3-alpine3.19"
+          - image_tag: "8.1-alpine3.20"
+          - image_tag: "8.2-alpine3.20"
+          - image_tag: "8.3-alpine3.20"
+          - image_tag: "8.4-alpine3.20"
+          - image_tag: "8.2-alpine3.21"
+          - image_tag: "8.3-alpine3.21"
+          - image_tag: "8.4-alpine3.21"
+          - image_tag: "8.2-alpine3.22"
+          - image_tag: "8.3-alpine3.22"
+          - image_tag: "8.4-alpine3.22"
 
     steps:
       - name: Login to DockerHub
@@ -36,7 +36,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull the latest image from the DockerHub
-        run: docker pull "${{ matrix.image_tag }}"
+        run: docker pull "spryker/php:${{ matrix.image_tag }}"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -61,7 +61,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ matrix.image_tag }}"
-          docker tag "${{ matrix.image_tag }}" "$ECR_URI"
+          docker tag "spryker/php:${{ matrix.image_tag }}" "$ECR_URI"
           docker push "$ECR_URI"
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
 
