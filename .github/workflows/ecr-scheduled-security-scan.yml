@@ -47,7 +47,7 @@ jobs:
             --image-scanning-configuration scanOnPush=true
 
       - name: Pull from Docker Hub
-        run: docker pull "php:${{ matrix.image_tag }}"
+        run: docker pull "docker/php:${{ matrix.image_tag }}"
 
       - name: Tag & push to ECR
         id: push
@@ -55,17 +55,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ matrix.image_tag }}"
-          docker tag "php:${{ matrix.image_tag }}" "$ECR_URI"
+          docker tag "docker/php:${{ matrix.image_tag }}" "$ECR_URI"
           docker push "$ECR_URI"
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
-
-      - name: Resolve (compat outputs)
-        id: resolve
-        run: echo "source=php:${{ matrix.image_tag }}" >> $GITHUB_OUTPUT
-
-      - name: Meta (compat outputs)
-        id: meta
-        run: echo "final_tag=${{ matrix.image_tag }}" >> $GITHUB_OUTPUT
 
       - name: Scan Docker image (ECR)
         id: docker-scan
