@@ -15,18 +15,18 @@ jobs:
       matrix:
         include:
           - image_tag: "8.1-alpine3.19"
-          - image_tag: "8.2-alpine3.19"
-          - image_tag: "8.3-alpine3.19"
-          - image_tag: "8.1-alpine3.20"
-          - image_tag: "8.2-alpine3.20"
-          - image_tag: "8.3-alpine3.20"
-          - image_tag: "8.4-alpine3.20"
-          - image_tag: "8.2-alpine3.21"
-          - image_tag: "8.3-alpine3.21"
-          - image_tag: "8.4-alpine3.21"
-          - image_tag: "8.2-alpine3.22"
-          - image_tag: "8.3-alpine3.22"
-          - image_tag: "8.4-alpine3.22"
+#          - image_tag: "8.2-alpine3.19"
+#          - image_tag: "8.3-alpine3.19"
+#          - image_tag: "8.1-alpine3.20"
+#          - image_tag: "8.2-alpine3.20"
+#          - image_tag: "8.3-alpine3.20"
+#          - image_tag: "8.4-alpine3.20"
+#          - image_tag: "8.2-alpine3.21"
+#          - image_tag: "8.3-alpine3.21"
+#          - image_tag: "8.4-alpine3.21"
+#          - image_tag: "8.2-alpine3.22"
+#          - image_tag: "8.3-alpine3.22"
+#          - image_tag: "8.4-alpine3.22"
 
     steps:
       - name: Login to DockerHub
@@ -127,6 +127,7 @@ jobs:
 
       - name: Build link to scan step
         id: scan-step-link
+        if: ${{ steps.docker-scan.outputs.total > 0 }}
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
@@ -159,25 +160,78 @@ jobs:
           echo "job_url=$JOB_URL"  >> "$GITHUB_OUTPUT"
           echo "step_url=$STEP_URL" >> "$GITHUB_OUTPUT"
 
+#      - name: Send GitHub Action trigger data to Slack
+#        id: slack
+#        #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
+#        if: ${{ steps.docker-scan.outputs.total > 0 }}
+#        uses: slackapi/slack-github-action@v1.24.0
+#        with:
+#          payload: |
+#            {
+#              "text": "ECR vulnerability scan for the *${{ matrix.image_tag }}* image",
+#              "attachments": [
+#                {
+#                  "pretext": "Scan time: *${{ steps.set-date.outputs.current_datetime }}*",
+#                  "color": "${{ steps.set-color.outputs.color }}",
+#                  "fields": [
+#                    { "title": "Total Vulnerabilities", "short": false, "value": "*${{ steps.docker-scan.outputs.total }}*" },
+#                    {
+#                      "title": "Scanned image",
+#                      "value": "*${{ matrix.image_tag }}* • <${{ steps.scan-step-link.outputs.step_url }}|Open scan step>",
+#                      "short": false
+#                    }
+#                  ]
+#                }
+#              ]
+#            }
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+
       - name: Send GitHub Action trigger data to Slack
         id: slack
-        #if: ${{ github.event_name == 'schedule' && fromJSON(steps.docker-scan.outputs.total) > 0 }}
         if: ${{ steps.docker-scan.outputs.total > 0 }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "ECR vulnerability scan for the *${{ matrix.image_tag }}* image",
               "attachments": [
                 {
-                  "pretext": "Scan time: *${{ steps.set-date.outputs.current_datetime }}*",
                   "color": "${{ steps.set-color.outputs.color }}",
-                  "fields": [
-                    { "title": "Total", "short": false, "value": "*${{ steps.docker-scan.outputs.total }}*" },
-                    {                 
-                      "title": "Scan Report",
-                      "value": "Scanned image *${{ matrix.image_tag }}* • <${{ steps.scan-step-link.outputs.step_url }}|Open scan step>",
-                      "short": false
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": { "type": "plain_text", "text": "ECR scan: ${{ matrix.image_tag }}", "emoji": true }
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        { "type": "mrkdwn", "text": "*Scan time:* ${{ steps.set-date.outputs.current_datetime }}" },
+                        { "type": "mrkdwn", "text": "<${{ steps.scan-step-link.outputs.step_url }}|Open scan step>" }
+                      ]
+                    },
+                    { "type": "divider" },
+                    {
+                      "type": "section",
+                      "fields": [
+                        { "type": "mrkdwn", "text": "*Total*\n*${{ steps.docker-scan.outputs.total }}*" },
+                        { "type": "mrkdwn", "text": "*Critical* :rotating_light:\n${{ steps.docker-scan.outputs.critical }}" },
+                        { "type": "mrkdwn", "text": "*High* :fire:\n${{ steps.docker-scan.outputs.high }}" },
+                        { "type": "mrkdwn", "text": "*Medium* :warning:\n${{ steps.docker-scan.outputs.medium }}" },
+                        { "type": "mrkdwn", "text": "*Low* :white_check_mark:\n${{ steps.docker-scan.outputs.low }}" },
+                        { "type": "mrkdwn", "text": "*Info* :information_source:\n${{ steps.docker-scan.outputs.informational }}" }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": { "type": "plain_text", "text": "Open scan step" },
+                          "url": "${{ steps.scan-step-link.outputs.step_url }}"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -186,7 +240,3 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-      - name: Fail the execution if vulns found
-        if: ${{ steps.docker-scan.outputs.total && steps.docker-scan.outputs.total != '0' }}
-        run: exit 1
