@@ -106,6 +106,12 @@ jobs:
             --repository-name "${{ secrets.AWS_ECR_REPO }}" \
             --image-ids imageTag="${{ matrix.image_tag }}" || true
 
+      - name: Debug scan outcome
+        if: always()
+        run: |
+          echo "outcome=${{ steps.docker-scan.outcome }}"
+          echo "conclusion=${{ steps.docker-scan.conclusion }}"
+
       - name: Set Date and Time
         id: set-date
         #if: ${{ github.event_name == 'schedule' && steps.docker-scan.conclusion == 'failure' }}
