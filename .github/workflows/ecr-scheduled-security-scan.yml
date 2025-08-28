@@ -2,10 +2,7 @@ name: ECR vulnerability detection
 
 on:
   schedule:
-    - cron: '0 10 * * *'
-  push:
-    branches:
-      - feature/sc-23564/master-security-scan-on-latest-images
+    - cron: '0 9 * * *'
 
 jobs:
   vulnerability-detection:
@@ -84,7 +81,6 @@ jobs:
 
       - name: Scan Docker image (ECR)
         id: docker-scan
-#        continue-on-error: true
         uses: alexjurkiewicz/ecr-scan-image@v3.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
@@ -109,13 +105,12 @@ jobs:
 
       - name: Set Date and Time
         id: set-date
-        #if: ${{ github.event_name == 'schedule' }}
-        if: ${{ always() && github.event_name == 'schedule' && steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && github.event_name == 'schedule' }}
         run: echo "current_datetime=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Set Color
         id: set-color
-        if: ${{ always() && github.event_name == 'schedule' && steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && github.event_name == 'schedule' }}
         shell: bash
         run: |
           if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
@@ -126,7 +121,7 @@ jobs:
 
       - name: Build link to scan step
         id: scan-step-link
-        if: ${{ always() && github.event_name == 'schedule' && steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && github.event_name == 'schedule' }}
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
@@ -161,7 +156,7 @@ jobs:
 
       - name: Send GitHub Action trigger data to Slack
         id: slack
-        if: ${{ always() && github.event_name == 'schedule' && steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && github.event_name == 'schedule' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
