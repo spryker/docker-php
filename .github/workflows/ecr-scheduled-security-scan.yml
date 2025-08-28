@@ -110,12 +110,12 @@ jobs:
       - name: Set Date and Time
         id: set-date
         #if: ${{ github.event_name == 'schedule' }}
-        if: ${{ steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && steps.docker-scan.conclusion == 'failure' }}
         run: echo "current_datetime=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Set Color
         id: set-color
-        if: ${{ steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && steps.docker-scan.conclusion == 'failure' }}
         shell: bash
         run: |
           if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
@@ -126,7 +126,7 @@ jobs:
 
       - name: Build link to scan step
         id: scan-step-link
-        if: ${{ steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && steps.docker-scan.conclusion == 'failure' }}
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
@@ -161,7 +161,7 @@ jobs:
 
       - name: Send GitHub Action trigger data to Slack
         id: slack
-        if: ${{ github.event_name == 'schedule' && steps.docker-scan.conclusion == 'failure' }}
+        if: ${{ always() && steps.docker-scan.conclusion == 'failure' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
