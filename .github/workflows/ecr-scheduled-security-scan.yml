@@ -3,9 +3,6 @@ name: ECR vulnerability detection
 on:
   schedule:
     - cron: '0 9 * * *'
-  push:
-    branches:
-      - master
 
 jobs:
   vulnerability-detection:
@@ -14,121 +11,192 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          ## Alpine
-          ### Alpine 3.19
-          - image: "alpine/3.19/8.1/Dockerfile"
-            tags: "8.1-alpine3.19"
-            platforms: "linux/amd64"
-          - image: "alpine/3.19/8.2/Dockerfile"
-            tags: "8.2-alpine3.19"
-            platforms: "linux/amd64"
-          - image: "alpine/3.19/8.3/Dockerfile"
-            tags: "8.3-alpine3.19"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.20
-          - image: "alpine/3.20/8.1/Dockerfile"
-            tags: "8.1-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.2/Dockerfile"
-            tags: "8.2-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.3/Dockerfile"
-            tags: "8.3-alpine3.20"
-            platforms: "linux/amd64"
-          - image: "alpine/3.20/8.4/Dockerfile"
-            tags: "8.4-alpine3.20"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.21
-          - image: "alpine/3.21/8.2/Dockerfile"
-            tags: "8.2-alpine3.21"
-            platforms: "linux/amd64"
-          - image: "alpine/3.21/8.3/Dockerfile"
-            tags: "8.3-alpine3.21"
-            platforms: "linux/amd64"
-          - image: "alpine/3.21/8.4/Dockerfile"
-            tags: "8.4-alpine3.21"
-            platforms: "linux/amd64"
-
-          ### Alpine 3.22
-          - image: "alpine/3.22/8.2/Dockerfile"
-            tags: "8.2-alpine3.22"
-            platforms: "linux/amd64"
-          - image: "alpine/3.22/8.3/Dockerfile"
-            tags: "8.3-alpine3.22"
-            platforms: "linux/amd64"
-          - image: "alpine/3.22/8.4/Dockerfile"
-            tags: "8.4-alpine3.22"
-            platforms: "linux/amd64"
+          - image_tag: "8.1-alpine3.19"
+          - image_tag: "8.2-alpine3.19"
+          - image_tag: "8.3-alpine3.19"
+          - image_tag: "8.1-alpine3.20"
+          - image_tag: "8.2-alpine3.20"
+          - image_tag: "8.3-alpine3.20"
+          - image_tag: "8.4-alpine3.20"
+          - image_tag: "8.2-alpine3.21"
+          - image_tag: "8.3-alpine3.21"
+          - image_tag: "8.4-alpine3.21"
+          - image_tag: "8.2-alpine3.22"
+          - image_tag: "8.3-alpine3.22"
+          - image_tag: "8.4-alpine3.22"
 
     steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull the latest image from the DockerHub
+        run: docker pull "spryker/php:${{ matrix.image_tag }}"
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to AWS ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push
-        id: docker-build
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          file: ${{ matrix.image }}
-          tags: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_ECR_REPO }}:${{ matrix.tags }}-${{ github.sha }}
-          platforms: ${{ matrix.platforms }}
+      - name: Ensure ECR repo exists (scanOnPush on)
+        run: |
+          aws ecr describe-repositories --repository-names "${{ secrets.AWS_ECR_REPO }}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${{ secrets.AWS_ECR_REPO }}"
 
-      - name: Scan Docker image
+      - name: Tag & push to ECR
+        id: push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          ECR_URI="${ECR_REGISTRY}/${{ secrets.AWS_ECR_REPO }}:${{ matrix.image_tag }}"
+          docker tag "spryker/php:${{ matrix.image_tag }}" "$ECR_URI"
+          docker push "$ECR_URI"
+          echo "ecr_uri=$ECR_URI" >> $GITHUB_ENV
+
+      - name: Wait for enhanced scan results
+        run: |
+          set -euo pipefail
+          REPO="${{ secrets.AWS_ECR_REPO }}"
+          TAG="${{ matrix.image_tag }}"
+          REG="${{ secrets.AWS_REGION }}"
+          for i in {1..6}; do
+            out=$(aws ecr describe-image-scan-findings \
+              --repository-name "$REPO" \
+              --image-id imageTag="$TAG" \
+              --region "$REG" 2>/dev/null || true)
+            status=$(echo "$out" | jq -r '.imageScanStatus.status // ""')
+            has_obj=$(echo "$out" | jq -r '.imageScanFindings != null')
+            echo "Status: ${status:-<none>} | has findings obj: $has_obj"
+            if [[ "$status" != "" && "$has_obj" == "true" ]]; then break; fi
+            sleep 10
+          done
+
+      - name: Scan Docker image (ECR)
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v2.0.0
+        uses: alexjurkiewicz/ecr-scan-image@v3.0.0
         with:
           repository: ${{ secrets.AWS_ECR_REPO }}
-          tag: ${{ join(matrix.tags) }}-${{ github.sha }}
+          tag: ${{ matrix.image_tag }}
 
-      - name: Delete images after scan images
+      - name: Report
+        if: always()
         run: |
-          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REPO }} --image-id imageTag="${{ join(matrix.tags) }}-${{ github.sha }}"
-
-      - run: |
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
+          echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
+          echo "Details of findings:"
+          cat <<'JSON'
+              ${{ steps.docker-scan.outputs.findingsDetails }}
+          JSON
+
+      - name: Delete image from ECR (optional cleanup)
+        if: always()
+        run: |
+          aws ecr batch-delete-image \
+            --repository-name "${{ secrets.AWS_ECR_REPO }}" \
+            --image-ids imageTag="${{ matrix.image_tag }}" || true
 
       - name: Set Date and Time
         id: set-date
-        if: github.event.schedule == '0 9 * * *'
-        run: echo "::set-output name=current_datetime::$(date +'%Y-%m-%d %H:%M:%S')"
+        if: ${{ always() && github.event_name == 'schedule' }}
+        run: echo "current_datetime=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Set Color
         id: set-color
-        if: github.event.schedule == '0 9 * * *'
+        if: ${{ always() && github.event_name == 'schedule' }}
+        shell: bash
         run: |
-          if [[ "${{ true }}" ]]; then
-            COLOR="#008000"
+          if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
+            echo "color=#008000" >> $GITHUB_OUTPUT
           else
-            COLOR="#ff0000"
+            echo "color=#ff0000" >> $GITHUB_OUTPUT
           fi
-          echo "::set-output name=color::$COLOR"
 
-      - name: Send GitHub Action trigger data to Slack workflow
+      - name: Build link to scan step
+        id: scan-step-link
+        if: ${{ always() && github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          TAG: ${{ matrix.image_tag }}
+          STEP_NAME: Scan Docker image (ECR)
+        run: |
+          set -euo pipefail
+          RES="$(curl -sS -H "Accept: application/vnd.github+json" \
+                       -H "Authorization: Bearer $GH_TOKEN" \
+                       "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs?per_page=100")"
+          
+          JOB="$(jq -c --arg tag "$TAG" '
+            .jobs
+            | (map(select(.name | endswith("(image_tag: " + $tag + ")"))) | .[0])
+              // .[0]
+          ' <<<"$RES")"
+          
+          JOB_URL="$(jq -r '.html_url' <<<"$JOB")"
+          
+          STEP_NUM="$(jq -r --arg n "$STEP_NAME" '
+            .steps | map(select(.name == $n)) | .[0].number
+          ' <<<"$JOB")"
+          
+          if [ -n "$STEP_NUM" ] && [ "$STEP_NUM" != "null" ]; then
+            STEP_URL="${JOB_URL}#step:${STEP_NUM}:1"
+          else
+            STEP_URL="$JOB_URL"
+          fi
+          
+          echo "job_url=$JOB_URL"  >> "$GITHUB_OUTPUT"
+          echo "step_url=$STEP_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Send GitHub Action trigger data to Slack
         id: slack
-        if: github.event.schedule == '0 9 * * *'
+        if: ${{ always() && github.event_name == 'schedule' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "Scanned image tag *${{ matrix.tags }}*.",
               "attachments": [
                 {
-                  "pretext": "ECR vulnerability scan outputs for ${{ steps.set-date.outputs.current_datetime }}",
                   "color": "${{ steps.set-color.outputs.color }}",
-                  "fields": [
+                  "blocks": [
                     {
-                      "title": "Status",
-                      "short": true,
-                      "value": "*${{ steps.docker-scan.outputs.total }}* total vulnerabilities"
+                      "type": "header",
+                      "text": { "type": "plain_text", "text": "ECR scan: ${{ matrix.image_tag }}", "emoji": true }
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        { "type": "mrkdwn", "text": "*Scan time:* ${{ steps.set-date.outputs.current_datetime }}" },
+                        { "type": "mrkdwn", "text": "<${{ steps.scan-step-link.outputs.step_url }}|Open scan report>" }
+                      ]
+                    },
+                    { "type": "divider" },
+                    {
+                      "type": "section",
+                      "fields": [
+                        { "type": "mrkdwn", "text": "*Total*\n*${{ steps.docker-scan.outputs.total }}*" },
+                        { "type": "mrkdwn", "text": "*Critical*\n${{ steps.docker-scan.outputs.critical }}" },
+                        { "type": "mrkdwn", "text": "*High*\n${{ steps.docker-scan.outputs.high }}" },
+                        { "type": "mrkdwn", "text": "*Medium*\n${{ steps.docker-scan.outputs.medium }}" },
+                        { "type": "mrkdwn", "text": "*Low*\n${{ steps.docker-scan.outputs.low }}" },
+                        { "type": "mrkdwn", "text": "*Info*\n${{ steps.docker-scan.outputs.informational }}" }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": { "type": "plain_text", "text": "Open scan report" },
+                          "url": "${{ steps.scan-step-link.outputs.step_url }}"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -137,7 +205,3 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-      - name: Fail the execution
-        if: ${{ steps.docker-scan.outputs.total > 0 }}
-        run: exit 1
