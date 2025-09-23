@@ -1,0 +1,34 @@
+name: PR Linter
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check-pr-body:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Release Notes sections
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          
+          # Check for the mandatory 'Improvements' section
+          if ! echo "$PR_BODY" | grep -q "### Improvements"; then
+            echo "Error: '### Improvements' section is missing in the PR body."
+            exit 1
+          fi
+
+          # Conditionally check the 'Security Fixes' section
+          if echo "$PR_BODY" | grep -q "### Security Fixes"; then
+            echo "Found 'Security Fixes' section. Verifying content..."
+            # If the section exists, it MUST contain a CVE reference.
+            if ! echo "$PR_BODY" | grep -q "CVE-"; then
+              echo "Error: '### Security Fixes' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
+              exit 1
+            fi
+            echo "✅ Security Fixes section is valid."
+          else
+            echo "✅ No 'Security Fixes' section found. Skipping CVE check."
+          fi
+          
+          echo "✅ PR body format is correct."

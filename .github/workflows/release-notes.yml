@@ -1,0 +1,55 @@
+name: Generate Release Notes
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  get-merged-pr:
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.get-pr.outputs.pr_number }}
+    steps:
+      - name: Get merged PR number
+        id: get-pr
+        uses: actions-ecosystem/action-get-merged-pull-request@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  generate-release-notes:
+    needs: get-merged-pr
+    if: needs.get-merged-pr.outputs.pr_number != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        image_tag:
+          - "8.1-alpine3.19"
+          - "8.2-alpine3.19"
+          - "8.3-alpine3.19"
+          - "8.1-alpine3.20"
+          - "8.2-alpine3.20"
+          - "8.3-alpine3.20"
+          - "8.4-alpine3.20"
+          - "8.2-alpine3.21"
+          - "8.3-alpine3.21"
+          - "8.4-alpine3.21"
+          - "8.2-alpine3.22"
+          - "8.3-alpine3.22"
+          - "8.4-alpine3.22"
+    uses: spryker-projects/gha-reusable-workflows/.github/workflows/release-notes-with-scans.yml@feat-release-notes
+    with:
+      project-name: 'spryker-php'
+      image: 'spryker-php'
+      tag: ${{ matrix.image_tag }}
+      pr-number: ${{ needs.get-merged-pr.outputs.pr_number }}
+      docs-repo: 'spryker/spryker-docs'
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      AWS_ECR_REPO: ${{ secrets.AWS_ECR_REPO }}
+      docs-repo-pat: ${{ secrets.DOCS_REPO_PAT }}
