@@ -26,7 +26,11 @@ jobs:
           - "8.2-alpine3.22"
           - "8.3-alpine3.22"
           - "8.4-alpine3.22"
+
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: 🔎 Find Last & Previous Runs for ${{ matrix.image_tag }}
         id: find_runs
         run: |
@@ -43,10 +47,10 @@ jobs:
             
             if [[ "$JOB_EXISTS" == "true" ]]; then
               if [[ -z "$LATEST_RUN_ID" ]]; then
-                LATEST_RUN_ID=$RUN_ID # Found the first (latest) match.
+                LATEST_RUN_ID=$RUN_ID
               elif [[ -z "$PREVIOUS_RUN_ID" ]]; then
-                PREVIOUS_RUN_ID=$RUN_ID # Found the second (previous) match.
-                break # We have both IDs we need, so we can stop searching.
+                PREVIOUS_RUN_ID=$RUN_ID
+                break
               fi
             fi
           done
@@ -112,7 +116,6 @@ jobs:
       - name: ✍️ Extract PR Sections
         id: extract
         run: |
-          # The body of the found PR is used here
           PR_BODY='${{ steps.pr-info.outputs.body }}'
           IMPROVEMENTS=$(echo "$PR_BODY" | awk '/### Improvements/{flag=1;next}/###/{flag=0}flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
