@@ -31,45 +31,46 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🔎 Find Last & Previous Runs for ${{ matrix.image_tag }}
-        id: find_runs
+      - name: 🔎 Find Last & Previous Job IDs for ${{ matrix.image_tag }}
+        id: find_jobs
         run: |
-          # Step 1: Get the IDs of the last 20 workflow runs.
           RUN_IDS=$(gh run list --workflow="ECR vulnerability detection" --limit=20 --json databaseId -q '.[].databaseId')
           
-          LATEST_RUN_ID=""
-          PREVIOUS_RUN_ID=""
+          LATEST_JOB_ID=""
+          PREVIOUS_JOB_ID=""
           
-          # Step 2: Loop through the runs, from newest to oldest.
           for RUN_ID in $RUN_IDS; do
-            # For each run, check if it contains a job that matches our image tag.
-            JOB_EXISTS=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[].name" | grep -q "${{ matrix.image_tag }}" && echo "true" || echo "false")
+            JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\")) | .id" || echo "")
             
-            if [[ "$JOB_EXISTS" == "true" ]]; then
-              if [[ -z "$LATEST_RUN_ID" ]]; then
-                LATEST_RUN_ID=$RUN_ID
-              elif [[ -z "$PREVIOUS_RUN_ID" ]]; then
-                PREVIOUS_RUN_ID=$RUN_ID
+            if [[ -n "$JOB_ID" ]]; then
+              if [[ -z "$LATEST_JOB_ID" ]]; then
+                LATEST_JOB_ID=$JOB_ID
+              elif [[ -z "$PREVIOUS_JOB_ID" ]]; then
+                PREVIOUS_JOB_ID=$JOB_ID
                 break
               fi
             fi
           done
           
-          echo "Found latest run: $LATEST_RUN_ID"
-          echo "Found previous run: $PREVIOUS_RUN_ID"
+          echo "Found latest job: $LATEST_JOB_ID"
+          echo "Found previous job: $PREVIOUS_JOB_ID"
 
-          echo "latest_run_id=${LATEST_RUN_ID}" >> $GITHUB_OUTPUT
-          echo "previous_run_id=${PREVIOUS_RUN_ID}" >> $GITHUB_OUTPUT
+          echo "latest_job_id=${LATEST_JOB_ID}" >> $GITHUB_OUTPUT
+          echo "previous_job_id=${PREVIOUS_JOB_ID}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📥 Download Scan Reports for ${{ matrix.image_tag }}
+      - name: 📥 Fetch and Parse Logs for ${{ matrix.image_tag }}
         run: |
-          if [[ -n "${{ steps.find_runs.outputs.latest_run_id }}" ]]; then
-            gh run download ${{ steps.find_runs.outputs.latest_run_id }} -n "ecr-scan-report-${{ matrix.image_tag }}" --dir ./latest
+          # Fetch and parse the log from the latest job, if found
+          if [[ -n "${{ steps.find_jobs.outputs.latest_job_id }}" ]]; then
+            gh run view --job ${{ steps.find_jobs.outputs.latest_job_id }} --log > latest_raw.log
+            awk "/cat <<'JSON'/{flag=1; next} /JSON/{flag=0} flag" latest_raw.log > latest-scan.json
           fi
-          if [[ -n "${{ steps.find_runs.outputs.previous_run_id }}" ]]; then
-            gh run download ${{ steps.find_runs.outputs.previous_run_id }} -n "ecr-scan-report-${{ matrix.image_tag }}" --dir ./previous
+          # Fetch and parse the log from the previous job, if found
+          if [[ -n "${{ steps.find_jobs.outputs.previous_job_id }}" ]]; then
+            gh run view --job ${{ steps.find_jobs.outputs.previous_job_id }} --log > previous_raw.log
+            awk "/cat <<'JSON'/{flag=1; next} /JSON/{flag=0} flag" previous_raw.log > previous-scan.json
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -77,8 +78,8 @@ jobs:
       - name: 🔄 Compare Scans for ${{ matrix.image_tag }}
         id: compare
         run: |
-          PREVIOUS_SCAN_FILE="./previous/ecr-scan-report.json"
-          CURRENT_SCAN_FILE="./latest/ecr-scan-report.json"
+          PREVIOUS_SCAN_FILE="previous-scan.json"
+          CURRENT_SCAN_FILE="latest-scan.json"
           if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"; fi
           if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"; fi
           
@@ -142,19 +143,15 @@ jobs:
           last_updated: ${PUBLISH_DATE}
           publish_date: "${PUBLISH_DATE}"
           ---
-
           This document describes the changes that have been recently released.
-
           For additional support with this content, contact our support.  
           If you found a new security vulnerability, contact us at **security@spryker.com**.
 
           ## Changelog
-
           ### Improvements
           ${{ steps.extract.outputs.improvements }}
 
           ---
-
           ## Security fixes by image
           ${SECURITY_FIXES_BODY}
           EOF
