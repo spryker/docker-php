@@ -1,25 +1,14 @@
-name: Generate Release Notes
+name: Generate Consolidated Release Notes
 
 on:
   push:
     branches:
       - master
+      - SC-23484-release-notes
 
 jobs:
-  get-merged-pr:
+  calculate_diffs:
     runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.get-pr.outputs.pr_number }}
-    steps:
-      - name: Get merged PR number
-        id: get-pr
-        uses: actions-ecosystem/action-get-merged-pull-request@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-  generate-release-notes:
-    needs: get-merged-pr
-    if: needs.get-merged-pr.outputs.pr_number != ''
     strategy:
       fail-fast: false
       matrix:
@@ -37,19 +26,114 @@ jobs:
           - "8.2-alpine3.22"
           - "8.3-alpine3.22"
           - "8.4-alpine3.22"
-    uses: spryker-projects/gha-reusable-workflows/.github/workflows/release-notes-with-scans.yml@feat-release-notes
-    with:
-      project-name: 'spryker-php'
-      image: 'spryker-php'
-      tag: ${{ matrix.image_tag }}
-      pr-number: ${{ needs.get-merged-pr.outputs.pr_number }}
-      docs-repo: 'spryker/spryker-docs'
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      AWS_ECR_REPO: ${{ secrets.AWS_ECR_REPO }}
-      docs-repo-pat: ${{ secrets.DOCS_REPO_PAT }}
+    steps:
+      - name: 🔎 Find Last & Previous Runs for ${{ matrix.image_tag }}
+        id: find_runs
+        run: |
+          LATEST_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" --limit=10 --json databaseId,jobs --jq ".[] | select(.jobs[].name | contains(\"${{ matrix.image_tag }}\")) | .databaseId" | head -n 1)
+          PREVIOUS_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" --limit=10 --json databaseId,jobs --jq ".[] | select(.jobs[].name | contains(\"${{ matrix.image_tag }}\")) | .databaseId" | head -n 2 | tail -n 1)
+          echo "latest_run_id=${LATEST_RUN_ID}" >> $GITHUB_OUTPUT
+          echo "previous_run_id=${PREVIOUS_RUN_ID}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📥 Download Scan Reports for ${{ matrix.image_tag }}
+        run: |
+          if [[ -n "${{ steps.find_runs.outputs.latest_run_id }}" ]]; then
+            gh run download ${{ steps.find_runs.outputs.latest_run_id }} -n "ecr-scan-report-${{ matrix.image_tag }}" --dir ./latest
+          fi
+          if [[ -n "${{ steps.find_runs.outputs.previous_run_id }}" ]]; then
+            gh run download ${{ steps.find_runs.outputs.previous_run_id }} -n "ecr-scan-report-${{ matrix.image_tag }}" --dir ./previous
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🔄 Compare Scans for ${{ matrix.image_tag }}
+        id: compare
+        run: |
+          PREVIOUS_SCAN_FILE="./previous/ecr-scan-report.json"
+          CURRENT_SCAN_FILE="./latest/ecr-scan-report.json"
+          if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"; fi
+          if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"; fi
+          
+          FIXED_VULNS=$(jq -r --slurpfile current "$CURRENT_SCAN_FILE" \
+            '.imageScanFindings.findings[] | select(.name as $cve | ($current[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)**: \(.description)"' \
+            "$PREVIOUS_SCAN_FILE")
+            
+          if [[ -z "$FIXED_VULNS" ]]; then
+            echo "- No CVEs fixed in this release." > fixed_vulns.txt
+          else
+            echo "$FIXED_VULNS" > fixed_vulns.txt
+          fi
+
+      - name: 📤 Upload Diff for ${{ matrix.image_tag }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-${{ matrix.image_tag }}
+          path: fixed_vulns.txt
+            
+  generate_notes:
+    needs: calculate_diffs
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Download All CVE Diffs
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-diffs
+
+      - name: 📣 Get Merged PR Info
+        id: pr-info
+        uses: actions-ecosystem/action-get-merged-pull-request@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✍️ Extract PR Sections
+        id: extract
+        run: |
+          # The body of the found PR is used here
+          PR_BODY='${{ steps.pr-info.outputs.body }}'
+          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/### Improvements/{flag=1;next}/###/{flag=0}flag')
+          echo "improvements<<EOF" >> $GITHUB_OUTPUT
+          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 📜 Assemble and Display Release Notes
+        run: |
+          RELEASE_DATE=$(date +'%Y%m%d')
+          PUBLISH_DATE=$(date +'%Y-%m-%d')
+          
+          SECURITY_FIXES_BODY=""
+          for dir in ./all-diffs/*/; do
+            IMAGE_TAG=$(basename "$dir")
+            IMAGE_TAG=${IMAGE_TAG#diff-}
+            FIXED_CVES=$(cat "${dir}/fixed_vulns.txt")
+            SECURITY_FIXES_BODY+=$(printf '\n### spryker/php:%s\n%s\n' "$IMAGE_TAG" "$FIXED_CVES")
+          done
+
+          cat << EOF > release-notes.md
+          ---
+          title: Release notes ${RELEASE_DATE}.0
+          description: This document describes the changes that have been recently released.
+          last_updated: ${PUBLISH_DATE}
+          publish_date: "${PUBLISH_DATE}"
+          ---
+
+          This document describes the changes that have been recently released.
+
+          For additional support with this content, contact our support.  
+          If you found a new security vulnerability, contact us at **security@spryker.com**.
+
+          ## Changelog
+
+          ### Improvements
+          ${{ steps.extract.outputs.improvements }}
+
+          ---
+
+          ## Security fixes by image
+          ${SECURITY_FIXES_BODY}
+          EOF
+
+          echo "::group::📜 Consolidated Release Notes"
+          cat release-notes.md
+          echo "::endgroup::"
