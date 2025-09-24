@@ -30,8 +30,30 @@ jobs:
       - name: 🔎 Find Last & Previous Runs for ${{ matrix.image_tag }}
         id: find_runs
         run: |
-          LATEST_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" --limit=10 --json databaseId,jobs --jq ".[] | select(.jobs[].name | contains(\"${{ matrix.image_tag }}\")) | .databaseId" | head -n 1)
-          PREVIOUS_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" --limit=10 --json databaseId,jobs --jq ".[] | select(.jobs[].name | contains(\"${{ matrix.image_tag }}\")) | .databaseId" | head -n 2 | tail -n 1)
+          # Step 1: Get the IDs of the last 20 workflow runs.
+          RUN_IDS=$(gh run list --workflow="ECR vulnerability detection" --limit=20 --json databaseId -q '.[].databaseId')
+          
+          LATEST_RUN_ID=""
+          PREVIOUS_RUN_ID=""
+          
+          # Step 2: Loop through the runs, from newest to oldest.
+          for RUN_ID in $RUN_IDS; do
+            # For each run, check if it contains a job that matches our image tag.
+            JOB_EXISTS=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[].name" | grep -q "${{ matrix.image_tag }}" && echo "true" || echo "false")
+            
+            if [[ "$JOB_EXISTS" == "true" ]]; then
+              if [[ -z "$LATEST_RUN_ID" ]]; then
+                LATEST_RUN_ID=$RUN_ID # Found the first (latest) match.
+              elif [[ -z "$PREVIOUS_RUN_ID" ]]; then
+                PREVIOUS_RUN_ID=$RUN_ID # Found the second (previous) match.
+                break # We have both IDs we need, so we can stop searching.
+              fi
+            fi
+          done
+          
+          echo "Found latest run: $LATEST_RUN_ID"
+          echo "Found previous run: $PREVIOUS_RUN_ID"
+
           echo "latest_run_id=${LATEST_RUN_ID}" >> $GITHUB_OUTPUT
           echo "previous_run_id=${PREVIOUS_RUN_ID}" >> $GITHUB_OUTPUT
         env:
