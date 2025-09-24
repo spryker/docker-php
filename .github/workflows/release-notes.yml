@@ -35,26 +35,16 @@ jobs:
         id: find_jobs
         run: |
           RUN_IDS=$(gh run list --workflow="ECR vulnerability detection" --limit=20 --json databaseId -q '.[].databaseId')
-          
           LATEST_JOB_ID=""
           PREVIOUS_JOB_ID=""
-          
           for RUN_ID in $RUN_IDS; do
             JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\")) | .id" || echo "")
-            
             if [[ -n "$JOB_ID" ]]; then
-              if [[ -z "$LATEST_JOB_ID" ]]; then
-                LATEST_JOB_ID=$JOB_ID
-              elif [[ -z "$PREVIOUS_JOB_ID" ]]; then
-                PREVIOUS_JOB_ID=$JOB_ID
-                break
-              fi
+              if [[ -z "$LATEST_JOB_ID" ]]; then LATEST_JOB_ID=$JOB_ID;
+              elif [[ -z "$PREVIOUS_JOB_ID" ]]; then PREVIOUS_JOB_ID=$JOB_ID; break; fi
             fi
           done
-          
-          echo "Found latest job: $LATEST_JOB_ID"
-          echo "Found previous job: $PREVIOUS_JOB_ID"
-
+          echo "Found latest job: $LATEST_JOB_ID"; echo "Found previous job: $PREVIOUS_JOB_ID"
           echo "latest_job_id=${LATEST_JOB_ID}" >> $GITHUB_OUTPUT
           echo "previous_job_id=${PREVIOUS_JOB_ID}" >> $GITHUB_OUTPUT
         env:
@@ -62,12 +52,10 @@ jobs:
 
       - name: 📥 Fetch and Parse Logs for ${{ matrix.image_tag }}
         run: |
-          # Fetch and parse the log from the latest job, if found
           if [[ -n "${{ steps.find_jobs.outputs.latest_job_id }}" ]]; then
             gh run view --job ${{ steps.find_jobs.outputs.latest_job_id }} --log > latest_raw.log
             awk "/cat <<'JSON'/{flag=1; next} /JSON/{flag=0} flag" latest_raw.log > latest-scan.json
           fi
-          # Fetch and parse the log from the previous job, if found
           if [[ -n "${{ steps.find_jobs.outputs.previous_job_id }}" ]]; then
             gh run view --job ${{ steps.find_jobs.outputs.previous_job_id }} --log > previous_raw.log
             awk "/cat <<'JSON'/{flag=1; next} /JSON/{flag=0} flag" previous_raw.log > previous-scan.json
@@ -80,8 +68,18 @@ jobs:
         run: |
           PREVIOUS_SCAN_FILE="previous-scan.json"
           CURRENT_SCAN_FILE="latest-scan.json"
-          if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"; fi
-          if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"; fi
+          if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then touch "$PREVIOUS_SCAN_FILE"; fi
+          if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then touch "$CURRENT_SCAN_FILE"; fi
+
+          # Validate the JSON in each file. If invalid, create a valid placeholder.
+          if ! jq . "$PREVIOUS_SCAN_FILE" >/dev/null 2>&1; then
+            echo "Warning: Previous scan file was invalid. Creating empty placeholder."
+            echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"
+          fi
+          if ! jq . "$CURRENT_SCAN_FILE" >/dev/null 2>&1; then
+            echo "Warning: Current scan file was invalid. Creating empty placeholder."
+            echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"
+          fi
           
           FIXED_VULNS=$(jq -r --slurpfile current "$CURRENT_SCAN_FILE" \
             '.imageScanFindings.findings[] | select(.name as $cve | ($current[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)**: \(.description)"' \
