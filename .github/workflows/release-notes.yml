@@ -1,13 +1,7 @@
 name: Generate Consolidated Release Notes
 
 on:
-  workflow_run:
-    workflows: ["ECR vulnerability detection"]
-    types:
-      - completed
-    branches:
-      - master
-      - SC-23484-release-notes
+  workflow_call:
 
 jobs:
   verify_workflow:
