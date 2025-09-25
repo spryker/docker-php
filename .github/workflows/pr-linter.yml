@@ -9,20 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check for Release Notes sections
+        shell: bash
         run: |
-          echo '${{ toJSON(github.event.pull_request.body) }}' | jq -r '.' > pr_body.txt
+          # Write PR body to file using heredoc to preserve formatting
+          cat << 'EOF' > pr_body.txt
+          ${{ github.event.pull_request.body }}
+          EOF
           
           # Check for the mandatory 'Improvements' section
-          if ! grep -q "### Improvements" pr_body.txt; then
+          if ! grep -F "### Improvements" pr_body.txt; then
             echo "Error: '### Improvements' section is missing in the PR body."
             exit 1
           fi
 
           # Conditionally check the 'Security Fixes' section
-          if grep -q "### Security Fixes" pr_body.txt; then
+          if grep -F "### Security Fixes" pr_body.txt; then
             echo "Found 'Security Fixes' section. Verifying content..."
             # If the section exists, it MUST contain a CVE reference.
-            if ! grep -q "CVE-" pr_body.txt; then
+            if ! grep -F "CVE-" pr_body.txt; then
               echo "Error: '### Security Fixes' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
               exit 1
             fi
