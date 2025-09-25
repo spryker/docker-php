@@ -4,12 +4,12 @@ on:
   push:
     branches:
       - master
-      - SC-23484-release-notes
 
 jobs:
   # Step 1: CI/CD
   ci-cd:
     uses: ./.github/workflows/ci.yml
+    secrets: inherit
 
   # Step 2: Security Scan
   security-scan:
