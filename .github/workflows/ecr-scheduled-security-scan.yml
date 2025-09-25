@@ -3,6 +3,12 @@ name: ECR vulnerability detection
 on:
   schedule:
     - cron: '0 9 * * *'
+  workflow_run:
+    workflows: ["CI/CD"]
+    types:
+      - completed
+    branches:
+      - master
 
 jobs:
   vulnerability-detection:
@@ -67,7 +73,8 @@ jobs:
           REPO="${{ secrets.AWS_ECR_REPO }}"
           TAG="${{ matrix.image_tag }}"
           REG="${{ secrets.AWS_REGION }}"
-          for i in {1..6}; do
+          for i in {1..20}; do
+            echo "Attempt $i of 20: Checking scan status..."
             out=$(aws ecr describe-image-scan-findings \
               --repository-name "$REPO" \
               --image-id imageTag="$TAG" \
@@ -75,8 +82,16 @@ jobs:
             status=$(echo "$out" | jq -r '.imageScanStatus.status // ""')
             has_obj=$(echo "$out" | jq -r '.imageScanFindings != null')
             echo "Status: ${status:-<none>} | has findings obj: $has_obj"
-            if [[ "$status" != "" && "$has_obj" == "true" ]]; then break; fi
-            sleep 10
+            if [[ "$status" == "COMPLETE" && "$has_obj" == "true" ]]; then
+              echo "Scan completed successfully!"
+              break
+            fi
+            if [[ "$i" == "20" ]]; then
+              echo "Timeout waiting for scan to complete"
+              exit 1
+            fi
+            echo "Waiting 30 seconds before next attempt..."
+            sleep 30
           done
 
       - name: Scan Docker image (ECR)

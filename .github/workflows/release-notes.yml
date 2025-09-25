@@ -1,13 +1,31 @@
 name: Generate Consolidated Release Notes
 
 on:
-  push:
+  workflow_run:
+    workflows: ["ECR vulnerability detection"]
+    types:
+      - completed
     branches:
       - master
       - SC-23484-release-notes
 
 jobs:
+  verify_workflow:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - id: check
+        run: |
+          if [[ "${{ github.event.workflow_run.conclusion }}" == "success" || "${{ github.event.workflow_run.conclusion }}" == "failure" ]]; then
+            echo "proceed=true" >> $GITHUB_OUTPUT
+          else
+            echo "proceed=false" >> $GITHUB_OUTPUT
+          fi
+
   calculate_diffs:
+    needs: verify_workflow
+    if: needs.verify_workflow.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -34,17 +52,19 @@ jobs:
       - name: 🔎 Find Last & Previous Job IDs for ${{ matrix.image_tag }}
         id: find_jobs
         run: |
-          RUN_IDS=$(gh run list --workflow="ECR vulnerability detection" --limit=20 --json databaseId -q '.[].databaseId')
+          # Get the last two successful runs
+          RUN_IDS=$(gh run list --workflow="ECR vulnerability detection" --status="success" --limit=20 --json databaseId -q '.[].databaseId')
           LATEST_JOB_ID=""
           PREVIOUS_JOB_ID=""
           for RUN_ID in $RUN_IDS; do
-            JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\")) | .id" || echo "")
+            JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .conclusion == \"success\") | .id" || echo "")
             if [[ -n "$JOB_ID" ]]; then
               if [[ -z "$LATEST_JOB_ID" ]]; then LATEST_JOB_ID=$JOB_ID;
               elif [[ -z "$PREVIOUS_JOB_ID" ]]; then PREVIOUS_JOB_ID=$JOB_ID; break; fi
             fi
           done
-          echo "Found latest job: $LATEST_JOB_ID"; echo "Found previous job: $PREVIOUS_JOB_ID"
+          echo "Found latest job: $LATEST_JOB_ID"
+          echo "Found previous job: $PREVIOUS_JOB_ID"
           echo "latest_job_id=${LATEST_JOB_ID}" >> $GITHUB_OUTPUT
           echo "previous_job_id=${PREVIOUS_JOB_ID}" >> $GITHUB_OUTPUT
         env:
