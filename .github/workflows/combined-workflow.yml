@@ -23,5 +23,6 @@ jobs:
   # Step 3: Release Notes
   release-notes:
     needs: security-scan
+    if: always()
     uses: ./.github/workflows/release-notes.yml
     secrets: inherit

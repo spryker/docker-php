@@ -44,25 +44,29 @@ jobs:
         run: |
           # Get the last completed workflow run from this PR merge
           LATEST_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
-            --json databaseId,event,status \
+            --json databaseId,event,status,conclusion \
             -q '.[] | select(.status == "completed" and .event == "workflow_run") | .databaseId' \
             --limit 1)
           
           # Get the last completed scheduled scan run
           SCHEDULED_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
-            --json databaseId,event,status \
+            --json databaseId,event,status,conclusion \
             -q '.[] | select(.status == "completed" and .event == "schedule") | .databaseId' \
             --limit 1)
           
           echo "Latest workflow run ID (PR merge): $LATEST_RUN_ID"
           echo "Last scheduled run ID: $SCHEDULED_RUN_ID"
           
-          # Get job IDs for the specific image tag from both runs, looking for completed jobs
+          # Get job IDs for the specific image tag from both runs
           LATEST_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$LATEST_RUN_ID/jobs" \
             --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .status == \"completed\") | .id")
           
           PREVIOUS_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$SCHEDULED_RUN_ID/jobs" \
             --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .status == \"completed\") | .id")
+          
+          if [[ -z "$LATEST_JOB_ID" || -z "$SCHEDULED_RUN_ID" ]]; then
+            echo "Warning: Could not find one or both scan runs. Will proceed with empty results if needed."
+          fi
           
           echo "Found latest job (PR merge): $LATEST_JOB_ID"
           echo "Found previous job (scheduled): $PREVIOUS_JOB_ID"
