@@ -42,38 +42,52 @@ jobs:
       - name: 🔎 Find Last & Previous Job IDs for ${{ matrix.image_tag }}
         id: find_jobs
         run: |
-          # Get the last completed workflow run from this PR merge
-          LATEST_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
+          # Get the current combined workflow run
+          LATEST_RUN_ID=$(gh run list --workflow="Combined CI/CD, Security Scan & Release Notes" \
             --json databaseId,event,status,conclusion \
-            -q '.[] | select(.status == "completed" and .event == "workflow_run") | .databaseId' \
+            -q '.[] | select(
+              .status == "completed" and 
+              .headSha == env.GITHUB_SHA
+            ) | .databaseId' \
             --limit 1)
           
-          # Get the last completed scheduled scan run
-          SCHEDULED_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
-            --json databaseId,event,status,conclusion \
-            -q '.[] | select(.status == "completed" and .event == "schedule") | .databaseId' \
-            --limit 1)
-          
-          echo "Latest workflow run ID (PR merge): $LATEST_RUN_ID"
-          echo "Last scheduled run ID: $SCHEDULED_RUN_ID"
-          
-          # Get job IDs for the specific image tag from both runs
-          LATEST_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$LATEST_RUN_ID/jobs" \
-            --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .status == \"completed\") | .id")
-          
-          PREVIOUS_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$SCHEDULED_RUN_ID/jobs" \
-            --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .status == \"completed\") | .id")
-          
-          if [[ -z "$LATEST_JOB_ID" || -z "$SCHEDULED_RUN_ID" ]]; then
-            echo "Warning: Could not find one or both scan runs. Will proceed with empty results if needed."
+          # Get job ID for the specific image from security-scan job matrix
+          if [[ -n "$LATEST_RUN_ID" ]]; then
+            LATEST_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$LATEST_RUN_ID/jobs" \
+              --jq ".jobs[] | select(
+                .name | contains(\"security-scan\") and 
+                contains(\"matrix\") and 
+                contains(\"${{ matrix.image_tag }}\")
+              ) | .id")
+            echo "Found security-scan job for ${{ matrix.image_tag }}: $LATEST_JOB_ID"
           fi
           
-          echo "Found latest job (PR merge): $LATEST_JOB_ID"
-          echo "Found previous job (scheduled): $PREVIOUS_JOB_ID"
-          echo "latest_job_id=${LATEST_JOB_ID}" >> $GITHUB_OUTPUT
-          echo "previous_job_id=${PREVIOUS_JOB_ID}" >> $GITHUB_OUTPUT
+          # Get the last scheduled scan as baseline
+          SCHEDULED_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
+            --json databaseId,event,status \
+            -q '.[] | select(
+              .status == "completed" and 
+              .event == "schedule"
+            ) | .databaseId' \
+            --limit 1)
+          
+          # Get job ID for the specific image from scheduled scan
+          if [[ -n "$SCHEDULED_RUN_ID" ]]; then
+            PREVIOUS_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$SCHEDULED_RUN_ID/jobs" \
+              --jq ".jobs[] | select(
+                .name | contains(\"vulnerability-detection\") and 
+                contains(\"matrix\") and 
+                contains(\"${{ matrix.image_tag }}\")
+              ) | .id")
+            echo "Found scheduled scan job for ${{ matrix.image_tag }}: $PREVIOUS_JOB_ID"
+          fi
+          
+          # Set outputs even if empty
+          echo "latest_job_id=${LATEST_JOB_ID:-}" >> $GITHUB_OUTPUT
+          echo "previous_job_id=${PREVIOUS_JOB_ID:-}" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
 
       - name: 📥 Fetch and Parse Logs for ${{ matrix.image_tag }}
         run: |
