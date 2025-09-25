@@ -9,6 +9,7 @@ on:
       - completed
     branches:
       - master
+      - SC-23484-release-notes
 
 jobs:
   vulnerability-detection:
