@@ -9,6 +9,10 @@ on:
         type: string
         required: false
         default: 'schedule'
+    outputs:
+      scan_type:
+        description: "Type of scan (scheduled or workflow)"
+        value: ${{ inputs.trigger_source }}
 
 jobs:
   vulnerability-detection:
@@ -85,12 +89,12 @@ jobs:
             status=$(echo "$out" | jq -r '.imageScanStatus.status // ""')
             has_obj=$(echo "$out" | jq -r '.imageScanFindings != null')
             echo "Status: ${status:-<none>} | has findings obj: $has_obj"
-            if [[ "$status" == "COMPLETE" && "$has_obj" == "true" ]]; then
-              echo "Scan completed successfully!"
+            if [[ ("$status" == "COMPLETE" || "$status" == "ACTIVE") && "$has_obj" == "true" ]]; then
+              echo "Scan is ready to proceed!"
               break
             fi
             if [[ "$i" == "20" ]]; then
-              echo "Timeout waiting for scan to complete"
+              echo "Timeout waiting for scan to become ready"
               exit 1
             fi
             echo "Waiting 30 seconds before next attempt..."
@@ -107,6 +111,8 @@ jobs:
       - name: Report
         if: always()
         run: |
+          echo "Scan type: ${{ inputs.trigger_source }}"
+          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
           echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
           echo "Details of findings:"

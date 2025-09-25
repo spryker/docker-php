@@ -11,11 +11,7 @@ jobs:
     steps:
       - id: check
         run: |
-          if [[ "${{ github.event.workflow_run.conclusion }}" == "success" || "${{ github.event.workflow_run.conclusion }}" == "failure" ]]; then
-            echo "proceed=true" >> $GITHUB_OUTPUT
-          else
-            echo "proceed=false" >> $GITHUB_OUTPUT
-          fi
+          echo "proceed=true" >> $GITHUB_OUTPUT
 
   calculate_diffs:
     needs: verify_workflow
@@ -46,19 +42,30 @@ jobs:
       - name: 🔎 Find Last & Previous Job IDs for ${{ matrix.image_tag }}
         id: find_jobs
         run: |
-          # Get the last two successful runs
-          RUN_IDS=$(gh run list --workflow="ECR vulnerability detection" --status="success" --limit=20 --json databaseId -q '.[].databaseId')
-          LATEST_JOB_ID=""
-          PREVIOUS_JOB_ID=""
-          for RUN_ID in $RUN_IDS; do
-            JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .conclusion == \"success\") | .id" || echo "")
-            if [[ -n "$JOB_ID" ]]; then
-              if [[ -z "$LATEST_JOB_ID" ]]; then LATEST_JOB_ID=$JOB_ID;
-              elif [[ -z "$PREVIOUS_JOB_ID" ]]; then PREVIOUS_JOB_ID=$JOB_ID; break; fi
-            fi
-          done
-          echo "Found latest job: $LATEST_JOB_ID"
-          echo "Found previous job: $PREVIOUS_JOB_ID"
+          # Get the last completed workflow run from this PR merge
+          LATEST_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
+            --json databaseId,event,status \
+            -q '.[] | select(.status == "completed" and .event == "workflow_run") | .databaseId' \
+            --limit 1)
+          
+          # Get the last completed scheduled scan run
+          SCHEDULED_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
+            --json databaseId,event,status \
+            -q '.[] | select(.status == "completed" and .event == "schedule") | .databaseId' \
+            --limit 1)
+          
+          echo "Latest workflow run ID (PR merge): $LATEST_RUN_ID"
+          echo "Last scheduled run ID: $SCHEDULED_RUN_ID"
+          
+          # Get job IDs for the specific image tag from both runs, looking for completed jobs
+          LATEST_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$LATEST_RUN_ID/jobs" \
+            --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .status == \"completed\") | .id")
+          
+          PREVIOUS_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$SCHEDULED_RUN_ID/jobs" \
+            --jq ".jobs[] | select(.name | contains(\"${{ matrix.image_tag }}\") and .status == \"completed\") | .id")
+          
+          echo "Found latest job (PR merge): $LATEST_JOB_ID"
+          echo "Found previous job (scheduled): $PREVIOUS_JOB_ID"
           echo "latest_job_id=${LATEST_JOB_ID}" >> $GITHUB_OUTPUT
           echo "previous_job_id=${PREVIOUS_JOB_ID}" >> $GITHUB_OUTPUT
         env:
@@ -85,7 +92,7 @@ jobs:
           if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then touch "$PREVIOUS_SCAN_FILE"; fi
           if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then touch "$CURRENT_SCAN_FILE"; fi
 
-          # Validate the JSON in each file. If invalid, create a valid placeholder.
+          # Validate JSON and create placeholders if needed
           if ! jq . "$PREVIOUS_SCAN_FILE" >/dev/null 2>&1; then
             echo "Warning: Previous scan file was invalid. Creating empty placeholder."
             echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"
@@ -95,6 +102,7 @@ jobs:
             echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"
           fi
           
+          # Compare findings between the two scans
           FIXED_VULNS=$(jq -r --slurpfile current "$CURRENT_SCAN_FILE" \
             '.imageScanFindings.findings[] | select(.name as $cve | ($current[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)**: \(.description)"' \
             "$PREVIOUS_SCAN_FILE")
@@ -103,6 +111,16 @@ jobs:
             echo "- No CVEs fixed in this release." > fixed_vulns.txt
           else
             echo "$FIXED_VULNS" > fixed_vulns.txt
+          fi
+
+          # Get new vulnerabilities
+          NEW_VULNS=$(jq -r --slurpfile previous "$PREVIOUS_SCAN_FILE" \
+            '.imageScanFindings.findings[] | select(.name as $cve | ($previous[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)** (\(.severity)): \(.description)"' \
+            "$CURRENT_SCAN_FILE")
+
+          if [[ -n "$NEW_VULNS" ]]; then
+            echo -e "\n### New Vulnerabilities Found:" >> fixed_vulns.txt
+            echo "$NEW_VULNS" >> fixed_vulns.txt
           fi
 
       - name: 📤 Upload Diff for ${{ matrix.image_tag }}
