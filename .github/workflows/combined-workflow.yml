@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - SC-23484-release-notes
 
 jobs:
   # Step 1: CI/CD
