@@ -257,7 +257,6 @@ jobs:
         run: |
           NEW_NOTES_FILE="release-notes.md"
           TARGET_FILE_PATH="./docs-repo/docs/ca/dev/image-releases/spryker-php/release-notes.md"
-          # Get the formatted date string from the previous job's output
           NEW_LAST_UPDATED="${{ needs.generate_notes.outputs.last_updated_str }}"
           
           echo "Target file path: $TARGET_FILE_PATH"
@@ -266,14 +265,12 @@ jobs:
           if [ -f "$TARGET_FILE_PATH" ]; then
             echo "File exists. Updating last_updated and prepending release block."
             EXISTING_CONTENT=$(cat "$TARGET_FILE_PATH")
-            # Update only the last_updated field in the main header
             UPDATED_CONTENT=$(echo "$EXISTING_CONTENT" | sed "0,/last_updated:.*/s/last_updated:.*/last_updated: ${NEW_LAST_UPDATED}/")
             
             line_num=$(echo "$UPDATED_CONTENT" | sed -n '/---/=' | sed -n '2p')
             MAIN_HEADER=$(echo "$UPDATED_CONTENT" | head -n "$line_num")
             EXISTING_BODY=$(echo "$UPDATED_CONTENT" | tail -n "+$((line_num + 1))")
 
-            # Re-assemble the file
             {
               echo "$MAIN_HEADER"
               echo ""
@@ -283,22 +280,21 @@ jobs:
               echo "$EXISTING_BODY"
             } > "$TARGET_FILE_PATH"
           else
-            # This 'else' block is updated to add the introductory text on initial creation.
             echo "File does not exist. Creating new file with static header and intro text."
-            cat << EOF > "$TARGET_FILE_PATH"
-            ---
-            title: Release notes for spryker-php image
-            description: This document describes the changes that have been recently released.
-            last_updated: ${NEW_LAST_UPDATED}
-            template: concept-topic-template
-            ---
+            printf '%s\n' \
+              "---" \
+              "title: Release notes for spryker-php image" \
+              "description: This document describes the changes that have been recently released." \
+              "last_updated: ${NEW_LAST_UPDATED}" \
+              "template: concept-topic-template" \
+              "---" \
+              "" \
+              "This document describes the changes that have been recently released." \
+              "For additional support with this content, contact our support." \
+              "If you found a new security vulnerability, contact us at **security@spryker.com**." \
+              "" > "$TARGET_FILE_PATH"
 
-            This document describes the changes that have been recently released.
-            For additional support with this content, contact our support.  
-            If you found a new security vulnerability, contact us at **security@spryker.com**.
-
-            EOF
-            # Append the very first release block (which no longer contains the intro text).
+            # Append the very first release block to the new file
             cat "$NEW_NOTES_FILE" >> "$TARGET_FILE_PATH"
           fi
 
