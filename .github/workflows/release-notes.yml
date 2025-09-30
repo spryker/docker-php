@@ -150,6 +150,9 @@ jobs:
   generate_notes:
     needs: calculate_diffs
     runs-on: ubuntu-latest
+    outputs:
+      release_date: ${{ steps.assemble.outputs.release_date }}
+      last_updated_str: ${{ steps.assemble.outputs.last_updated_str }}
     steps:
       - name: 📥 Download All CVE Diffs
         uses: actions/download-artifact@v4
@@ -172,38 +175,143 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 📜 Assemble and Display Release Notes
+        id: assemble
         run: |
           RELEASE_DATE=$(date +'%Y%m%d')
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           PUBLISH_DATE=$(date +'%Y-%m-%d')
-          
+          LAST_UPDATED_STR=$(date +'%B %d, %Y')
+          echo "last_updated_str=$LAST_UPDATED_STR" >> $GITHUB_OUTPUT # Set the output for the next job
+
           SECURITY_FIXES_BODY=""
+          HAS_REAL_FIXES=false
+          NO_CVES_STRING="- No CVEs fixed in this release."
+
           for dir in ./all-diffs/*/; do
             IMAGE_TAG=$(basename "$dir")
             IMAGE_TAG=${IMAGE_TAG#diff-}
             FIXED_CVES=$(cat "${dir}/fixed_vulns.txt")
-            SECURITY_FIXES_BODY+=$(printf '\n### spryker/php:%s\n%s\n' "$IMAGE_TAG" "$FIXED_CVES")
+            
+            if [[ "$(echo "$FIXED_CVES" | xargs)" == "$NO_CVES_STRING" ]]; then
+              continue
+            else
+              SECURITY_FIXES_BODY+=$(printf '\n### spryker/php:%s\n%s\n' "$IMAGE_TAG" "$FIXED_CVES")
+              HAS_REAL_FIXES=true
+            fi
           done
 
+          # Conditionally build the entire security section
+          SECURITY_FIXES_CONTENT=""
+          if [ "$HAS_REAL_FIXES" = true ]; then
+            SECURITY_FIXES_CONTENT=$(cat <<EOM
+          ---
+          ## Security fixes by image
+          ${SECURITY_FIXES_BODY}
+          EOM
+          )
+                    fi
+
+          # Assemble the release block with the simpler header
           cat << EOF > release-notes.md
           ---
           title: Release notes ${RELEASE_DATE}.0
-          description: This document describes the changes that have been recently released.
-          last_updated: ${PUBLISH_DATE}
           publish_date: "${PUBLISH_DATE}"
           ---
-          This document describes the changes that have been recently released.
-          For additional support with this content, contact our support.  
-          If you found a new security vulnerability, contact us at **security@spryker.com**.
 
           ## Changelog
           ### Improvements
           ${{ steps.extract.outputs.improvements }}
-
-          ---
-          ## Security fixes by image
-          ${SECURITY_FIXES_BODY}
+          ${SECURITY_FIXES_CONTENT}
           EOF
 
           echo "::group::📜 Consolidated Release Notes"
           cat release-notes.md
           echo "::endgroup::"
+      - name: 📤 Upload Release Notes Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-artifact
+          path: release-notes.md
+
+  create-release-pr:
+    name: 📄 Create Release Notes PR
+    needs: generate_notes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: 📥 Download Release Notes Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes-artifact
+
+      - name: Checkout Documentation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: spryker/spryker-docs
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: docs-repo
+
+      - name: 📝 Prepare Release Notes File
+        run: |
+          NEW_NOTES_FILE="release-notes.md"
+          TARGET_FILE_PATH="./docs-repo/docs/ca/dev/image-releases/spryker-php/release-notes.md"
+          # Get the formatted date string from the previous job's output
+          NEW_LAST_UPDATED="${{ needs.generate_notes.outputs.last_updated_str }}"
+          
+          echo "Target file path: $TARGET_FILE_PATH"
+          mkdir -p "$(dirname "$TARGET_FILE_PATH")"
+
+          if [ -f "$TARGET_FILE_PATH" ]; then
+            echo "File exists. Updating last_updated and prepending release block."
+            EXISTING_CONTENT=$(cat "$TARGET_FILE_PATH")
+            # Update only the last_updated field in the main header
+            UPDATED_CONTENT=$(echo "$EXISTING_CONTENT" | sed "0,/last_updated:.*/s/last_updated:.*/last_updated: ${NEW_LAST_UPDATED}/")
+            
+            line_num=$(echo "$UPDATED_CONTENT" | sed -n '/---/=' | sed -n '2p')
+            MAIN_HEADER=$(echo "$UPDATED_CONTENT" | head -n "$line_num")
+            EXISTING_BODY=$(echo "$UPDATED_CONTENT" | tail -n "+$((line_num + 1))")
+
+            # Re-assemble the file
+            {
+              echo "$MAIN_HEADER"
+              echo ""
+              cat "$NEW_NOTES_FILE"
+              echo ""
+              echo "---"
+              echo "$EXISTING_BODY"
+            } > "$TARGET_FILE_PATH"
+          else
+            # This 'else' block is updated to add the introductory text on initial creation.
+            echo "File does not exist. Creating new file with static header and intro text."
+            cat << EOF > "$TARGET_FILE_PATH"
+            ---
+            title: Release notes for spryker-php image
+            description: This document describes the changes that have been recently released.
+            last_updated: ${NEW_LAST_UPDATED}
+            template: concept-topic-template
+            ---
+
+            This document describes the changes that have been recently released.
+            For additional support with this content, contact our support.  
+            If you found a new security vulnerability, contact us at **security@spryker.com**.
+
+            EOF
+            # Append the very first release block (which no longer contains the intro text).
+            cat "$NEW_NOTES_FILE" >> "$TARGET_FILE_PATH"
+          fi
+
+      - name: 🚀 Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: ./docs-repo
+          commit-message: "docs: Add release notes for ${{ needs.generate_notes.outputs.release_date }}"
+          branch: "docs/release-notes-${{ needs.generate_notes.outputs.release_date }}"
+          title: "Release Notes for ${{ needs.generate_notes.outputs.release_date }}"
+          body: |
+            This PR contains the latest automated release notes.
+            Please review and merge. ✅
+          labels: TW review needed, automation
+          base: master
