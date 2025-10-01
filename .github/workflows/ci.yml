@@ -173,7 +173,7 @@ jobs:
 
       - name: Fetch Job ID
         id: fetch_job_id
-        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        if: ${{ github.ref == 'refs/heads/master' && env.FORMATTED_DIFF != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -186,7 +186,7 @@ jobs:
           echo "::set-output name=job_id::$JOB_ID"
 
       - name: Send Slack Notification
-        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        if: ${{ github.ref == 'refs/heads/master' && env.FORMATTED_DIFF != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
