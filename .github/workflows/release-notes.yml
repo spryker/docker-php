@@ -201,7 +201,7 @@ jobs:
           fi
 
           printf '%s\n' \
-            "## <span class=\"inline-img\">![core-commerce](https://spryker.s3.eu-central-1.amazonaws.com/docs/scos/user/intro-to-spryker/releases/release-notes/icon_Spryker+Commerce+OS_128.png)</span> Release notes ${RELEASE_DATE}.0 <span class=\"inline-img\">![feature](https://spryker.s3.eu-central-1.amazonaws.com/docs/scos/user/intro-to-spryker/releases/release-notes/feature.png)</span>" \
+            "## Release notes for spryker-php ${RELEASE_DATE}.0 " \
             "" \
             "**Changelog**:" > release-notes.md
 
