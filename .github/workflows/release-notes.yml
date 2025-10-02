@@ -181,7 +181,7 @@ jobs:
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           PUBLISH_DATE=$(date +'%Y-%m-%d')
           LAST_UPDATED_STR=$(date +'%B %d, %Y')
-          echo "last_updated_str=$LAST_UPDATED_STR" >> $GITHUB_OUTPUT # Set the output for the next job
+          echo "last_updated_str=$LAST_UPDATED_STR" >> $GITHUB_OUTPUT
 
           SECURITY_FIXES_BODY=""
           HAS_REAL_FIXES=false
@@ -195,38 +195,32 @@ jobs:
             if [[ "$(echo "$FIXED_CVES" | xargs)" == "$NO_CVES_STRING" ]]; then
               continue
             else
-              SECURITY_FIXES_BODY+=$(printf '\n### spryker/php:%s\n%s\n' "$IMAGE_TAG" "$FIXED_CVES")
+              SECURITY_FIXES_BODY+=$(printf '\n**spryker/php:%s**\n%s\n' "$IMAGE_TAG" "$FIXED_CVES")
               HAS_REAL_FIXES=true
             fi
           done
 
-          # Conditionally build the entire security section
           SECURITY_FIXES_CONTENT=""
           if [ "$HAS_REAL_FIXES" = true ]; then
-            SECURITY_FIXES_CONTENT=$(cat <<EOM
-          ---
+            SECURITY_FIXES_CONTENT=$(printf '\n---\n\nSecurity fixes by image\n-----------------------\n%s' "$SECURITY_FIXES_BODY")
+          fi
 
-          Security fixes by image
-          -----------------------
-          ${SECURITY_FIXES_BODY}
-          EOM
-          )
-                    fi
+          printf '%s\n' \
+            "---" \
+            "title: Release notes ${RELEASE_DATE}.0" \
+            "publish_date: \"${PUBLISH_DATE}\"" \
+            "---" \
+            "" \
+            "Changelog" \
+            "-----------" \
+            "" \
+            "### Improvements" > release-notes.md
 
-          # Assemble the release block with corrected formatting
-          cat << EOF > release-notes.md
-          ---
-          title: Release notes ${RELEASE_DATE}.0
-          publish_date: "${PUBLISH_DATE}"
-          ---
+          echo "${{ steps.extract.outputs.improvements }}" >> release-notes.md
 
-          Changelog
-          -----------
-
-          ### Improvements
-          ${{ steps.extract.outputs.improvements }}
-          ${SECURITY_FIXES_CONTENT}
-          EOF
+          if [ -n "$SECURITY_FIXES_CONTENT" ]; then
+            echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
+          fi
 
           echo "::group::📜 Consolidated Release Notes"
           cat release-notes.md
