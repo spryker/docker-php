@@ -205,20 +205,24 @@ jobs:
           if [ "$HAS_REAL_FIXES" = true ]; then
             SECURITY_FIXES_CONTENT=$(cat <<EOM
           ---
-          ## Security fixes by image
+
+          Security fixes by image
+          -----------------------
           ${SECURITY_FIXES_BODY}
           EOM
           )
                     fi
 
-          # Assemble the release block with the simpler header
+          # Assemble the release block with corrected formatting
           cat << EOF > release-notes.md
           ---
           title: Release notes ${RELEASE_DATE}.0
           publish_date: "${PUBLISH_DATE}"
           ---
 
-          ## Changelog
+          Changelog
+          -----------
+
           ### Improvements
           ${{ steps.extract.outputs.improvements }}
           ${SECURITY_FIXES_CONTENT}
@@ -277,6 +281,7 @@ jobs:
               cat "$NEW_NOTES_FILE"
               echo ""
               echo "---"
+              echo ""
               echo "$EXISTING_BODY"
             } > "$TARGET_FILE_PATH"
           else
@@ -304,8 +309,8 @@ jobs:
           token: ${{ secrets.DOCS_REPO_PAT }}
           path: ./docs-repo
           commit-message: "docs: Add release notes for ${{ needs.generate_notes.outputs.release_date }}"
-          branch: "docs/release-notes-${{ needs.generate_notes.outputs.release_date }}"
-          title: "Release Notes for ${{ needs.generate_notes.outputs.release_date }}"
+          branch: "docs/docker-images/release-notes-spryker-php-${{ needs.generate_notes.outputs.release_date }}"
+          title: "Release Notes for spryker-php ${{ needs.generate_notes.outputs.release_date }}"
           body: |
             This PR contains the latest automated release notes.
             Please review and merge. ✅
