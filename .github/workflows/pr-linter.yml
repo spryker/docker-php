@@ -11,23 +11,21 @@ jobs:
       - name: Check for Release Notes sections
         shell: bash
         run: |
-          # Write PR body to file using heredoc to preserve formatting
-          cat << 'EOF' > pr_body.txt
-          ${{ github.event.pull_request.body }}
-          EOF
+          # Write PR body to a temporary file
+          echo "${{ github.event.pull_request.body }}" > pr_body.txt
           
-          # Check for the mandatory 'Improvements' section
-          if ! grep -F "### Improvements" pr_body.txt; then
+          # Check for '### Improvements' using the quiet flag
+          if ! grep -q -F "### Improvements" pr_body.txt; then
             echo "Error: '### Improvements' section is missing in the PR body."
             exit 1
           fi
 
-          # Conditionally check the 'Security Fixes' section
-          if grep -F "### Security fixes by image" pr_body.txt; then
+          # Check for '## Security fixes by image' with the correct heading level
+          if grep -q -F "## Security fixes by image" pr_body.txt; then
             echo "Found 'Security fixes by image' section. Verifying content..."
-            # If the section exists, it MUST contain a CVE reference.
-            if ! grep -F "CVE-" pr_body.txt; then
-              echo "Error: '### Security fixes by image' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
+            # Check for a CVE identifier within the entire PR body
+            if ! grep -q -F "CVE-" pr_body.txt; then
+              echo "Error: '## Security fixes by image' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
               exit 1
             fi
             echo "✅ Security fixes section is valid."

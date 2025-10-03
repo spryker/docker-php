@@ -2,6 +2,12 @@ name: Generate Consolidated Release Notes
 
 on:
   workflow_call:
+    inputs:
+      pr_body:
+        description: 'The body of an open PR for testing purposes'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   verify_workflow:
@@ -165,10 +171,27 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 🧠 Determine which PR body to use
+        id: determine_body
+        run: |
+          FINAL_BODY=""
+          if [[ -n "${{ inputs.pr_body }}" ]]; then
+            echo "Using PR body provided via workflow input (testing mode)."
+            FINAL_BODY="${{ inputs.pr_body }}"
+          # Otherwise, fall back to the merged PR body (production mode).
+          else
+            echo "No PR body input provided. Using merged PR body (production mode)."
+            FINAL_BODY="${{ steps.pr-info.outputs.body }}"
+          fi
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$FINAL_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: ✍️ Extract PR Sections
         id: extract
         run: |
-          PR_BODY='${{ steps.pr-info.outputs.body }}'
+          PR_BODY='${{ steps.determine_body.outputs.body }}'
+
           IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^Improvements$/{flag=1;next} /^Security fixes by image$/{flag=0} flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
           echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
