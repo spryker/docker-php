@@ -212,6 +212,11 @@ jobs:
           echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^## Steps before you submit a PR/{flag=0} flag')
+          echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
+          echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: 🐛 Debug Extracted Content
         if: always()
         run: |
