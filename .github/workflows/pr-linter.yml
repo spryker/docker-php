@@ -23,16 +23,16 @@ jobs:
           fi
 
           # Conditionally check the 'Security Fixes' section
-          if grep -F "### Security Fixes" pr_body.txt; then
-            echo "Found 'Security Fixes' section. Verifying content..."
+          if grep -F "### Security fixes by image" pr_body.txt; then
+            echo "Found 'Security fixes by image' section. Verifying content..."
             # If the section exists, it MUST contain a CVE reference.
             if ! grep -F "CVE-" pr_body.txt; then
-              echo "Error: '### Security Fixes' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
+              echo "Error: '### Security fixes by image' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
               exit 1
             fi
-            echo "✅ Security Fixes section is valid."
+            echo "✅ Security fixes section is valid."
           else
-            echo "✅ No 'Security Fixes' section found. Skipping CVE check."
+            echo "✅ No 'Security fixes' section found. Skipping CVE check."
           fi
           
           echo "✅ PR body format is correct."
