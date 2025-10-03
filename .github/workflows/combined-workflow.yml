@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches:
-      - SC-23484-release-notes
+      - master
 
 jobs:
   # Step 1: CI/CD
