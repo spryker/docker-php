@@ -198,7 +198,6 @@ jobs:
         run: |
           PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
 
-          # --- Internal Debugging ---
           echo "--- RAW PR BODY BEING PARSED ---"
           echo "$PR_BODY"
           echo "--- END RAW PR BODY ---"
@@ -228,6 +227,9 @@ jobs:
 
       - name: 📜 Assemble and Display Release Notes
         id: assemble
+        env:
+          IMPROVEMENTS_CONTENT: ${{ steps.extract.outputs.improvements }}
+          MANUAL_FIXES_BODY: ${{ steps.extract.outputs.security_fixes }}
         run: |
           RELEASE_DATE=$(date +'%Y%m%d')
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
@@ -246,8 +248,6 @@ jobs:
               HAS_AUTOMATED_FIXES=true
             fi
           done
-
-          MANUAL_FIXES_BODY="${{ steps.extract.outputs.security_fixes }}"
 
           SECURITY_FIXES_CONTENT=""
           if [ "$HAS_AUTOMATED_FIXES" = true ] || [ -n "$MANUAL_FIXES_BODY" ]; then
@@ -269,7 +269,7 @@ jobs:
             "" \
             "**Improvements**:" > release-notes.md
 
-          echo "${{ steps.extract.outputs.improvements }}" >> release-notes.md
+          echo "$IMPROVEMENTS_CONTENT" >> release-notes.md
 
           if [ -n "$SECURITY_FIXES_CONTENT" ]; then
             echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
@@ -278,6 +278,7 @@ jobs:
           echo "::group::📜 Consolidated Release Notes"
           cat release-notes.md
           echo "::endgroup::"
+
       - name: 📤 Upload Release Notes Artifact
         uses: actions/upload-artifact@v4
         with:
