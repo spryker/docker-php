@@ -196,13 +196,26 @@ jobs:
 
           IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^Improvements$/{flag=1;next} /^Security fixes by image$/{flag=0} flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
-          echo "$IMPROVIMENTS" >> $GITHUB_OUTPUT
+          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^Security fixes by image$/{flag=1;next} flag')
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
           echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🐛 Debug Extracted Content
+        if: always() # Ensures this step runs even if others fail
+        run: |
+          echo "--- START: DEBUGGING OUTPUT ---"
+          echo "--- IMPROVEMENTS CONTENT ---"
+          echo "${{ steps.extract.outputs.improvements }}"
+          echo "--- END IMPROVEMENTS ---"
+          echo ""
+          echo "--- SECURITY FIXES CONTENT ---"
+          echo "${{ steps.extract.outputs.security_fixes }}"
+          echo "--- END SECURITY FIXES ---"
+          echo "--- END: DEBUGGING OUTPUT ---"
 
       - name: 📜 Assemble and Display Release Notes
         id: assemble
