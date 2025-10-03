@@ -190,11 +190,13 @@ jobs:
       - name: ✍️ Extract PR Sections
         id: extract
         run: |
-          PR_BODY='${{ steps.determine_body.outputs.body }}'
+          PR_BODY_RAW='${{ steps.determine_body.outputs.body }}'
+          
+          PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
 
           IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^Improvements$/{flag=1;next} /^Security fixes by image$/{flag=0} flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
-          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
+          echo "$IMPROVIMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^Security fixes by image$/{flag=1;next} flag')
