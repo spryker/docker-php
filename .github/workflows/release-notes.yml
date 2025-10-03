@@ -173,16 +173,20 @@ jobs:
 
       - name: 🧠 Determine which PR body to use
         id: determine_body
+        env:
+          INPUT_BODY: ${{ inputs.pr_body }}
+          MERGED_BODY: ${{ steps.pr-info.outputs.body }}
         run: |
           FINAL_BODY=""
-          if [[ -n "${{ inputs.pr_body }}" ]]; then
+          # Now, check the safe environment variable instead of the raw input
+          if [[ -n "$INPUT_BODY" ]]; then
             echo "Using PR body provided via workflow input (testing mode)."
-            FINAL_BODY="${{ inputs.pr_body }}"
-          # Otherwise, fall back to the merged PR body (production mode).
+            FINAL_BODY="$INPUT_BODY"
           else
             echo "No PR body input provided. Using merged PR body (production mode)."
-            FINAL_BODY="${{ steps.pr-info.outputs.body }}"
+            FINAL_BODY="$MERGED_BODY"
           fi
+          # Safely output the chosen body
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$FINAL_BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
