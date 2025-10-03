@@ -194,18 +194,22 @@ jobs:
           
           PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
 
-          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^Improvements$/{flag=1;next} /^Security fixes by image$/{flag=0} flag')
+          echo "--- RAW PR BODY BEING PARSED ---"
+          echo "$PR_BODY"
+          echo "--- END RAW PR BODY ---"
+          
+          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
           echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^Security fixes by image$/{flag=1;next} flag')
+          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} flag')
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
           echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 🐛 Debug Extracted Content
-        if: always() # Ensures this step runs even if others fail
+        if: always()
         run: |
           echo "--- START: DEBUGGING OUTPUT ---"
           echo "--- IMPROVEMENTS CONTENT ---"
