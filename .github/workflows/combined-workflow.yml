@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - SC-23484-release-notes
   pull_request:
     types: [opened, synchronize]
     branches:
