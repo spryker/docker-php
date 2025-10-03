@@ -197,16 +197,18 @@ jobs:
 
           SECURITY_FIXES_CONTENT=""
           if [ "$HAS_REAL_FIXES" = true ]; then
-            SECURITY_FIXES_CONTENT=$(printf '\n**Security Fixes**:\n%s' "${ALL_FIXES}")
+            SECURITY_FIXES_CONTENT=$(printf '\n**Security Fixes by image**:\n%s' "${ALL_FIXES}")
           fi
 
           printf '%s\n' \
-            "## Release notes for spryker-php ${RELEASE_DATE}.0 " \
+            "## Release notes for spryker-php ${RELEASE_DATE}.0" \
             "" \
-            "**Changelog**:" > release-notes.md
+            "**Improvements**:" \
+            "${{ steps.extract.outputs.improvements }}" > release-notes.md
 
-          echo "${{ steps.extract.outputs.improvements }}" >> release-notes.md
+          # Append the security fixes content if it exists
           if [ -n "$SECURITY_FIXES_CONTENT" ]; then
+            echo "" >> release-notes.md
             echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
           fi
 
