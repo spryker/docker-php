@@ -193,11 +193,12 @@ jobs:
 
       - name: ✍️ Extract PR Sections
         id: extract
+        env:
+          PR_BODY_RAW: ${{ steps.determine_body.outputs.body }}
         run: |
-          PR_BODY_RAW='${{ steps.determine_body.outputs.body }}'
-          
           PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
 
+          # --- Internal Debugging ---
           echo "--- RAW PR BODY BEING PARSED ---"
           echo "$PR_BODY"
           echo "--- END RAW PR BODY ---"
