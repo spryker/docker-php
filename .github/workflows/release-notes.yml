@@ -197,7 +197,6 @@ jobs:
           echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          # Extract Security Fixes content
           SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^Security fixes by image$/{flag=1;next} flag')
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
           echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
@@ -233,7 +232,6 @@ jobs:
                   FINAL_SECURITY_TEXT+="${AUTOMATED_FIXES_BODY}"
               fi
               if [ -n "$MANUAL_FIXES_BODY" ]; then
-                  # Add a separator if automated fixes also exist
                   if [ "$HAS_AUTOMATED_FIXES" = true ]; then
                       FINAL_SECURITY_TEXT+="\n"
                   fi
@@ -245,8 +243,9 @@ jobs:
           printf '%s\n' \
             "## Release notes for spryker-php ${RELEASE_DATE}.0" \
             "" \
-            "**Improvements**:" \
-            "${{ steps.extract.outputs.improvements }}" > release-notes.md
+            "**Improvements**:" > release-notes.md
+
+          echo "${{ steps.extract.outputs.improvements }}" >> release-notes.md
 
           if [ -n "$SECURITY_FIXES_CONTENT" ]; then
             echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
