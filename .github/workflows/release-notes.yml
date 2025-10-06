@@ -189,22 +189,14 @@ jobs:
         run: |
           PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
 
-          echo "--- RAW PR BODY BEING PARSED ---"
-          echo "$PR_BODY"
-          echo "--- END RAW PR BODY ---"
-          
           IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
-          IMPROVEMENTS_FORMATTED=$(echo "$IMPROVEMENTS" | sed 's/$/\n/')
-          
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
-          echo "$IMPROVEMENTS_FORMATTED" >> $GITHUB_OUTPUT
+          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^## Steps before you submit a PR/{flag=0} flag')
-          SECURITY_FIXES_FORMATTED=$(echo "$SECURITY_FIXES" | sed '/^###/a \\')
-
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
-          echo "$SECURITY_FIXES_FORMATTED" >> $GITHUB_OUTPUT
+          echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 🐛 Debug Extracted Content
@@ -224,7 +216,7 @@ jobs:
         id: assemble
         env:
           IMPROVEMENTS_CONTENT: ${{ steps.extract.outputs.improvements }}
-          MANUAL_FIXES_BODY: ${{ steps.extract.outputs.security_fixes }}
+          MANUAL_FIXES_RAW: ${{ steps.extract.outputs.security_fixes }}
         run: |
           RELEASE_DATE=$(date +'%Y%m%d')
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
@@ -243,6 +235,8 @@ jobs:
               HAS_AUTOMATED_FIXES=true
             fi
           done
+
+          MANUAL_FIXES_BODY=$(echo "$MANUAL_FIXES_RAW" | awk '{print} /^###/{print ""}')
 
           SECURITY_FIXES_CONTENT=""
           if [ "$HAS_AUTOMATED_FIXES" = true ] || [ -n "$MANUAL_FIXES_BODY" ]; then
@@ -263,9 +257,7 @@ jobs:
             "## Release notes for spryker-php ${RELEASE_DATE}.0" \
             "" \
             "**Improvements**:" > release-notes.md
-
           echo "$IMPROVEMENTS_CONTENT" >> release-notes.md
-
           if [ -n "$SECURITY_FIXES_CONTENT" ]; then
             echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
           fi
