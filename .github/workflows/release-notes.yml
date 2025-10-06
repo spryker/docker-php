@@ -48,7 +48,6 @@ jobs:
       - name: 🔎 Find Last & Previous Job IDs for ${{ matrix.image_tag }}
         id: find_jobs
         run: |
-          # Get the current combined workflow run
           LATEST_RUN_ID=$(gh run list --workflow="Combined CI/CD, Security Scan & Release Notes" \
             --json databaseId,event,status,conclusion \
             -q '.[] | select(
@@ -57,7 +56,6 @@ jobs:
             ) | .databaseId' \
             --limit 1)
           
-          # Get job ID for the specific image from security-scan job matrix
           if [[ -n "$LATEST_RUN_ID" ]]; then
             LATEST_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$LATEST_RUN_ID/jobs" \
               --jq ".jobs[] | select(
@@ -68,7 +66,6 @@ jobs:
             echo "Found security-scan job for ${{ matrix.image_tag }}: $LATEST_JOB_ID"
           fi
           
-          # Get the last scheduled scan as baseline
           SCHEDULED_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
             --json databaseId,event,status \
             -q '.[] | select(
@@ -77,7 +74,6 @@ jobs:
             ) | .databaseId' \
             --limit 1)
           
-          # Get job ID for the specific image from scheduled scan
           if [[ -n "$SCHEDULED_RUN_ID" ]]; then
             PREVIOUS_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$SCHEDULED_RUN_ID/jobs" \
               --jq ".jobs[] | select(
@@ -88,7 +84,6 @@ jobs:
             echo "Found scheduled scan job for ${{ matrix.image_tag }}: $PREVIOUS_JOB_ID"
           fi
           
-          # Set outputs even if empty
           echo "latest_job_id=${LATEST_JOB_ID:-}" >> $GITHUB_OUTPUT
           echo "previous_job_id=${PREVIOUS_JOB_ID:-}" >> $GITHUB_OUTPUT
         env:
@@ -116,7 +111,6 @@ jobs:
           if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then touch "$PREVIOUS_SCAN_FILE"; fi
           if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then touch "$CURRENT_SCAN_FILE"; fi
 
-          # Validate JSON and create placeholders if needed
           if ! jq . "$PREVIOUS_SCAN_FILE" >/dev/null 2>&1; then
             echo "Warning: Previous scan file was invalid. Creating empty placeholder."
             echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"
@@ -126,7 +120,6 @@ jobs:
             echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"
           fi
           
-          # Compare findings between the two scans
           FIXED_VULNS=$(jq -r --slurpfile current "$CURRENT_SCAN_FILE" \
             '.imageScanFindings.findings[] | select(.name as $cve | ($current[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)**: \(.description)"' \
             "$PREVIOUS_SCAN_FILE")
@@ -137,7 +130,6 @@ jobs:
             echo "$FIXED_VULNS" > fixed_vulns.txt
           fi
 
-          # Get new vulnerabilities
           NEW_VULNS=$(jq -r --slurpfile previous "$PREVIOUS_SCAN_FILE" \
             '.imageScanFindings.findings[] | select(.name as $cve | ($previous[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)** (\(.severity)): \(.description)"' \
             "$CURRENT_SCAN_FILE")
@@ -178,7 +170,6 @@ jobs:
           MERGED_BODY: ${{ steps.pr-info.outputs.body }}
         run: |
           FINAL_BODY=""
-          # Now, check the safe environment variable instead of the raw input
           if [[ -n "$INPUT_BODY" ]]; then
             echo "Using PR body provided via workflow input (testing mode)."
             FINAL_BODY="$INPUT_BODY"
@@ -186,7 +177,7 @@ jobs:
             echo "No PR body input provided. Using merged PR body (production mode)."
             FINAL_BODY="$MERGED_BODY"
           fi
-          # Safely output the chosen body
+          
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$FINAL_BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -203,18 +194,17 @@ jobs:
           echo "--- END RAW PR BODY ---"
           
           IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
+          IMPROVEMENTS_FORMATTED=$(echo "$IMPROVEMENTS" | sed 's/$/\n/')
+          
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
-          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} flag')
-          echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
-          echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
+          echo "$IMPROVEMENTS_FORMATTED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^## Steps before you submit a PR/{flag=0} flag')
+          SECURITY_FIXES_FORMATTED=$(echo "$SECURITY_FIXES" | sed '/^###/a \\')
+
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
-          echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
+          echo "$SECURITY_FIXES_FORMATTED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 🐛 Debug Extracted Content
