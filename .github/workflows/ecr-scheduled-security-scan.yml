@@ -113,7 +113,6 @@ jobs:
         run: |
           echo "Scan type: ${{ inputs.trigger_source }}"
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
-          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
           echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
           echo "Details of findings:"
           cat <<'JSON'
