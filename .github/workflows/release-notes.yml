@@ -297,14 +297,15 @@ jobs:
           NEW_NOTES_FILE="release-notes.md"
           TARGET_FILE_PATH="./docs-repo/docs/about/all/releases/image-releases/spryker-php/release-notes.md"
           NEW_LAST_UPDATED="${{ needs.generate_notes.outputs.last_updated_str }}"
+          CURRENT_DATE=$(date +'%Y-%m-%d')
           
           echo "Target file path: $TARGET_FILE_PATH"
           mkdir -p "$(dirname "$TARGET_FILE_PATH")"
 
           if [ -f "$TARGET_FILE_PATH" ]; then
-            echo "File exists. Updating last_updated and prepending release block."
+            echo "File exists. Updating last_updated, publish_date and prepending release block."
             EXISTING_CONTENT=$(cat "$TARGET_FILE_PATH")
-            UPDATED_CONTENT=$(echo "$EXISTING_CONTENT" | sed "0,/last_updated:.*/s/last_updated:.*/last_updated: ${NEW_LAST_UPDATED}/")
+            UPDATED_CONTENT=$(echo "$EXISTING_CONTENT" | sed -e "0,/last_updated:.*/s/last_updated:.*/last_updated: ${NEW_LAST_UPDATED}/" -e "0,/publish_date:.*/s/publish_date:.*/publish_date: \"${CURRENT_DATE}\"/" )
             
             line_num=$(echo "$UPDATED_CONTENT" | sed -n '/---/=' | sed -n '2p')
             MAIN_HEADER=$(echo "$UPDATED_CONTENT" | head -n "$line_num")
@@ -324,6 +325,7 @@ jobs:
               "description: This document describes the changes that have been recently released." \
               "last_updated: ${NEW_LAST_UPDATED}" \
               "template: concept-topic-template" \
+              "publish_date: \"${CURRENT_DATE}\"" \
               "---" \
               "" \
               "This document describes the changes that have been recently released." \
@@ -345,5 +347,5 @@ jobs:
           body: |
             This PR contains the latest automated release notes.
             Please review and merge. ✅
-          labels: TW review needed, automation
+          labels: automation
           base: master
