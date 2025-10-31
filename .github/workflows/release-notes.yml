@@ -295,7 +295,7 @@ jobs:
       - name: 📝 Prepare Release Notes File
         run: |
           NEW_NOTES_FILE="release-notes.md"
-          TARGET_FILE_PATH="./docs-repo/docs/about/all/releases/image-releases/spryker-php/release-notes.md"
+          TARGET_FILE_PATH="./docs-repo/docs/about/all/releases/image-releases/spryker-php/release-notes-spryker-php.md"
           NEW_LAST_UPDATED="${{ needs.generate_notes.outputs.last_updated_str }}"
           CURRENT_DATE=$(date +'%Y-%m-%d')
           

@@ -5,7 +5,7 @@ on:
     branches:
       - master
   pull_request:
-    types: [opened, synchronize]
+    types: [closed]
     branches:
       - master
 
@@ -26,7 +26,7 @@ jobs:
   # Step 3: Release Notes
   release-notes:
     needs: security-scan
-    if: always()
+    if: github.event.pull_request.merged == true 
     uses: ./.github/workflows/release-notes.yml
     secrets: inherit
     with:
