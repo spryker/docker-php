@@ -1,0 +1,351 @@
+name: Generate Consolidated Release Notes
+
+on:
+  workflow_call:
+    inputs:
+      pr_body:
+        description: 'The body of an open PR for testing purposes'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  verify_workflow:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - id: check
+        run: |
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
+  calculate_diffs:
+    needs: verify_workflow
+    if: needs.verify_workflow.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image_tag:
+          - "8.1-alpine3.19"
+          - "8.2-alpine3.19"
+          - "8.3-alpine3.19"
+          - "8.1-alpine3.20"
+          - "8.2-alpine3.20"
+          - "8.3-alpine3.20"
+          - "8.4-alpine3.20"
+          - "8.2-alpine3.21"
+          - "8.3-alpine3.21"
+          - "8.4-alpine3.21"
+          - "8.2-alpine3.22"
+          - "8.3-alpine3.22"
+          - "8.4-alpine3.22"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔎 Find Last & Previous Job IDs for ${{ matrix.image_tag }}
+        id: find_jobs
+        run: |
+          LATEST_RUN_ID=$(gh run list --workflow="Combined CI/CD, Security Scan & Release Notes" \
+            --json databaseId,event,status,conclusion \
+            -q '.[] | select(
+              .status == "completed" and 
+              .headSha == env.GITHUB_SHA
+            ) | .databaseId' \
+            --limit 1)
+          
+          if [[ -n "$LATEST_RUN_ID" ]]; then
+            LATEST_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$LATEST_RUN_ID/jobs" \
+              --jq ".jobs[] | select(
+                .name | contains(\"security-scan\") and 
+                contains(\"matrix\") and 
+                contains(\"${{ matrix.image_tag }}\")
+              ) | .id")
+            echo "Found security-scan job for ${{ matrix.image_tag }}: $LATEST_JOB_ID"
+          fi
+          
+          SCHEDULED_RUN_ID=$(gh run list --workflow="ECR vulnerability detection" \
+            --json databaseId,event,status \
+            -q '.[] | select(
+              .status == "completed" and 
+              .event == "schedule"
+            ) | .databaseId' \
+            --limit 1)
+          
+          if [[ -n "$SCHEDULED_RUN_ID" ]]; then
+            PREVIOUS_JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/$SCHEDULED_RUN_ID/jobs" \
+              --jq ".jobs[] | select(
+                .name | contains(\"vulnerability-detection\") and 
+                contains(\"matrix\") and 
+                contains(\"${{ matrix.image_tag }}\")
+              ) | .id")
+            echo "Found scheduled scan job for ${{ matrix.image_tag }}: $PREVIOUS_JOB_ID"
+          fi
+          
+          echo "latest_job_id=${LATEST_JOB_ID:-}" >> $GITHUB_OUTPUT
+          echo "previous_job_id=${PREVIOUS_JOB_ID:-}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: 📥 Fetch and Parse Logs for ${{ matrix.image_tag }}
+        run: |
+          if [[ -n "${{ steps.find_jobs.outputs.latest_job_id }}" ]]; then
+            gh run view --job ${{ steps.find_jobs.outputs.latest_job_id }} --log > latest_raw.log
+            awk "/cat <<'JSON'/{flag=1; next} /JSON/{flag=0} flag" latest_raw.log > latest-scan.json
+          fi
+          if [[ -n "${{ steps.find_jobs.outputs.previous_job_id }}" ]]; then
+            gh run view --job ${{ steps.find_jobs.outputs.previous_job_id }} --log > previous_raw.log
+            awk "/cat <<'JSON'/{flag=1; next} /JSON/{flag=0} flag" previous_raw.log > previous-scan.json
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 🔄 Compare Scans for ${{ matrix.image_tag }}
+        id: compare
+        run: |
+          PREVIOUS_SCAN_FILE="previous-scan.json"
+          CURRENT_SCAN_FILE="latest-scan.json"
+          if [[ ! -f "$PREVIOUS_SCAN_FILE" ]]; then touch "$PREVIOUS_SCAN_FILE"; fi
+          if [[ ! -f "$CURRENT_SCAN_FILE" ]]; then touch "$CURRENT_SCAN_FILE"; fi
+
+          if ! jq . "$PREVIOUS_SCAN_FILE" >/dev/null 2>&1; then
+            echo "Warning: Previous scan file was invalid. Creating empty placeholder."
+            echo '{ "imageScanFindings": { "findings": [] } }' > "$PREVIOUS_SCAN_FILE"
+          fi
+          if ! jq . "$CURRENT_SCAN_FILE" >/dev/null 2>&1; then
+            echo "Warning: Current scan file was invalid. Creating empty placeholder."
+            echo '{ "imageScanFindings": { "findings": [] } }' > "$CURRENT_SCAN_FILE"
+          fi
+          
+          FIXED_VULNS=$(jq -r --slurpfile current "$CURRENT_SCAN_FILE" \
+            '.imageScanFindings.findings[] | select(.name as $cve | ($current[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)**: \(.description)"' \
+            "$PREVIOUS_SCAN_FILE")
+            
+          if [[ -z "$FIXED_VULNS" ]]; then
+            echo "- No CVEs fixed in this release." > fixed_vulns.txt
+          else
+            echo "$FIXED_VULNS" > fixed_vulns.txt
+          fi
+
+          NEW_VULNS=$(jq -r --slurpfile previous "$PREVIOUS_SCAN_FILE" \
+            '.imageScanFindings.findings[] | select(.name as $cve | ($previous[0].imageScanFindings.findings | map(.name) | index($cve) | not)) | "- **\(.name)** (\(.severity)): \(.description)"' \
+            "$CURRENT_SCAN_FILE")
+
+          if [[ -n "$NEW_VULNS" ]]; then
+            echo -e "\n### New Vulnerabilities Found:" >> fixed_vulns.txt
+            echo "$NEW_VULNS" >> fixed_vulns.txt
+          fi
+
+      - name: 📤 Upload Diff for ${{ matrix.image_tag }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-${{ matrix.image_tag }}
+          path: fixed_vulns.txt
+            
+  generate_notes:
+    needs: calculate_diffs
+    runs-on: ubuntu-latest
+    outputs:
+      release_date: ${{ steps.assemble.outputs.release_date }}
+      last_updated_str: ${{ steps.assemble.outputs.last_updated_str }}
+    steps:
+      - name: 📥 Download All CVE Diffs
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-diffs
+
+      - name: 📣 Get Merged PR Info
+        id: pr-info
+        uses: actions-ecosystem/action-get-merged-pull-request@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧠 Determine which PR body to use
+        id: determine_body
+        env:
+          INPUT_BODY: ${{ inputs.pr_body }}
+          MERGED_BODY: ${{ steps.pr-info.outputs.body }}
+        run: |
+          FINAL_BODY=""
+          if [[ -n "$INPUT_BODY" ]]; then
+            echo "Using PR body provided via workflow input (testing mode)."
+            FINAL_BODY="$INPUT_BODY"
+          else
+            echo "No PR body input provided. Using merged PR body (production mode)."
+            FINAL_BODY="$MERGED_BODY"
+          fi
+          
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$FINAL_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: ✍️ Extract PR Sections
+        id: extract
+        env:
+          PR_BODY_RAW: ${{ steps.determine_body.outputs.body }}
+        run: |
+          PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
+
+          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
+          echo "improvements<<EOF" >> $GITHUB_OUTPUT
+          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^## Steps before you submit a PR/{flag=0} flag')
+          echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
+          echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 🐛 Debug Extracted Content
+        if: always()
+        run: |
+          echo "--- START: DEBUGGING OUTPUT ---"
+          echo "--- IMPROVEMENTS CONTENT ---"
+          echo "${{ steps.extract.outputs.improvements }}"
+          echo "--- END IMPROVEMENTS ---"
+          echo ""
+          echo "--- SECURITY FIXES CONTENT ---"
+          echo "${{ steps.extract.outputs.security_fixes }}"
+          echo "--- END SECURITY FIXES ---"
+          echo "--- END: DEBUGGING OUTPUT ---"
+
+      - name: 📜 Assemble and Display Release Notes
+        id: assemble
+        env:
+          IMPROVEMENTS_CONTENT: ${{ steps.extract.outputs.improvements }}
+          MANUAL_FIXES_RAW: ${{ steps.extract.outputs.security_fixes }}
+        run: |
+          RELEASE_DATE=$(date +'%Y%m%d')
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          PUBLISH_DATE=$(date +'%Y-%m-%d')
+          LAST_UPDATED_STR=$(date +'%B %d, %Y')
+          echo "last_updated_str=$LAST_UPDATED_STR" >> $GITHUB_OUTPUT
+
+          AUTOMATED_FIXES_BODY=""
+          HAS_AUTOMATED_FIXES=false
+          NO_CVES_STRING="- No CVEs fixed in this release."
+          for dir in ./all-diffs/*/; do
+            IMAGE_TAG=$(basename "$dir" | sed 's/diff-//')
+            FIXED_CVES=$(cat "${dir}/fixed_vulns.txt")
+            if [[ "$(echo "$FIXED_CVES" | xargs)" != "$NO_CVES_STRING" ]]; then
+              AUTOMATED_FIXES_BODY+=$(printf '\n**spryker/php:%s** (Automated Scan)\n%s' "$IMAGE_TAG" "$FIXED_CVES")
+              HAS_AUTOMATED_FIXES=true
+            fi
+          done
+
+          MANUAL_FIXES_BODY=$(echo "$MANUAL_FIXES_RAW" | awk '{print} /^###/{print ""}')
+
+          SECURITY_FIXES_CONTENT=""
+          if [ "$HAS_AUTOMATED_FIXES" = true ] || [ -n "$MANUAL_FIXES_BODY" ]; then
+              FINAL_SECURITY_TEXT=""
+              if [ "$HAS_AUTOMATED_FIXES" = true ]; then
+                  FINAL_SECURITY_TEXT+="${AUTOMATED_FIXES_BODY}"
+              fi
+              if [ -n "$MANUAL_FIXES_BODY" ]; then
+                  if [ "$HAS_AUTOMATED_FIXES" = true ]; then
+                      FINAL_SECURITY_TEXT+="\n"
+                  fi
+                  FINAL_SECURITY_TEXT+="\n${MANUAL_FIXES_BODY}"
+              fi
+              SECURITY_FIXES_CONTENT=$(printf '\n\n**Security fixes by image**:%s' "$FINAL_SECURITY_TEXT")
+          fi
+
+          printf '%s\n' \
+            "## Release notes for spryker-php ${RELEASE_DATE}.0" \
+            "" \
+            "**Improvements**:" > release-notes.md
+          echo "$IMPROVEMENTS_CONTENT" >> release-notes.md
+          if [ -n "$SECURITY_FIXES_CONTENT" ]; then
+            echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
+          fi
+
+          echo "::group::📜 Consolidated Release Notes"
+          cat release-notes.md
+          echo "::endgroup::"
+
+      - name: 📤 Upload Release Notes Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-artifact
+          path: release-notes.md
+
+  create-release-pr:
+    name: 📄 Create Release Notes PR
+    needs: generate_notes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: 📥 Download Release Notes Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes-artifact
+
+      - name: Checkout Documentation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: spryker/spryker-docs
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: docs-repo
+
+      - name: 📝 Prepare Release Notes File
+        run: |
+          NEW_NOTES_FILE="release-notes.md"
+          TARGET_FILE_PATH="./docs-repo/docs/about/all/releases/image-releases/spryker-php/release-notes-spryker-php.md"
+          NEW_LAST_UPDATED="${{ needs.generate_notes.outputs.last_updated_str }}"
+          CURRENT_DATE=$(date +'%Y-%m-%d')
+          
+          echo "Target file path: $TARGET_FILE_PATH"
+          mkdir -p "$(dirname "$TARGET_FILE_PATH")"
+
+          if [ -f "$TARGET_FILE_PATH" ]; then
+            echo "File exists. Updating last_updated, publish_date and prepending release block."
+            EXISTING_CONTENT=$(cat "$TARGET_FILE_PATH")
+            UPDATED_CONTENT=$(echo "$EXISTING_CONTENT" | sed -e "0,/last_updated:.*/s/last_updated:.*/last_updated: ${NEW_LAST_UPDATED}/" -e "0,/publish_date:.*/s/publish_date:.*/publish_date: \"${CURRENT_DATE}\"/" )
+            
+            line_num=$(echo "$UPDATED_CONTENT" | sed -n '/---/=' | sed -n '2p')
+            MAIN_HEADER=$(echo "$UPDATED_CONTENT" | head -n "$line_num")
+            EXISTING_BODY=$(echo "$UPDATED_CONTENT" | tail -n "+$((line_num + 1))")
+
+            {
+              echo "$MAIN_HEADER"
+              echo ""
+              cat "$NEW_NOTES_FILE"
+              echo "$EXISTING_BODY"
+            } > "$TARGET_FILE_PATH"
+          else
+            echo "File does not exist. Creating new file with static header and intro text."
+            printf '%s\n' \
+              "---" \
+              "title: Release notes for spryker-php image" \
+              "description: This document describes the changes that have been recently released." \
+              "last_updated: ${NEW_LAST_UPDATED}" \
+              "template: concept-topic-template" \
+              "publish_date: \"${CURRENT_DATE}\"" \
+              "---" \
+              "" \
+              "This document describes the changes that have been recently released." \
+              "For additional support with this content, contact our support." \
+              "If you found a new security vulnerability, contact us at **security@spryker.com**." > "$TARGET_FILE_PATH"
+
+            echo "" >> "$TARGET_FILE_PATH"
+            cat "$NEW_NOTES_FILE" >> "$TARGET_FILE_PATH"
+          fi
+
+      - name: 🚀 Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: ./docs-repo
+          commit-message: "docs: Add release notes for ${{ needs.generate_notes.outputs.release_date }}"
+          branch: "docs/docker-images/release-notes-spryker-php-${{ needs.generate_notes.outputs.release_date }}"
+          title: "Release Notes for spryker-php ${{ needs.generate_notes.outputs.release_date }}"
+          body: |
+            This PR contains the latest automated release notes.
+            Please review and merge. ✅
+          labels: automation
+          base: master

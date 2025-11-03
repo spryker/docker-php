@@ -1,0 +1,34 @@
+name: PR Linter
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check-pr-body:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Release Notes sections
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        shell: bash
+        run: |
+          echo "$PR_BODY" > pr_body.txt
+          
+          if ! grep -q -F "### Improvements" pr_body.txt; then
+            echo "Error: '### Improvements' section is missing in the PR body."
+            exit 1
+          fi
+          if grep -q -F "## Security fixes by image" pr_body.txt; then
+            echo "Found 'Security fixes by image' section. Verifying content..."
+            # Check for a CVE identifier within the entire PR body
+            if ! grep -q -F "CVE-" pr_body.txt; then
+              echo "Error: '## Security fixes by image' section exists but does not contain a CVE identifier (e.g., CVE-2025-1234)."
+              exit 1
+            fi
+            echo "✅ Security fixes section is valid."
+          else
+            echo "✅ No 'Security fixes' section found. Skipping CVE check."
+          fi
+          
+          echo "✅ PR body format is correct."
