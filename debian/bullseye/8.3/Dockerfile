@@ -71,7 +71,8 @@ ARG PHP_PECL_EXTENSIONS="\
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
-    xhprof \
+    xhprof \    
+    excimer \
     amqp \
     grpc \
     protobuf \
