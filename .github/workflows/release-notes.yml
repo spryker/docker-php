@@ -27,9 +27,6 @@ jobs:
       fail-fast: false
       matrix:
         image_tag:
-          - "8.1-alpine3.19"
-          - "8.2-alpine3.19"
-          - "8.3-alpine3.19"
           - "8.1-alpine3.20"
           - "8.2-alpine3.20"
           - "8.3-alpine3.20"
