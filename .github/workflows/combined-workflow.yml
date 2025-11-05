@@ -1,0 +1,33 @@
+name: "Combined CI/CD, Security Scan & Release Notes"
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  # Step 1: CI/CD
+  ci-cd:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  # Step 2: Security Scan
+  security-scan:
+    needs: ci-cd
+    uses: ./.github/workflows/ecr-scheduled-security-scan.yml
+    secrets: inherit
+    with:
+      trigger_source: 'workflow'
+
+  # Step 3: Release Notes
+  release-notes:
+    needs: security-scan
+    if: github.event.pull_request.merged == true 
+    uses: ./.github/workflows/release-notes.yml
+    secrets: inherit
+    with:
+      pr_body: ${{ github.event.pull_request.body }}

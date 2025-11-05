@@ -17,20 +17,6 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.19
-          - context: "alpine/3.19/8.1"
-            dockerfile: "Dockerfile"
-            tags: "8.1-alpine3.19"
-            platforms: "linux/amd64"
-          - context: "alpine/3.19/8.2"
-            dockerfile: "Dockerfile"
-            tags: "8.2-alpine3.19"
-            platforms: "linux/amd64"
-          - context: "alpine/3.19/8.3"
-            dockerfile: "Dockerfile"
-            tags: "8.3-alpine3.19"
-            platforms: "linux/amd64"
-
           ### Alpine 3.20
           - context: "alpine/3.20/8.1"
             dockerfile: "Dockerfile"

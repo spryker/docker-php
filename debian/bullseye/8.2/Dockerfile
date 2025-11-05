@@ -72,6 +72,7 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
+    excimer \
     amqp \
     grpc \
     protobuf \

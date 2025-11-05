@@ -1,6 +1,7 @@
 name: CI/CD
 
-on: push
+on:
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,16 +15,6 @@ jobs:
       matrix:
         include:
           ## Alpine
-          ### Alpine 3.19
-          - image: "alpine/3.19/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-alpine3.19" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.19/8.2/Dockerfile"
-            tags: [ "spryker/php:8.2-alpine3.19" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "alpine/3.19/8.3/Dockerfile"
-            tags: [ "spryker/php:8.3-alpine3.19" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
 
           ### Alpine 3.20
           - image: "alpine/3.20/8.1/Dockerfile"
@@ -172,7 +163,7 @@ jobs:
 
       - name: Fetch Job ID
         id: fetch_job_id
-        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        if: ${{ github.ref == 'refs/heads/master' && env.FORMATTED_DIFF != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -185,7 +176,7 @@ jobs:
           echo "::set-output name=job_id::$JOB_ID"
 
       - name: Send Slack Notification
-        if: ${{ github.ref == 'refs/heads/master' && env.DIFF_OUTPUT != '' }}
+        if: ${{ github.ref == 'refs/heads/master' && env.FORMATTED_DIFF != '' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
