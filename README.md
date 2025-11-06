@@ -182,7 +182,7 @@ Installed extensions
 Disabled extensions
 ====================
  [ ] amqp 2.1.2
- [ ] blackfire 1.92.28~linux-musl-x64-non_zts82
+ [ ] blackfire 1.92.48~linux-musl-x64-non_zts82
  [ ] newrelic 11.2.0.15
  [ ] pcov 1.0.11
  [ ] tideways 5.5.14
