@@ -3,17 +3,27 @@ name: ECR vulnerability detection
 on:
   schedule:
     - cron: '0 9 * * *'
+  workflow_call:
+    inputs:
+      trigger_source:
+        type: string
+        required: false
+        default: 'schedule'
+    outputs:
+      scan_type:
+        description: "Type of scan (scheduled or workflow)"
+        value: ${{ inputs.trigger_source }}
 
 jobs:
   vulnerability-detection:
+    if: |
+      inputs.trigger_source == 'workflow' ||
+      (github.event_name == 'schedule')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - image_tag: "8.1-alpine3.19"
-          - image_tag: "8.2-alpine3.19"
-          - image_tag: "8.3-alpine3.19"
           - image_tag: "8.1-alpine3.20"
           - image_tag: "8.2-alpine3.20"
           - image_tag: "8.3-alpine3.20"
@@ -67,7 +77,8 @@ jobs:
           REPO="${{ secrets.AWS_ECR_REPO }}"
           TAG="${{ matrix.image_tag }}"
           REG="${{ secrets.AWS_REGION }}"
-          for i in {1..6}; do
+          for i in {1..20}; do
+            echo "Attempt $i of 20: Checking scan status..."
             out=$(aws ecr describe-image-scan-findings \
               --repository-name "$REPO" \
               --image-id imageTag="$TAG" \
@@ -75,8 +86,16 @@ jobs:
             status=$(echo "$out" | jq -r '.imageScanStatus.status // ""')
             has_obj=$(echo "$out" | jq -r '.imageScanFindings != null')
             echo "Status: ${status:-<none>} | has findings obj: $has_obj"
-            if [[ "$status" != "" && "$has_obj" == "true" ]]; then break; fi
-            sleep 10
+            if [[ ("$status" == "COMPLETE" || "$status" == "ACTIVE") && "$has_obj" == "true" ]]; then
+              echo "Scan is ready to proceed!"
+              break
+            fi
+            if [[ "$i" == "20" ]]; then
+              echo "Timeout waiting for scan to become ready"
+              exit 1
+            fi
+            echo "Waiting 30 seconds before next attempt..."
+            sleep 30
           done
 
       - name: Scan Docker image (ECR)
@@ -89,6 +108,7 @@ jobs:
       - name: Report
         if: always()
         run: |
+          echo "Scan type: ${{ inputs.trigger_source }}"
           echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
           echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
           echo "Details of findings:"

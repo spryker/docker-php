@@ -67,6 +67,7 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
     xhprof \
+    excimer \
     amqp"
 
 ARG CFLAGS="-I/usr/src/php"
