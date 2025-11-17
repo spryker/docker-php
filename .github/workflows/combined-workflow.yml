@@ -26,7 +26,9 @@ jobs:
   # Step 3: Release Notes
   release-notes:
     needs: security-scan
-    if: github.event.pull_request.merged == true 
+    if: |
+      github.event.pull_request.merged == true && 
+      (always() || needs.security-scan.result == 'failure')
     uses: ./.github/workflows/release-notes.yml
     secrets: inherit
     with:
