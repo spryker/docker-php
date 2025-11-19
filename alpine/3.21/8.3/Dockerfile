@@ -27,7 +27,8 @@ ARG PHP_RUN_DEPS="\
     libxpm \
     libxslt \
     libzip \
-    rabbitmq-c"
+    rabbitmq-c \
+    imagemagick"
 
 ARG PHP_BUILD_DEPS="\
     autoconf \
@@ -44,7 +45,8 @@ ARG PHP_BUILD_DEPS="\
     libzip-dev \
     postgresql-dev \
     rabbitmq-c-dev \
-    g++"
+    g++ \
+    imagemagick-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -72,7 +74,8 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     xdebug \
     xhprof \
     excimer \
-    amqp"
+    amqp \
+    imagick"
 
 ARG GRAPHVIZ_BUILD_DEPS="\
     expat-dev"

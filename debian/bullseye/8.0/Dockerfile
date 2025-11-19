@@ -27,7 +27,9 @@ ARG PHP_RUN_DEPS="\
     libxml2 \
     libxpm4 \
     libxslt1.1 \
-    libzip4"
+    libzip4 \
+    libmagickwand-6.q16-6 \
+    libmagickcore-6.q16-6"
 
 ARG PHP_BUILD_DEPS="\
     libbz2-dev \
@@ -41,7 +43,8 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
-    librabbitmq-dev"
+    librabbitmq-dev \
+    libmagickwand-dev"
 
 ARG PHP_EXTENSIONS="\
     bcmath \
@@ -68,7 +71,8 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     xdebug \
     xhprof \
     excimer \
-    amqp"
+    amqp \
+    imagick"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
