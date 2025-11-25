@@ -180,7 +180,7 @@ Disabled extensions
  [ ] amqp 2.1.2
  [ ] blackfire 1.87.1~linux-musl-x64-non_zts82
  [ ] excimer 1.2.5
- [ ] newrelic 12.1.0.26
+ [ ] newrelic 12.2.0.27
  [ ] otel 
  [ ] pcov 1.0.12
  [ ] tideways 5.30.0-252e30b
