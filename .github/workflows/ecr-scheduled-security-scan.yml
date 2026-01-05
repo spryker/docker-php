@@ -155,7 +155,7 @@ jobs:
           
           JOB="$(jq -c --arg tag "$TAG" '
             .jobs
-            | (map(select(.name | endswith("(image_tag: " + $tag + ")"))) | .[0])
+            | (map(select(.name | endswith("(" + $tag + ")"))) | .[0])
               // .[0]
           ' <<<"$RES")"
           
