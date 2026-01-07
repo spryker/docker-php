@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.28
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.20
+ARG SPRYKER_PHP_VERSION=8.2.30
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.23
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.9.3
@@ -100,13 +100,22 @@ RUN apk update \
         unzip \
         linux-headers \
         libstdc++ \
+        openssl-dev \
+        zlib-dev \
+        scdoc \
         ${PHP_RUN_DEPS} \
     && apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
     && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
-    && cd /tmp && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
+    && cd /tmp \
+    && curl -L https://gitlab.alpinelinux.org/alpine/apk-tools/-/archive/v3.0.0_rc7/apk-tools-v3.0.0_rc7.tar.gz | tar -zx \
+    && cd apk-tools-v3.0.0_rc7 && make LUA=no && make LUA=no install \
+    && cd /tmp \
+    && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
     && tar xzf icu4c-74_1-src.tgz \
     && cd icu/source && ./configure --prefix=/usr && make && make install \
+    && cd /tmp \
+    && rm -rf /tmp/apk-tools-v3.0.0_rc7 /tmp/icu4c-74_1-src.tgz /tmp/icu \
     && docker-php-ext-configure gd \
         --disable-gd-jis-conv \
         --with-freetype=/usr \
@@ -117,8 +126,7 @@ RUN apk update \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
-    && apk del --no-cache .php-build-deps \
-    && rm -rf /tmp/icu*
+    && apk del --no-cache .php-build-deps
 
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
@@ -219,3 +227,4 @@ RUN mkdir -p /home/spryker/.composer
 RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
+
