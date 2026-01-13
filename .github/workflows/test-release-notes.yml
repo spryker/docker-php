@@ -65,10 +65,10 @@ jobs:
           ### Security fixes by image:
 
           ${MANUAL_FIXES_BODY}"
-          fi
+                    fi
 
-          # Create release notes file
-          cat << EOF > release-notes-new-file.md
+                    # Create release notes file
+                    cat << EOF > release-notes-new-file.md
           ---
           title: Release notes for spryker-php $RELEASE_DATE
           description: This document describes the changes that have been recently released.
@@ -87,9 +87,7 @@ jobs:
 
           **Improvements**:
 
-          $IMPROVEMENTS_CONTENT
-          
-          ${SECURITY_SECTION}
+          $IMPROVEMENTS_CONTENT${SECURITY_SECTION}
           EOF
 
           echo "::group::📜 New Release Notes File"
