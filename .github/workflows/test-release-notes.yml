@@ -57,14 +57,14 @@ jobs:
           # Process manual security fixes only
           MANUAL_FIXES_BODY=$(echo "$MANUAL_FIXES_RAW" | awk '{print} /^###/{print ""}')
 
-          # Build security fixes section (manual only)
+          # Build security fixes section (manual only) - only if there's content
           SECURITY_SECTION=""
           if [ -n "$(echo "$MANUAL_FIXES_BODY" | tr -d '[:space:]')" ]; then
-            SECURITY_SECTION="### Security fixes by image:
+            SECURITY_SECTION="
 
-          ${MANUAL_FIXES_BODY}
+          ### Security fixes by image:
 
-          "
+          ${MANUAL_FIXES_BODY}"
           fi
 
           # Create release notes file
@@ -88,7 +88,7 @@ jobs:
           **Improvements**:
 
           $IMPROVEMENTS_CONTENT
-
+          
           ${SECURITY_SECTION}
           EOF
 
