@@ -26,12 +26,14 @@ jobs:
           # Clean and normalize the PR body, remove checklist and steps sections
           PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r' | sed '/^## Checklist/,$d' | sed '/^## Steps before you submit a PR/,$d')
 
-          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
+          # Extract improvements (between ### Improvements and next ### or ##)
+          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^###|^##/{flag=0} flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
           echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^##/{flag=0} flag')
+          # Extract security fixes content (between ### Security Fixes and next ### or ##)
+          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^### Security Fixes/{flag=1;next} /^###|^##/{flag=0} flag')
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
           echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -54,17 +56,17 @@ jobs:
           # Skip automated security fixes in test mode
           echo "⚠️ Running in test mode - skipping automated security scan diffs"
 
-          # Process manual security fixes only
-          MANUAL_FIXES_BODY=$(echo "$MANUAL_FIXES_RAW" | awk '{print} /^###/{print ""}')
+          # Check if manual security fixes have actual content (not just whitespace/empty lines)
+          MANUAL_FIXES_TRIMMED=$(echo "$MANUAL_FIXES_RAW" | sed '/^$/d' | tr -d '[:space:]')
 
-          # Build security fixes section (manual only) - only if there's content
+          # Build security fixes section - only if there's actual content
           SECURITY_SECTION=""
-          if [ -n "$(echo "$MANUAL_FIXES_BODY" | tr -d '[:space:]')" ]; then
+          if [ -n "$MANUAL_FIXES_TRIMMED" ]; then
             SECURITY_SECTION="
 
           ### Security fixes by image:
 
-          ${MANUAL_FIXES_BODY}"
+          $MANUAL_FIXES_RAW"
                     fi
 
                     # Create release notes file
