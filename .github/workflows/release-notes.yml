@@ -246,7 +246,7 @@ jobs:
             fi
             SECURITY_SECTION="
 
-          ### Security fixes by image:${FINAL_SECURITY_TEXT}"
+          ### Security fixes ${FINAL_SECURITY_TEXT}"
                     fi
 
                     # Create release notes file
