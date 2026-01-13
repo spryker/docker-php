@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches:
+      - master
       - SC-24082-release-notes-refactor
 
 jobs:
