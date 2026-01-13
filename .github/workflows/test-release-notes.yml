@@ -89,7 +89,8 @@ jobs:
 
           $IMPROVEMENTS_CONTENT
 
-          ${SECURITY_SECTION}EOF
+          ${SECURITY_SECTION}
+          EOF
 
           echo "::group::📜 New Release Notes File"
           cat release-notes-new-file.md
