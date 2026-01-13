@@ -1,0 +1,186 @@
+name: Test Release Notes Generation
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - SC-24082-release-notes-refactor
+
+jobs:
+  test-generate-notes:
+    runs-on: ubuntu-latest
+    outputs:
+      release_date: ${{ steps.assemble.outputs.release_date }}
+      last_updated_str: ${{ steps.assemble.outputs.last_updated_str }}
+      publish_date: ${{ steps.assemble.outputs.publish_date }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ✍️ Extract PR Sections
+        id: extract
+        env:
+          PR_BODY_RAW: ${{ github.event.pull_request.body }}
+        run: |
+          # Clean and normalize the PR body, remove checklist and steps sections
+          PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r' | sed '/^## Checklist/,$d' | sed '/^## Steps before you submit a PR/,$d')
+
+          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
+          echo "improvements<<EOF" >> $GITHUB_OUTPUT
+          echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^##/{flag=0} flag')
+          echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
+          echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 📜 Assemble Release Notes
+        id: assemble
+        env:
+          IMPROVEMENTS_CONTENT: ${{ steps.extract.outputs.improvements }}
+          MANUAL_FIXES_RAW: ${{ steps.extract.outputs.security_fixes }}
+        run: |
+          RELEASE_DATE=$(date +'%Y%m%d')
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          
+          PUBLISH_DATE=$(date +'%Y-%m-%d')
+          echo "publish_date=$PUBLISH_DATE" >> $GITHUB_OUTPUT
+          
+          LAST_UPDATED_STR=$(date +'%B %d, %Y')
+          echo "last_updated_str=$LAST_UPDATED_STR" >> $GITHUB_OUTPUT
+
+          # Skip automated security fixes in test mode
+          echo "⚠️ Running in test mode - skipping automated security scan diffs"
+
+          # Process manual security fixes only
+          MANUAL_FIXES_BODY=$(echo "$MANUAL_FIXES_RAW" | awk '{print} /^###/{print ""}')
+
+          # Build security fixes section (manual only)
+          SECURITY_SECTION=""
+          if [ -n "$(echo "$MANUAL_FIXES_BODY" | tr -d '[:space:]')" ]; then
+            SECURITY_SECTION="### Security fixes by image:
+
+          ${MANUAL_FIXES_BODY}
+
+          "
+          fi
+
+          # Create release notes file
+          cat << EOF > release-notes-new-file.md
+          ---
+          title: Release notes for spryker-php $RELEASE_DATE
+          description: This document describes the changes that have been recently released.
+          last_updated: $LAST_UPDATED_STR
+          template: concept-topic-template
+          publish_date: "$PUBLISH_DATE"
+          ---
+
+          This document describes the changes that have been recently released.
+          For additional support with this content, contact our support.
+          If you found a new security vulnerability, contact us at **security@spryker.com**.
+
+          ---
+
+          ## Release notes for spryker-php $RELEASE_DATE
+
+          **Improvements**:
+
+          $IMPROVEMENTS_CONTENT
+
+          ${SECURITY_SECTION}EOF
+
+          echo "::group::📜 New Release Notes File"
+          cat release-notes-new-file.md
+          echo "::endgroup::"
+
+      - name: 📤 Upload Release Notes Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-artifact
+          path: release-notes-new-file.md
+
+  test-create-pr:
+    name: 📄 Test Creating Release Notes PR
+    needs: test-generate-notes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: 📥 Download Release Notes Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes-artifact
+
+      - name: Checkout Documentation Repository
+        uses: actions/checkout@v4
+        with:
+          repository: spryker/spryker-docs
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: docs-repo
+
+      - name: 📝 Create New Release Notes File
+        run: |
+          RELEASE_DATE="${{ needs.test-generate-notes.outputs.release_date }}"
+          TARGET_DIR="./docs-repo/docs/about/all/releases/image-releases/spryker-php"
+          TARGET_FILE="$TARGET_DIR/release-notes-spryker-php-$RELEASE_DATE.md"
+          
+          echo "Creating new release notes file: $TARGET_FILE"
+          mkdir -p "$TARGET_DIR"
+          
+          cp release-notes-new-file.md "$TARGET_FILE"
+          echo "✅ Created $TARGET_FILE"
+
+      - name: 📋 Update Sidebar Navigation
+        run: |
+          RELEASE_DATE="${{ needs.test-generate-notes.outputs.release_date }}"
+          SIDEBAR_FILE="./docs-repo/_data/sidebars/about_all_sidebar.yml"
+          
+          echo "Updating sidebar: $SIDEBAR_FILE"
+          
+          if ! grep -q "title: Spryker-PHP" "$SIDEBAR_FILE"; then
+            echo "⚠️ Spryker-PHP section does not exist in sidebar. Please create it manually first."
+            exit 1
+          fi
+          
+          echo "✅ Spryker-PHP section found, adding new entry..."
+          
+          SPRYKER_PHP_LINE=$(grep -n "^\s*- title: Spryker-PHP$" "$SIDEBAR_FILE" | head -1 | cut -d: -f1)
+          
+          if [ -z "$SPRYKER_PHP_LINE" ]; then
+            echo "❌ Could not find Spryker-PHP section line number"
+            exit 1
+          fi
+          
+          INSERT_LINE=$((SPRYKER_PHP_LINE + 2))
+          
+          printf "          - title: Release notes for spryker-php %s\n            url: /docs/about/all/releases/image-releases/spryker-php/release-notes-spryker-php-%s.html\n" "$RELEASE_DATE" "$RELEASE_DATE" > /tmp/new_entry.txt
+          
+          head -n $((INSERT_LINE - 1)) "$SIDEBAR_FILE" > /tmp/sidebar_temp.yml
+          cat /tmp/new_entry.txt >> /tmp/sidebar_temp.yml
+          tail -n +$INSERT_LINE "$SIDEBAR_FILE" >> /tmp/sidebar_temp.yml
+          mv /tmp/sidebar_temp.yml "$SIDEBAR_FILE"
+          
+          echo "✅ Added new entry to Spryker-PHP section"
+
+      - name: 🚀 Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: ./docs-repo
+          commit-message: "docs: [TEST] Add release notes for spryker-php ${{ needs.test-generate-notes.outputs.release_date }}"
+          branch: "docs/docker-images/test-release-notes-spryker-php-${{ needs.test-generate-notes.outputs.release_date }}"
+          title: "[TEST] Release Notes for spryker-php ${{ needs.test-generate-notes.outputs.release_date }}"
+          body: |
+            ⚠️ **THIS IS A TEST PR** ⚠️
+            
+            This PR contains test release notes for spryker-php ${{ needs.test-generate-notes.outputs.release_date }}.
+            
+            **Changes:**
+            - Created new release notes file: `release-notes-spryker-php-${{ needs.test-generate-notes.outputs.release_date }}.md`
+            - Updated sidebar navigation in `about_all_sidebar.yml`
+            
+            **Note:** Automated security scan diffs were skipped in test mode.
+          labels: "automation,test"
+          base: master
