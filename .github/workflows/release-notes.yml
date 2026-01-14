@@ -148,6 +148,7 @@ jobs:
     outputs:
       release_date: ${{ steps.assemble.outputs.release_date }}
       last_updated_str: ${{ steps.assemble.outputs.last_updated_str }}
+      publish_date: ${{ steps.assemble.outputs.publish_date }}
     steps:
       - name: 📥 Download All CVE Diffs
         uses: actions/download-artifact@v4
@@ -184,32 +185,22 @@ jobs:
         env:
           PR_BODY_RAW: ${{ steps.determine_body.outputs.body }}
         run: |
-          PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r')
+          # Clean and normalize the PR body, remove checklist and steps sections
+          PR_BODY=$(echo "$PR_BODY_RAW" | tr -d '\r' | sed '/^## Checklist/,$d' | sed '/^## Steps before you submit a PR/,$d')
 
-          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^## Security fixes by image/{flag=0} flag')
+          # Extract improvements (between ### Improvements and ### Security Fixes or ##)
+          IMPROVEMENTS=$(echo "$PR_BODY" | awk '/^### Improvements/{flag=1;next} /^### Security Fixes|^##/{flag=0} flag')
           echo "improvements<<EOF" >> $GITHUB_OUTPUT
           echo "$IMPROVEMENTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^## Security fixes by image/{flag=1;next} /^## Steps before you submit a PR/{flag=0} flag')
+          # Extract security fixes content (between ### Security Fixes and next ##)
+          SECURITY_FIXES=$(echo "$PR_BODY" | awk '/^### Security Fixes/{flag=1;next} /^##/{flag=0} flag')
           echo "security_fixes<<EOF" >> $GITHUB_OUTPUT
           echo "$SECURITY_FIXES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 🐛 Debug Extracted Content
-        if: always()
-        run: |
-          echo "--- START: DEBUGGING OUTPUT ---"
-          echo "--- IMPROVEMENTS CONTENT ---"
-          echo "${{ steps.extract.outputs.improvements }}"
-          echo "--- END IMPROVEMENTS ---"
-          echo ""
-          echo "--- SECURITY FIXES CONTENT ---"
-          echo "${{ steps.extract.outputs.security_fixes }}"
-          echo "--- END SECURITY FIXES ---"
-          echo "--- END: DEBUGGING OUTPUT ---"
-
-      - name: 📜 Assemble and Display Release Notes
+      - name: 📜 Assemble Release Notes
         id: assemble
         env:
           IMPROVEMENTS_CONTENT: ${{ steps.extract.outputs.improvements }}
@@ -217,10 +208,14 @@ jobs:
         run: |
           RELEASE_DATE=$(date +'%Y%m%d')
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          
           PUBLISH_DATE=$(date +'%Y-%m-%d')
+          echo "publish_date=$PUBLISH_DATE" >> $GITHUB_OUTPUT
+          
           LAST_UPDATED_STR=$(date +'%B %d, %Y')
           echo "last_updated_str=$LAST_UPDATED_STR" >> $GITHUB_OUTPUT
 
+          # Generate automated security fixes from scan diffs
           AUTOMATED_FIXES_BODY=""
           HAS_AUTOMATED_FIXES=false
           NO_CVES_STRING="- No CVEs fixed in this release."
@@ -233,44 +228,62 @@ jobs:
             fi
           done
 
-          MANUAL_FIXES_BODY=$(echo "$MANUAL_FIXES_RAW" | awk '{print} /^###/{print ""}')
+          # Check if manual security fixes have actual content (not just whitespace/empty lines)
+          MANUAL_FIXES_TRIMMED=$(echo "$MANUAL_FIXES_RAW" | sed '/^$/d' | tr -d '[:space:]')
 
-          SECURITY_FIXES_CONTENT=""
-          if [ "$HAS_AUTOMATED_FIXES" = true ] || [ -n "$MANUAL_FIXES_BODY" ]; then
-              FINAL_SECURITY_TEXT=""
+          # Build security fixes section - only if there's automated fixes OR manual content
+          SECURITY_SECTION=""
+          if [ "$HAS_AUTOMATED_FIXES" = true ] || [ -n "$MANUAL_FIXES_TRIMMED" ]; then
+            FINAL_SECURITY_TEXT=""
+            if [ "$HAS_AUTOMATED_FIXES" = true ]; then
+              FINAL_SECURITY_TEXT+="${AUTOMATED_FIXES_BODY}"
+            fi
+            if [ -n "$MANUAL_FIXES_TRIMMED" ]; then
               if [ "$HAS_AUTOMATED_FIXES" = true ]; then
-                  FINAL_SECURITY_TEXT+="${AUTOMATED_FIXES_BODY}"
+                FINAL_SECURITY_TEXT+="\n"
               fi
-              if [ -n "$MANUAL_FIXES_BODY" ]; then
-                  if [ "$HAS_AUTOMATED_FIXES" = true ]; then
-                      FINAL_SECURITY_TEXT+="\n"
-                  fi
-                  FINAL_SECURITY_TEXT+="\n${MANUAL_FIXES_BODY}"
-              fi
-              SECURITY_FIXES_CONTENT=$(printf '\n\n**Security fixes by image**:%s' "$FINAL_SECURITY_TEXT")
-          fi
+              FINAL_SECURITY_TEXT+="\n${MANUAL_FIXES_RAW}"
+            fi
+            SECURITY_SECTION="
 
-          printf '%s\n' \
-            "## Release notes for spryker-php ${RELEASE_DATE}.0" \
-            "" \
-            "**Improvements**:" > release-notes.md
-          echo "$IMPROVEMENTS_CONTENT" >> release-notes.md
-          if [ -n "$SECURITY_FIXES_CONTENT" ]; then
-            echo "$SECURITY_FIXES_CONTENT" >> release-notes.md
-          fi
+          ### Security fixes ${FINAL_SECURITY_TEXT}"
+                    fi
 
-          echo "::group::📜 Consolidated Release Notes"
-          cat release-notes.md
+                    # Create release notes file
+                    cat << EOF > release-notes-new-file.md
+          ---
+          title: Release notes for spryker-php $RELEASE_DATE
+          description: This document describes the changes that have been recently released.
+          last_updated: $LAST_UPDATED_STR
+          template: concept-topic-template
+          publish_date: "$PUBLISH_DATE"
+          ---
+
+          This document describes the changes that have been recently released.
+          For additional support with this content, contact our support.
+          If you found a new security vulnerability, contact us at **security@spryker.com**.
+
+          ---
+
+          ## Release notes for spryker-php $RELEASE_DATE
+
+          **Improvements**:
+
+          $IMPROVEMENTS_CONTENT${SECURITY_SECTION}
+          EOF
+
+          echo "::group::📜 New Release Notes File"
+          cat release-notes-new-file.md
           echo "::endgroup::"
 
       - name: 📤 Upload Release Notes Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-notes-artifact
-          path: release-notes.md
+          path: release-notes-new-file.md
 
   create-release-pr:
-    name: 📄 Create Release Notes PR
+    name: 📄 Create Release Notes PR in Docs Repo
     needs: generate_notes
     runs-on: ubuntu-latest
     permissions:
@@ -289,60 +302,85 @@ jobs:
           token: ${{ secrets.DOCS_REPO_PAT }}
           path: docs-repo
 
-      - name: 📝 Prepare Release Notes File
+      - name: 📝 Create New Release Notes File
         run: |
-          NEW_NOTES_FILE="release-notes.md"
-          TARGET_FILE_PATH="./docs-repo/docs/about/all/releases/image-releases/spryker-php/release-notes-spryker-php.md"
-          NEW_LAST_UPDATED="${{ needs.generate_notes.outputs.last_updated_str }}"
-          CURRENT_DATE=$(date +'%Y-%m-%d')
+          RELEASE_DATE="${{ needs.generate_notes.outputs.release_date }}"
+          TARGET_DIR="./docs-repo/docs/about/all/releases/image-releases/spryker-php"
+          TARGET_FILE="$TARGET_DIR/release-notes-spryker-php-$RELEASE_DATE.md"
           
-          echo "Target file path: $TARGET_FILE_PATH"
-          mkdir -p "$(dirname "$TARGET_FILE_PATH")"
+          echo "Creating new release notes file: $TARGET_FILE"
+          mkdir -p "$TARGET_DIR"
+          
+          cp release-notes-new-file.md "$TARGET_FILE"
+          echo "✅ Created $TARGET_FILE"
 
-          if [ -f "$TARGET_FILE_PATH" ]; then
-            echo "File exists. Updating last_updated, publish_date and prepending release block."
-            EXISTING_CONTENT=$(cat "$TARGET_FILE_PATH")
-            UPDATED_CONTENT=$(echo "$EXISTING_CONTENT" | sed -e "0,/last_updated:.*/s/last_updated:.*/last_updated: ${NEW_LAST_UPDATED}/" -e "0,/publish_date:.*/s/publish_date:.*/publish_date: \"${CURRENT_DATE}\"/" )
-            
-            line_num=$(echo "$UPDATED_CONTENT" | sed -n '/---/=' | sed -n '2p')
-            MAIN_HEADER=$(echo "$UPDATED_CONTENT" | head -n "$line_num")
-            EXISTING_BODY=$(echo "$UPDATED_CONTENT" | tail -n "+$((line_num + 1))")
-
-            {
-              echo "$MAIN_HEADER"
-              echo ""
-              cat "$NEW_NOTES_FILE"
-              echo "$EXISTING_BODY"
-            } > "$TARGET_FILE_PATH"
-          else
-            echo "File does not exist. Creating new file with static header and intro text."
-            printf '%s\n' \
-              "---" \
-              "title: Release notes for spryker-php image" \
-              "description: This document describes the changes that have been recently released." \
-              "last_updated: ${NEW_LAST_UPDATED}" \
-              "template: concept-topic-template" \
-              "publish_date: \"${CURRENT_DATE}\"" \
-              "---" \
-              "" \
-              "This document describes the changes that have been recently released." \
-              "For additional support with this content, contact our support." \
-              "If you found a new security vulnerability, contact us at **security@spryker.com**." > "$TARGET_FILE_PATH"
-
-            echo "" >> "$TARGET_FILE_PATH"
-            cat "$NEW_NOTES_FILE" >> "$TARGET_FILE_PATH"
+      - name: 📋 Update Sidebar Navigation
+        run: |
+          RELEASE_DATE="${{ needs.generate_notes.outputs.release_date }}"
+          SIDEBAR_FILE="./docs-repo/_data/sidebars/about_all_sidebar.yml"
+          
+          echo "Updating sidebar: $SIDEBAR_FILE"
+          
+          # Check if Spryker-PHP section exists under Image releases
+          if ! grep -q "title: Spryker-PHP" "$SIDEBAR_FILE"; then
+            echo "⚠️ Spryker-PHP section does not exist in sidebar. Please create it manually first."
+            echo "Expected to find: 'title: Spryker-PHP' under 'Image releases'"
+            echo ""
+            echo "Please add the following structure to the sidebar under 'Image releases':"
+            echo "        - title: Spryker-PHP"
+            echo "          nested:"
+            exit 1
           fi
+          
+          echo "✅ Spryker-PHP section found, adding new entry..."
+          
+          echo "::group::📋 Current Spryker-PHP section (before update)"
+          grep -A 10 "title: Spryker-PHP" "$SIDEBAR_FILE" | head -15
+          echo "::endgroup::"
+          
+          SPRYKER_PHP_LINE=$(grep -n "^\s*- title: Spryker-PHP$" "$SIDEBAR_FILE" | head -1 | cut -d: -f1)
+          
+          if [ -z "$SPRYKER_PHP_LINE" ]; then
+            echo "❌ Could not find Spryker-PHP section line number"
+            exit 1
+          fi
+          
+          echo "Found Spryker-PHP section at line: $SPRYKER_PHP_LINE"
+          
+          INSERT_LINE=$((SPRYKER_PHP_LINE + 2))
+          
+          echo "Inserting new entry at line: $INSERT_LINE"
+          
+          # Create temp file with new entry (10 spaces before -, 12 spaces before url)
+          printf "          - title: Release notes for spryker-php %s\n            url: /docs/about/all/releases/image-releases/spryker-php/release-notes-spryker-php-%s.html\n" "$RELEASE_DATE" "$RELEASE_DATE" > /tmp/new_entry.txt
+          
+          # Insert the new entry
+          head -n $((INSERT_LINE - 1)) "$SIDEBAR_FILE" > /tmp/sidebar_temp.yml
+          cat /tmp/new_entry.txt >> /tmp/sidebar_temp.yml
+          tail -n +$INSERT_LINE "$SIDEBAR_FILE" >> /tmp/sidebar_temp.yml
+          mv /tmp/sidebar_temp.yml "$SIDEBAR_FILE"
+          
+          echo "✅ Added new entry to Spryker-PHP section at line $INSERT_LINE"
+          
+          echo "::group::📋 Updated Spryker-PHP section (after update)"
+          grep -A 15 "title: Spryker-PHP" "$SIDEBAR_FILE" | head -20
+          echo "::endgroup::"
 
       - name: 🚀 Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.DOCS_REPO_PAT }}
           path: ./docs-repo
-          commit-message: "docs: Add release notes for ${{ needs.generate_notes.outputs.release_date }}"
+          commit-message: "docs: Add release notes for spryker-php ${{ needs.generate_notes.outputs.release_date }}"
           branch: "docs/docker-images/release-notes-spryker-php-${{ needs.generate_notes.outputs.release_date }}"
           title: "Release Notes for spryker-php ${{ needs.generate_notes.outputs.release_date }}"
           body: |
-            This PR contains the latest automated release notes.
+            This PR contains the release notes for spryker-php ${{ needs.generate_notes.outputs.release_date }}.
+            
+            **Changes:**
+            - Created new release notes file: `release-notes-spryker-php-${{ needs.generate_notes.outputs.release_date }}.md`
+            - Updated sidebar navigation in `about_all_sidebar.yml`
+            
             Please review and merge. ✅
-          labels: automation
+          labels: "automation"
           base: master
