@@ -108,7 +108,7 @@ RUN apk update \
     && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && cd /tmp \
-    && git clone --depth 1 --branch v3.0.0_rc7 https://gitlab.alpinelinux.org/alpine/apk-tools.git apk-tools-v3.0.0_rc7 \
+    && git clone --depth 1 --branch v3.0.0_rc7 https://github.com/alpinelinux/apk-tools.git apk-tools-v3.0.0_rc7 \
     && cd apk-tools-v3.0.0_rc7 && make LUA=no && make LUA=no install \
     && cd /tmp \
     && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
