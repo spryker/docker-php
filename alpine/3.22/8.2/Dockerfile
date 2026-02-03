@@ -6,7 +6,7 @@ ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.9.3
 ARG BLACKFIRE_VERSION=1.87.1
 ARG BLACKFIRE_PHP_VERSION=82
-ARG NEWRELIC_VERSION=12.3.0.28
+ARG NEWRELIC_VERSION=12.3.0.29
 ARG TIDEWAYS_VERSION=5.32.0
 ARG TIDEWAYS_PHP_VERSION=8.2
 
@@ -183,15 +183,15 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
-#GraphViz 7.0.5
-RUN cd /tmp && \
-    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
-    cd /tmp/graphviz-7.0.5 && \
-    ./configure && \
-    make && \
-    make install && \
-    rm -rf /tmp/graphviz-7.0.5 && \
-    apk del --no-cache .graphviz-build-deps
+# #GraphViz 7.0.5
+# RUN cd /tmp && \
+#     curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
+#     cd /tmp/graphviz-7.0.5 && \
+#     ./configure && \
+#     make && \
+#     make install && \
+#     rm -rf /tmp/graphviz-7.0.5 && \
+#     apk del --no-cache .graphviz-build-deps
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
