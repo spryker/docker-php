@@ -64,12 +64,6 @@ jobs:
 
           ## Debian
           ### Debian bullseye
-          - image: "debian/bullseye/8.0/Dockerfile"
-            tags: [ "spryker/php:8.0-debian" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "debian/bullseye/8.1/Dockerfile"
-            tags: [ "spryker/php:8.1-debian" ]
-            platforms: [ "linux/amd64", "linux/arm64" ]
           - image: "debian/bullseye/8.2/Dockerfile"
             tags: [ "spryker/php:8.2-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
