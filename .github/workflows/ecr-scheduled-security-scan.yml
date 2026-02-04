@@ -34,6 +34,9 @@ jobs:
           - image_tag: "8.2-alpine3.22"
           - image_tag: "8.3-alpine3.22"
           - image_tag: "8.4-alpine3.22"
+          - image_tag: "8.2-alpine3.23"
+          - image_tag: "8.3-alpine3.23"
+          - image_tag: "8.4-alpine3.23"
 
     steps:
       - name: Login to DockerHub
@@ -105,12 +108,24 @@ jobs:
           repository: ${{ secrets.AWS_ECR_REPO }}
           tag: ${{ matrix.image_tag }}
 
+      - name: Fix vulnerability counts
+        id: fixed-counts
+        run: |
+          FINDINGS=$(aws ecr describe-image-scan-findings \
+            --repository-name "${{ secrets.AWS_ECR_REPO }}" \
+            --image-id imageTag="${{ matrix.image_tag }}" \
+            --query 'imageScanFindings.findings' \
+            --output json)
+          
+          echo "total=$(echo "$FINDINGS" | jq 'length')" >> $GITHUB_OUTPUT
+          echo "undefined=$(echo "$FINDINGS" | jq '[.[] | select(.severity == "UNDEFINED" or .severity == null or .severity == "")] | length')" >> $GITHUB_OUTPUT
+
       - name: Report
         if: always()
         run: |
           echo "Scan type: ${{ inputs.trigger_source }}"
-          echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
-          echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.docker-scan.outputs.undefined }}"
+          echo "${{ steps.fixed-counts.outputs.total }} total vulnerabilities."
+          echo "Critical: ${{ steps.docker-scan.outputs.critical }}, High: ${{ steps.docker-scan.outputs.high }}, Medium: ${{ steps.docker-scan.outputs.medium }}, Low: ${{ steps.docker-scan.outputs.low }}, Informational: ${{ steps.docker-scan.outputs.informational }}, Undefined: ${{ steps.fixed-counts.outputs.undefined }}"
           echo "Details of findings:"
           cat <<'JSON'
               ${{ steps.docker-scan.outputs.findingsDetails }}
@@ -133,7 +148,7 @@ jobs:
         if: ${{ always() && github.event_name == 'schedule' }}
         shell: bash
         run: |
-          if [ "${{ steps.docker-scan.outputs.total }}" = "0" ]; then
+          if [ "${{ steps.fixed-counts.outputs.total }}" = "0" ]; then
             echo "color=#008000" >> $GITHUB_OUTPUT
           else
             echo "color=#ff0000" >> $GITHUB_OUTPUT
@@ -200,7 +215,7 @@ jobs:
                     {
                       "type": "section",
                       "fields": [
-                        { "type": "mrkdwn", "text": "*Total*\n*${{ steps.docker-scan.outputs.total }}*" },
+                        { "type": "mrkdwn", "text": "*Total*\n*${{ steps.fixed-counts.outputs.total }}*" },
                         { "type": "mrkdwn", "text": "*Critical*\n${{ steps.docker-scan.outputs.critical }}" },
                         { "type": "mrkdwn", "text": "*High*\n${{ steps.docker-scan.outputs.high }}" },
                         { "type": "mrkdwn", "text": "*Medium*\n${{ steps.docker-scan.outputs.medium }}" },

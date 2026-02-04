@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.0.2-experimental
 ARG SPRYKER_PHP_VERSION=8.2.30
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.22
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.23
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.9.3
@@ -131,20 +131,6 @@ RUN apk update \
 # Related to https://github.com/docker-library/php/issues/240
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
 
-# Otel
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v$(cut -d'.' -f1,2 /etc/alpine-release)/community" >> /etc/apk/repositories
-RUN PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && apk add --no-cache \
-       php${PHP_VERSION}-pecl-grpc \
-       php${PHP_VERSION}-pecl-protobuf \
-       php${PHP_VERSION}-pecl-opentelemetry
-
-RUN PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && EXT_DIR=$(php -r "echo ini_get('extension_dir');") \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/grpc.so $EXT_DIR/grpc.so \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/protobuf.so $EXT_DIR/protobuf.so \
-    && ln -s /usr/lib/php${PHP_VERSION}/modules/opentelemetry.so $EXT_DIR/opentelemetry.so
-
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
@@ -183,15 +169,15 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
-# #GraphViz 7.0.5
-# RUN cd /tmp && \
-#     curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
-#     cd /tmp/graphviz-7.0.5 && \
-#     ./configure && \
-#     make && \
-#     make install && \
-#     rm -rf /tmp/graphviz-7.0.5 && \
-#     apk del --no-cache .graphviz-build-deps
+#GraphViz 7.0.5
+RUN cd /tmp && \
+    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
+    cd /tmp/graphviz-7.0.5 && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf /tmp/graphviz-7.0.5 && \
+    apk del --no-cache .graphviz-build-deps
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
@@ -227,3 +213,4 @@ RUN mkdir -p /home/spryker/.composer
 RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
+

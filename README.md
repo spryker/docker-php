@@ -11,6 +11,7 @@ Extends official PHP Docker images with extensions and tools to be able to run S
   * `Alpine 3.20`
   * `Alpine 3.21`
   * `Alpine 3.22`
+  * `Alpine 3.23`
   * `Debian "bullseye"`
   
 * Users: `root`, `spryker`
@@ -29,11 +30,14 @@ Extends official PHP Docker images with extensions and tools to be able to run S
 
 | Tag                                                                                         | PHP version | Linux distribution | Details                                                                                                                                                                                    | Dockerfile                                                                                 | OTEL support |
 |:--------------------------------------------------------------------------------------------|:------------|:-------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|:------------:|
-| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                 | 8.2.28      | Alpine 3.20        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.20/8.2/Dockerfile)     |      ✔       |
-| [spryker/php:8.4](https://hub.docker.com/r/spryker/php/tags?name=8.4)                       | 8.4.8       | Alpine 3.20        | [![](https://images.microbadger.com/badges/image/spryker/php:8.4.svg)](https://microbadger.com/images/spryker/php:8.4 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.20/8.4/Dockerfile)     |      ✔       |
-| [spryker/php:8.3](https://hub.docker.com/r/spryker/php/tags?name=8.3)                       | 8.3.17      | Alpine 3.20        | [![](https://images.microbadger.com/badges/image/spryker/php:8.3.svg)](https://microbadger.com/images/spryker/php:8.3 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.20/8.3/Dockerfile)     |      ✔       |
-| [spryker/php:8.2](https://hub.docker.com/r/spryker/php/tags?name=8.2)                       | 8.2.28      | Alpine 3.20        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2.svg)](https://microbadger.com/images/spryker/php:8.2 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.20/8.2/Dockerfile)     |      ✔       |
+| [spryker/php:latest](https://hub.docker.com/r/spryker/php/tags?name=latest)                 | 8.2.30      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:latest.svg)](https://microbadger.com/images/spryker/php:latest "Get your own image badge on microbadger.com")                 | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.2/Dockerfile)     |      ✔       |
+| [spryker/php:8.4](https://hub.docker.com/r/spryker/php/tags?name=8.4)                       | 8.4.16      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:8.4.svg)](https://microbadger.com/images/spryker/php:8.4 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.4/Dockerfile)     |      ✔       |
+| [spryker/php:8.3](https://hub.docker.com/r/spryker/php/tags?name=8.3)                       | 8.3.29      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:8.3.svg)](https://microbadger.com/images/spryker/php:8.3 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.3/Dockerfile)     |      ✔       |
+| [spryker/php:8.2](https://hub.docker.com/r/spryker/php/tags?name=8.2)                       | 8.2.30      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2.svg)](https://microbadger.com/images/spryker/php:8.2 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.2/Dockerfile)     |      ✔       |
 | [spryker/php:8.1](https://hub.docker.com/r/spryker/php/tags?name=8.1)                       | 8.1.32      | Alpine 3.20        | [![](https://images.microbadger.com/badges/image/spryker/php:8.1.svg)](https://microbadger.com/images/spryker/php:8.1 "Get your own image badge on microbadger.com")                       | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.20/8.1/Dockerfile)     |      ✖       |
+| [spryker/php:8.4-alpine3.23](https://hub.docker.com/r/spryker/php/tags?name=8.4-alpine3.23) | 8.4.16      | Alpine 3.23        | [![](https://images.microbadger.com/badges/image/spryker/php:8.4-alpine3.23.svg)](https://microbadger.com/images/spryker/php:8.4-alpine3.23 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.23/8.4/Dockerfile)     |      ✔       |
+| [spryker/php:8.3-alpine3.23](https://hub.docker.com/r/spryker/php/tags?name=8.3-alpine3.23) | 8.3.29      | Alpine 3.23        | [![](https://images.microbadger.com/badges/image/spryker/php:8.3-alpine3.23.svg)](https://microbadger.com/images/spryker/php:8.3-alpine3.23 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.23/8.3/Dockerfile)     |      ✔       |
+| [spryker/php:8.2-alpine3.23](https://hub.docker.com/r/spryker/php/tags?name=8.2-alpine3.23) | 8.2.30      | Alpine 3.23        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2-alpine3.23.svg)](https://microbadger.com/images/spryker/php:8.2-alpine3.23 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.23/8.2/Dockerfile)     |      ✔       |
 | [spryker/php:8.4-alpine3.22](https://hub.docker.com/r/spryker/php/tags?name=8.4-alpine3.22) | 8.4.16      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:8.4-alpine3.22.svg)](https://microbadger.com/images/spryker/php:8.4-alpine3.22 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.4/Dockerfile)     |      ✔       |
 | [spryker/php:8.3-alpine3.22](https://hub.docker.com/r/spryker/php/tags?name=8.3-alpine3.22) | 8.3.29      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:8.3-alpine3.22.svg)](https://microbadger.com/images/spryker/php:8.3-alpine3.22 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.3/Dockerfile)     |      ✔       |
 | [spryker/php:8.2-alpine3.22](https://hub.docker.com/r/spryker/php/tags?name=8.2-alpine3.22) | 8.2.30      | Alpine 3.22        | [![](https://images.microbadger.com/badges/image/spryker/php:8.2-alpine3.22.svg)](https://microbadger.com/images/spryker/php:8.2-alpine3.22 "Get your own image badge on microbadger.com") | [:link:](https://github.com/spryker/docker-php/blob/master/alpine/3.22/8.2/Dockerfile)     |      ✔       |
@@ -177,9 +181,10 @@ Installed extensions
 
 Disabled extensions
 ====================
- [ ] amqp 2.1.2
+ [ ] amqp 2.2.0
  [ ] blackfire 1.87.1~linux-musl-x64-non_zts82
  [ ] excimer 1.2.5
+ [ ] imagick 3.8.1
  [ ] newrelic 12.3.0.28
  [ ] otel 
  [ ] pcov 1.0.12
@@ -189,35 +194,50 @@ Disabled extensions
 INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
 PACKAGE VERSION STATE
-amqp    2.1.2   stable
-apcu    5.1.27  stable
+amqp    2.2.0   stable
+apcu    5.1.28  stable
 excimer 1.2.5   stable
+imagick 3.8.1   stable
 pcov    1.0.12  stable
-redis   6.2.0   stable
-xdebug  3.4.7   stable
+redis   6.3.0   stable
+xdebug  3.5.0   stable
 xhprof  2.3.10  stable
 
 Composer
 ====================
 Composer version 2.8.12 2025-09-19 13:41:59
-PHP version 8.2.28 (/usr/local/bin/php)
+PHP version 8.2.30 (/usr/local/bin/php)
 ```
 ##### Run the following to get the report
 ```bash
-$ docker run -i --rm spryker/php:latest bash -s<<'EOF'
+$ docker run -i --rm spryker/php:8.2-alpine3.22 bash -s<<'EOF'
     docker-php-source extract
-    echo "Installed extensions";
-    echo "====================";
-    for ext in `ls /usr/src/php/ext`; do echo ' ' `php -r "if (extension_loaded('$ext' !== 'opcache' ? '$ext' : 'Zend OPcache')) { echo '[x] $ext'; } else { echo '[ ] $ext'; }"`; done
-    echo "";
-    echo "Disabled extensions";
-    echo "====================";
-    for f in /usr/local/etc/php/disabled/*.ini; do disabled=$(basename $f | sed -e 's/\.ini$//'); echo " [ ] ${disabled} $(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');")"; done
-    echo "";
-    pear list -c pecl
-    echo "";
-    echo "Composer";
-    echo "====================";
+    echo "Installed extensions"
+    echo "===================="
+    for ext in $(ls /usr/src/php/ext); do 
+        if php -r "exit(extension_loaded('$ext') || ('$ext' == 'opcache' && extension_loaded('Zend OPcache')) ? 0 : 1);" 2>/dev/null; then
+            echo "  [x] $ext"
+        else
+            echo "  [ ] $ext"
+        fi
+    done
+    echo ""
+    echo "Disabled extensions"
+    echo "===================="
+    for f in /usr/local/etc/php/disabled/*.ini; do 
+        if [ -f "$f" ]; then
+            disabled=$(basename "$f" | sed -e 's/\.ini$//')
+            version=$(PHP_INI_SCAN_DIR=:/usr/local/etc/php/disabled php -r "echo phpversion('${disabled}');" 2>/dev/null || echo "")
+            echo " [ ] ${disabled} ${version}"
+        fi
+    done
+    echo ""
+    echo "INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:"
+    echo "========================================="
+    pear list -c pecl 2>/dev/null || echo "No PECL packages found"
+    echo ""
+    echo "Composer"
+    echo "===================="
     composer -V
 EOF
 ```

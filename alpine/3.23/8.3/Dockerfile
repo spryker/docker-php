@@ -1,14 +1,14 @@
 # syntax = docker/dockerfile:1.0.2-experimental
-ARG SPRYKER_PHP_VERSION=8.2.30
-FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.22
+ARG SPRYKER_PHP_VERSION=8.3.29
+FROM php:${SPRYKER_PHP_VERSION}-fpm-alpine3.23
 
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.9.3
-ARG BLACKFIRE_VERSION=1.87.1
-ARG BLACKFIRE_PHP_VERSION=82
+ARG BLACKFIRE_VERSION=1.92.48
+ARG BLACKFIRE_PHP_VERSION=83
 ARG NEWRELIC_VERSION=12.4.0.29
 ARG TIDEWAYS_VERSION=5.32.0
-ARG TIDEWAYS_PHP_VERSION=8.2
+ARG TIDEWAYS_PHP_VERSION=8.3
 
 ENV srcRoot /data
 RUN mkdir -p ${srcRoot}
@@ -117,11 +117,11 @@ RUN apk update \
     && cd /tmp \
     && rm -rf /tmp/apk-tools-v3.0.0_rc7 /tmp/icu4c-74_1-src.tgz /tmp/icu \
     && docker-php-ext-configure gd \
-        --disable-gd-jis-conv \
-        --with-freetype=/usr \
-        --with-jpeg=/usr \
-        --with-webp=/usr \
-        --with-xpm=/usr \
+      --disable-gd-jis-conv \
+      --with-freetype=/usr \
+      --with-jpeg=/usr \
+      --with-webp=/usr \
+      --with-xpm=/usr \
     && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
@@ -145,7 +145,7 @@ RUN PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && ln -s /usr/lib/php${PHP_VERSION}/modules/protobuf.so $EXT_DIR/protobuf.so \
     && ln -s /usr/lib/php${PHP_VERSION}/modules/opentelemetry.so $EXT_DIR/opentelemetry.so
 
-# Blackfire
+## Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
     && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-alpine_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
@@ -183,15 +183,15 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
-# #GraphViz 7.0.5
-# RUN cd /tmp && \
-#     curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
-#     cd /tmp/graphviz-7.0.5 && \
-#     ./configure && \
-#     make && \
-#     make install && \
-#     rm -rf /tmp/graphviz-7.0.5 && \
-#     apk del --no-cache .graphviz-build-deps
+# GraphViz 7.0.5
+RUN cd /tmp && \
+    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
+    cd /tmp/graphviz-7.0.5 && \
+    ./configure && \
+    make && \
+    make install && \
+    rm -rf /tmp/graphviz-7.0.5 && \
+    apk del --no-cache .graphviz-build-deps
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
@@ -227,3 +227,4 @@ RUN mkdir -p /home/spryker/.composer
 RUN bash -c '[[ $COMPOSER_VERSION == "1"* ]] && composer global require hirak/prestissimo && rm -rf /home/spryker/.composer/cache || true'
 
 USER root
+
