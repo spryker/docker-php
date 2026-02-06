@@ -111,14 +111,27 @@ jobs:
       - name: Fix vulnerability counts
         id: fixed-counts
         run: |
+          CRITICAL=${{ steps.docker-scan.outputs.critical }}
+          HIGH=${{ steps.docker-scan.outputs.high }}
+          MEDIUM=${{ steps.docker-scan.outputs.medium }}
+          LOW=${{ steps.docker-scan.outputs.low }}
+          INFO=${{ steps.docker-scan.outputs.informational }}
+
           FINDINGS=$(aws ecr describe-image-scan-findings \
             --repository-name "${{ secrets.AWS_ECR_REPO }}" \
             --image-id imageTag="${{ matrix.image_tag }}" \
             --query 'imageScanFindings.findings' \
-            --output json)
-          
-          echo "total=$(echo "$FINDINGS" | jq 'length')" >> $GITHUB_OUTPUT
-          echo "undefined=$(echo "$FINDINGS" | jq '[.[] | select(.severity == "UNDEFINED" or .severity == null or .severity == "")] | length')" >> $GITHUB_OUTPUT
+            --output json 2>/dev/null) || FINDINGS="[]"
+
+          if ! echo "$FINDINGS" | jq empty 2>/dev/null; then
+            FINDINGS="[]"
+          fi
+
+          UNDEFINED=$(echo "$FINDINGS" | jq '[.[] | select(.severity == "UNDEFINED" or .severity == null or .severity == "")] | length')
+          TOTAL=$(( ${CRITICAL:-0} + ${HIGH:-0} + ${MEDIUM:-0} + ${LOW:-0} + ${INFO:-0} + ${UNDEFINED:-0} ))
+
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "undefined=$UNDEFINED" >> $GITHUB_OUTPUT
 
       - name: Report
         if: always()
