@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - SC-24307/enable_release_workflow
   pull_request:
     types: [closed]
     branches:
