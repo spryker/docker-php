@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - SC-24307/enable_release_workflow
   pull_request:
     types: [closed]
     branches:
@@ -28,6 +27,7 @@ jobs:
   release-notes:
     needs: security-scan
     if: |
+      github.event.pull_request.merged == true && 
       (always() || needs.security-scan.result == 'failure')
     uses: ./.github/workflows/release-notes.yml
     secrets: inherit
