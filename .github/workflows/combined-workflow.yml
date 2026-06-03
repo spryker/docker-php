@@ -1,9 +1,6 @@
 name: "Combined CI/CD, Security Scan & Release Notes"
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     types: [closed]
     branches:
@@ -26,9 +23,7 @@ jobs:
   # Step 3: Release Notes
   release-notes:
     needs: security-scan
-    if: |
-      github.event.pull_request.merged == true && 
-      (always() || needs.security-scan.result == 'failure')
+    if: always() && github.event.pull_request.merged == true
     uses: ./.github/workflows/release-notes.yml
     secrets: inherit
     with:
