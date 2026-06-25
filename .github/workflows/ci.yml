@@ -2,6 +2,8 @@ name: CI/CD
 
 on:
   push:
+    branches-ignore:
+      - master
   workflow_call:
 
 concurrency:
@@ -162,7 +164,8 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
           echo "$JOBS_JSON" > jobs-response.json
           cat jobs-response.json
-          JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
+          JOB_ID=$(echo "$JOBS_JSON" | jq -r --arg name "${{ matrix.image }}" \
+            '.jobs[] | select(.name | contains($name)) | .id')
           echo "Extracted Job ID: $JOB_ID"
           echo "::set-output name=job_id::$JOB_ID"
 
