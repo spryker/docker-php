@@ -44,6 +44,7 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
+    libssl-dev \
     librabbitmq-dev \
     libgrpc-dev \
     libprotobuf-dev \
