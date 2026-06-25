@@ -9,8 +9,12 @@ on:
 jobs:
   # Step 1: CI/CD
   ci-cd:
+    if: github.event.pull_request.merged == true
     uses: ./.github/workflows/ci.yml
     secrets: inherit
+    with:
+      publish: true
+      release_sha: ${{ github.event.pull_request.merge_commit_sha }}
 
   # Step 2: Security Scan
   security-scan:

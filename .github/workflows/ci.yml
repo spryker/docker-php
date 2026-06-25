@@ -1,8 +1,16 @@
 name: CI/CD
 
 on:
-  push:
   workflow_call:
+    inputs:
+      publish:
+        description: "Publish images to DockerHub and send the release Slack notification (set by the Combined workflow on master merge)."
+        type: boolean
+        default: false
+      release_sha:
+        description: "Commit SHA to reference in the notification (the merge commit on master)."
+        type: string
+        default: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -72,7 +80,11 @@ jobs:
         run: |
           IMAGE_TAG="${{ matrix.tags[0] }}"
           HAS_PREVIOUS=false
-          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+          PUBLISH=false
+          RELEASE_SHA="${{ inputs.release_sha }}"
+          if [ -z "$RELEASE_SHA" ]; then RELEASE_SHA="${{ github.sha }}"; fi
+          if [ "${{ github.ref }}" = "refs/heads/master" ] || [ "${{ inputs.publish }}" = "true" ]; then
+            PUBLISH=true
             PREV_COMMIT_HASH=$(git rev-parse HEAD^1)
             if docker pull "$IMAGE_TAG" >/dev/null 2>&1; then HAS_PREVIOUS=true; fi
           else
@@ -86,6 +98,8 @@ jobs:
           {
             echo "PREV_COMMIT_HASH=$PREV_COMMIT_HASH"
             echo "HAS_PREVIOUS=$HAS_PREVIOUS"
+            echo "PUBLISH=$PUBLISH"
+            echo "RELEASE_SHA=$RELEASE_SHA"
           } >> "$GITHUB_ENV"
 
       - name: Set up QEMU
@@ -101,7 +115,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Re-tag images with previous commit hash
-        if: ${{ github.ref == 'refs/heads/master' && env.HAS_PREVIOUS == 'true' }}
+        if: ${{ env.PUBLISH == 'true' && env.HAS_PREVIOUS == 'true' }}
         run: |
           PREV_HASH=${{ env.PREV_COMMIT_HASH }}
           if [ -z "$PREV_HASH" ]; then
@@ -121,14 +135,14 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.ref == 'refs/heads/master' }}
-          load: ${{ github.ref != 'refs/heads/master' }}
+          push: ${{ env.PUBLISH == 'true' }}
+          load: ${{ env.PUBLISH != 'true' }}
           file: ${{ matrix.image }}
           tags: ${{ join(matrix.tags) }}
-          platforms: ${{ github.ref == 'refs/heads/master' && join(matrix.platforms) || 'linux/amd64' }}
+          platforms: ${{ env.PUBLISH == 'true' && join(matrix.platforms) || 'linux/amd64' }}
 
       - name: Pull image for master branch
-        if: github.ref == 'refs/heads/master'
+        if: env.PUBLISH == 'true'
         run: |
           echo "Pulling image for master branch"
           docker pull ${{ matrix.tags[0] }}
@@ -154,21 +168,26 @@ jobs:
 
       - name: Fetch Job ID
         id: fetch_job_id
-        if: ${{ github.ref == 'refs/heads/master' && env.FORMATTED_DIFF != '' }}
+        if: ${{ env.PUBLISH == 'true' && env.FORMATTED_DIFF != '' && steps.docker_build.outcome == 'success' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           JOBS_JSON=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
-          echo "$JOBS_JSON" > jobs-response.json
-          cat jobs-response.json
-          JOB_ID=$(echo "$JOBS_JSON" | jq -r --arg name "${{ matrix.image }}" \
-            '.jobs[] | select(.name | contains($name)) | .id')
-          echo "Extracted Job ID: $JOB_ID"
-          echo "::set-output name=job_id::$JOB_ID"
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs?per_page=100")
+          JOB=$(echo "$JOBS_JSON" | jq -r --arg name "${{ matrix.image }}" \
+            '.jobs[] | select(.name | contains($name))')
+          JOB_ID=$(echo "$JOB" | jq -r '.id')
+          MANIFEST_STEP=$(echo "$JOB" | jq -r '.steps[] | select(.name=="Current image report") | .number')
+          DIFF_STEP=$(echo "$JOB" | jq -r '.steps[] | select(.name=="Run the diff and format output") | .number')
+          echo "Extracted Job ID: $JOB_ID (manifest step $MANIFEST_STEP, diff step $DIFF_STEP)"
+          {
+            echo "job_id=$JOB_ID"
+            echo "manifest_step=$MANIFEST_STEP"
+            echo "diff_step=$DIFF_STEP"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack Notification
-        if: ${{ github.ref == 'refs/heads/master' && env.FORMATTED_DIFF != '' }}
+        if: ${{ env.PUBLISH == 'true' && env.FORMATTED_DIFF != '' && steps.docker_build.outcome == 'success' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -179,7 +198,7 @@ jobs:
                   "fields": [
                     {
                       "title": "New version of ${{ matrix.tags[0] }} has been published",
-                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:9:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:11:7|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>.",
+                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:${{ steps.fetch_job_id.outputs.manifest_step }}:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:${{ steps.fetch_job_id.outputs.diff_step }}:1|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ env.RELEASE_SHA }}|${{ env.RELEASE_SHA }}>.",
                       "short": false
                     }
                   ]
