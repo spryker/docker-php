@@ -1,9 +1,9 @@
 name: CI/CD
 
 on:
-  push:
-    branches-ignore:
-      - master
+  # push:
+  #   branches-ignore:
+  #     - master
   workflow_call:
 
 concurrency:
