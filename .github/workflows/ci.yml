@@ -166,9 +166,19 @@ jobs:
         if: ${{ env.HAS_PREVIOUS == 'true' }}
         run: bash .github/format-output.sh
 
+      - name: Determine change status
+        id: change_status
+        if: ${{ env.PUBLISH == 'true' && steps.docker_build.outcome == 'success' }}
+        run: |
+          if [ -n "${FORMATTED_DIFF}" ]; then
+            echo "CHANGE_NOTE=:white_check_mark: Image content changed since the previous release." >> "$GITHUB_ENV"
+          else
+            echo "CHANGE_NOTE=:information_source: No content changes detected since the previous release." >> "$GITHUB_ENV"
+          fi
+
       - name: Fetch Job ID
         id: fetch_job_id
-        if: ${{ env.PUBLISH == 'true' && env.FORMATTED_DIFF != '' && steps.docker_build.outcome == 'success' }}
+        if: ${{ env.PUBLISH == 'true' && steps.docker_build.outcome == 'success' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -187,7 +197,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Send Slack Notification
-        if: ${{ env.PUBLISH == 'true' && env.FORMATTED_DIFF != '' && steps.docker_build.outcome == 'success' }}
+        if: ${{ env.PUBLISH == 'true' && steps.docker_build.outcome == 'success' }}
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -198,7 +208,7 @@ jobs:
                   "fields": [
                     {
                       "title": "New version of ${{ matrix.tags[0] }} has been published",
-                      "value": "You can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:${{ steps.fetch_job_id.outputs.manifest_step }}:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:${{ steps.fetch_job_id.outputs.diff_step }}:1|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ env.RELEASE_SHA }}|${{ env.RELEASE_SHA }}>.",
+                      "value": "${{ env.CHANGE_NOTE }}\n\nYou can check the:\n- *Manifest*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:${{ steps.fetch_job_id.outputs.manifest_step }}:1|View Manifest>\n- *Diff*: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ steps.fetch_job_id.outputs.job_id }}#step:${{ steps.fetch_job_id.outputs.diff_step }}:1|View Diff>\n\nThis version was built out of <https://github.com/${{ github.repository }}/commit/${{ env.RELEASE_SHA }}|${{ env.RELEASE_SHA }}>.",
                       "short": false
                     }
                   ]
