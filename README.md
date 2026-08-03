@@ -179,7 +179,7 @@ Disabled extensions
  [ ] blackfire 1.87.1~linux-musl-x64-non_zts82
  [ ] excimer 1.2.5
  [ ] imagick 3.8.1
- [ ] newrelic 12.8.0.38
+ [ ] newrelic 12.9.0.38
  [ ] otel 
  [ ] pcov 1.0.12
  [ ] tideways 5.32.0-d1af5cc
