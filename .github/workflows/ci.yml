@@ -57,6 +57,20 @@ jobs:
             tags: [ "spryker/php:8.4", "spryker/php:8.4-alpine3.23" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
+          ### Alpine 3.24
+          - image: "alpine/3.24/8.2/Dockerfile"
+            tags: [ "spryker/php:8.2-alpine3.24" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.24/8.3/Dockerfile"
+            tags: [ "spryker/php:8.3-alpine3.24" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.24/8.4/Dockerfile"
+            tags: [ "spryker/php:8.4-alpine3.24" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+          - image: "alpine/3.24/8.5/Dockerfile"
+            tags: [ "spryker/php:8.5", "spryker/php:8.5-alpine3.24" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
           ## Debian
           ### Debian bullseye
           - image: "debian/bullseye/8.2/Dockerfile"

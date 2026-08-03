@@ -1,16 +1,17 @@
 # syntax=docker/dockerfile:1.7
-ARG SPRYKER_PHP_VERSION=8.1.33
+ARG SPRYKER_PHP_VERSION=8.5.8
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
+# PHP 8.5 is not published for "bullseye" upstream, so this image is based on "bookworm".
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.9.8
-ARG BLACKFIRE_VERSION=1.87.1
-ARG BLACKFIRE_PHP_VERSION=81
+ARG COMPOSER_VERSION=2.10.2
+ARG BLACKFIRE_VERSION=1.92.53
+ARG BLACKFIRE_PHP_VERSION=85
 ARG NEWRELIC_VERSION=12.9.0.38
 ARG TIDEWAYS_VERSION=5.32.0
-ARG TIDEWAYS_PHP_VERSION=8.1
+ARG TIDEWAYS_PHP_VERSION=8.5
 ARG GOLANG_VERSION=1.20.3
 
 ENV srcRoot /data
@@ -21,10 +22,10 @@ ARG PHP_RUN_DEPS="\
     libbz2-1.0 \
     libfreetype6 \
     libgmp10 \
-    libicu67 \
+    libicu72 \
     libjpeg62-turbo \
     libpng16-16 \
-    libwebp6 \
+    libwebp7 \
     libxml2 \
     libxpm4 \
     libxslt1.1 \
@@ -44,20 +45,23 @@ ARG PHP_BUILD_DEPS="\
     libxml2-dev \
     libxpm-dev \
     libzip-dev \
+    libssl-dev \
     librabbitmq-dev \
     libgrpc-dev \
     libprotobuf-dev \
     protobuf-compiler \
     libmagickwand-dev"
 
+# opcache is statically linked into the PHP 8.5 binary and can no longer be built
+# as a shared module, so it is not listed here; 90-opcache.ini configures the built-in one.
 ARG PHP_EXTENSIONS="\
     bcmath \
     bz2 \
+    ftp \
     gd \
     gmp \
     intl \
     mysqli \
-    opcache \
     pcntl \
     pdo_mysql \
     pdo_pgsql \
@@ -137,8 +141,8 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
 RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linux/arm64) echo "arm64" ;; *) echo "amd64" ;; esac) \
-    && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
-    && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
+   && curl -A "Docker" -o /tmp/blackfire.so -D - -L -s https://packages.blackfire.io/binaries/blackfire-php/${BLACKFIRE_VERSION}/blackfire-php-linux_${architecture}-php-${BLACKFIRE_PHP_VERSION}.so \
+   && mv /tmp/blackfire.so $(php -r "echo ini_get ('extension_dir');")/blackfire.so
 
 # New Relic
 ENV NEWRELIC_ENABLED=0
@@ -151,24 +155,24 @@ ENV NEWRELIC_TRANSACTION_TRACER_THRESHOLD=0
 ENV NEWRELIC_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER=0
 
 RUN bash -c 'curl -L "https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar -C /tmp -zx \
-    && export NR_INSTALL_USE_CP_NOT_LN=1 \
-    && export NR_INSTALL_SILENT=1 \
-    && /tmp/newrelic-php5-*/newrelic-install install \
-    && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
-    && /usr/bin/install -d -m 777 /var/log/newrelic/ \
-    && rm /usr/local/etc/php/conf.d/newrelic.ini \
-    && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2'
+   && export NR_INSTALL_USE_CP_NOT_LN=1 \
+   && export NR_INSTALL_SILENT=1 \
+   && /tmp/newrelic-php5-*/newrelic-install install \
+   && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* \
+   && /usr/bin/install -d -m 777 /var/log/newrelic/ \
+   && rm /usr/local/etc/php/conf.d/newrelic.ini \
+   && ln -s /lib64/ld-linux-x86-64.so.2 /lib/ld-linux-x86-64.so.2'
 
 # Tideways
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/amd64" ]; then \
-    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
-    tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
-    cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+   wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz" && \
+   tar xvzf tideways-php-${TIDEWAYS_VERSION}-x86_64.tar.gz && \
+   cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
-    wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
-    tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
-    cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
+   wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz" && \
+   tar xvzf tideways-php-${TIDEWAYS_VERSION}-arm64.tar.gz && \
+   cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache

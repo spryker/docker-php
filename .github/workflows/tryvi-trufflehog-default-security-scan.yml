@@ -45,6 +45,24 @@ jobs:
             tags: "8.4-alpine3.23"
             platforms: "linux/amd64"
 
+          ### Alpine 3.24
+          - context: "alpine/3.24/8.2"
+            dockerfile: "Dockerfile"
+            tags: "8.2-alpine3.24"
+            platforms: "linux/amd64"
+          - context: "alpine/3.24/8.3"
+            dockerfile: "Dockerfile"
+            tags: "8.3-alpine3.24"
+            platforms: "linux/amd64"
+          - context: "alpine/3.24/8.4"
+            dockerfile: "Dockerfile"
+            tags: "8.4-alpine3.24"
+            platforms: "linux/amd64"
+          - context: "alpine/3.24/8.5"
+            dockerfile: "Dockerfile"
+            tags: "8.5-alpine3.24"
+            platforms: "linux/amd64"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
