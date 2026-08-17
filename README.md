@@ -53,7 +53,6 @@ Extends official PHP Docker images with extensions and tools to be able to run S
 | [spryker/php:8.4-debian](https://hub.docker.com/r/spryker/php/tags?name=8.4-debian)         | 8.4.11      | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.4-debian.svg)](https://microbadger.com/images/spryker/php:8.4-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.4/Dockerfile) |      ✔       |
 | [spryker/php:8.3-debian](https://hub.docker.com/r/spryker/php/tags?name=8.3-debian)         | 8.3.24      | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.3-debian.svg)](https://microbadger.com/images/spryker/php:8.3-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.3/Dockerfile) |      ✔       |
 | [spryker/php:8.2-debian](https://hub.docker.com/r/spryker/php/tags?name=8.2-debian)         | 8.2.29      | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.2-debian.svg)](https://microbadger.com/images/spryker/php:8.2-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.2/Dockerfile) |      ✔       |
-| [spryker/php:8.0-debian](https://hub.docker.com/r/spryker/php/tags?name=8.0-debian)         | 8.0.30      | Debian "bullseye"  | [![](https://images.microbadger.com/badges/image/spryker/php:8.0-debian.svg)](https://microbadger.com/images/spryker/php:8.0-debian "Get your own image badge on microbadger.com")         | [:link:](https://github.com/spryker/docker-php/blob/master/debian/bullseye/8.0/Dockerfile) |      ✖       |
 
 ## How to use
 
@@ -183,7 +182,7 @@ Installed extensions
 Disabled extensions
 ====================
  [ ] amqp 2.2.0
- [ ] blackfire 1.87.1~linux-musl-x64-non_zts82
+ [ ] blackfire 1.92.48~linux-musl-x64-non_zts83
  [ ] excimer 1.2.6
  [ ] imagick 3.8.1
  [ ] newrelic 12.9.0.38
@@ -210,7 +209,7 @@ Composer version 2.10.2 2026-07-01 11:24:45
 ```
 ##### Run the following to get the report
 ```bash
-$ docker run -i --rm spryker/php:8.2-alpine3.24 bash -s<<'EOF'
+$ docker run -i --rm spryker/php:8.3 bash -s<<'EOF'
     docker-php-source extract
     echo "Installed extensions"
     echo "===================="
