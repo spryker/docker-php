@@ -83,6 +83,12 @@ jobs:
             tags: [ "spryker/php:8.4-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
 
+          ## Debian
+          ### Debian bookworm
+          - image: "debian/bookworm/8.5/Dockerfile"
+            tags: [ "spryker/php:8.5-debian" ]
+            platforms: [ "linux/amd64", "linux/arm64" ]
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
