@@ -72,19 +72,16 @@ jobs:
             platforms: [ "linux/amd64", "linux/arm64" ]
 
           ## Debian
-          ### Debian bullseye
-          - image: "debian/bullseye/8.2/Dockerfile"
+          ### Debian bookworm
+          - image: "debian/bookworm/8.2/Dockerfile"
             tags: [ "spryker/php:8.2-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "debian/bullseye/8.3/Dockerfile"
+          - image: "debian/bookworm/8.3/Dockerfile"
             tags: [ "spryker/php:8.3-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
-          - image: "debian/bullseye/8.4/Dockerfile"
+          - image: "debian/bookworm/8.4/Dockerfile"
             tags: [ "spryker/php:8.4-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]
-
-          ## Debian
-          ### Debian bookworm
           - image: "debian/bookworm/8.5/Dockerfile"
             tags: [ "spryker/php:8.5-debian" ]
             platforms: [ "linux/amd64", "linux/arm64" ]

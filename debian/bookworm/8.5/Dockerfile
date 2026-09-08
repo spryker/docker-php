@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:1.7
-ARG SPRYKER_PHP_VERSION=8.5.9
+ARG SPRYKER_PHP_VERSION=8.5.10
 
-# PHP 8.5 is not published for "bullseye" upstream, so this image is based on "bookworm".
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -9,7 +8,7 @@ ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.10.2
 ARG BLACKFIRE_VERSION=1.92.53
 ARG BLACKFIRE_PHP_VERSION=85
-ARG NEWRELIC_VERSION=12.9.0.38
+ARG NEWRELIC_VERSION=12.10.0.39
 ARG TIDEWAYS_VERSION=5.42.0
 ARG TIDEWAYS_PHP_VERSION=8.5
 ARG GOLANG_VERSION=1.20.3
@@ -135,8 +134,9 @@ RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linu
     && curl -L "https://go.dev/dl/go${GOLANG_VERSION}.linux-${architecture}.tar.gz" | tar -C /usr/local -xz
 ENV PATH="$PATH:/usr/local/go/bin"
 
-RUN echo "dash dash/sh boolean false" | debconf-set-selections
-RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
+RUN dpkg-divert --package dash --no-rename --remove /bin/sh \
+    && dpkg-divert --package bash --no-rename --divert /bin/sh.distrib --add /bin/sh \
+    && ln -sf bash /bin/sh
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
