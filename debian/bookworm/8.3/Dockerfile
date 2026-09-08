@@ -1,16 +1,16 @@
 # syntax=docker/dockerfile:1.7
-ARG SPRYKER_PHP_VERSION=8.2.29
+ARG SPRYKER_PHP_VERSION=8.3.33
 
-FROM php:${SPRYKER_PHP_VERSION}-fpm-bullseye
+FROM php:${SPRYKER_PHP_VERSION}-fpm-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG TARGETPLATFORM
 ARG COMPOSER_VERSION=2.10.2
-ARG BLACKFIRE_VERSION=1.87.1
-ARG BLACKFIRE_PHP_VERSION=82
-ARG NEWRELIC_VERSION=12.9.0.38
+ARG BLACKFIRE_VERSION=1.92.48
+ARG BLACKFIRE_PHP_VERSION=83
+ARG NEWRELIC_VERSION=12.10.0.39
 ARG TIDEWAYS_VERSION=5.42.0
-ARG TIDEWAYS_PHP_VERSION=8.2
+ARG TIDEWAYS_PHP_VERSION=8.3
 ARG GOLANG_VERSION=1.20.3
 
 ENV srcRoot /data
@@ -21,10 +21,10 @@ ARG PHP_RUN_DEPS="\
     libbz2-1.0 \
     libfreetype6 \
     libgmp10 \
-    libicu67 \
+    libicu72 \
     libjpeg62-turbo \
     libpng16-16 \
-    libwebp6 \
+    libwebp7 \
     libxml2 \
     libxpm4 \
     libxslt1.1 \
@@ -74,7 +74,7 @@ ARG PHP_PECL_EXTENSIONS="\
 ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     pcov \
     xdebug \
-    xhprof \
+    xhprof \    
     excimer \
     amqp \
     grpc \
