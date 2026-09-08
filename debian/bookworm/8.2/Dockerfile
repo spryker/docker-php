@@ -132,8 +132,9 @@ RUN architecture=$(case ${TARGETPLATFORM} in "linux/amd64") echo "amd64" ;; linu
     && curl -L "https://go.dev/dl/go${GOLANG_VERSION}.linux-${architecture}.tar.gz" | tar -C /usr/local -xz
 ENV PATH="$PATH:/usr/local/go/bin"
 
-RUN echo "dash dash/sh boolean false" | debconf-set-selections
-RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
+RUN dpkg-divert --package dash --no-rename --remove /bin/sh \
+    && dpkg-divert --package bash --no-rename --divert /bin/sh.distrib --add /bin/sh \
+    && ln -sf bash /bin/sh
 
 # Blackfire
 ENV BLACKFIRE_AGENT_SOCKET=''
