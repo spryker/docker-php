@@ -77,7 +77,7 @@ jobs:
           docker run --rm trufflesecurity/trufflehog:latest docker --image spryker/php:${{ matrix.tags }} --only-verified
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           image-ref: "spryker/php:${{ matrix.tags }}"
           exit-code: '1'
