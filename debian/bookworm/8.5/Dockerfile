@@ -5,7 +5,7 @@ FROM php:${SPRYKER_PHP_VERSION}-fpm-bookworm
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG TARGETPLATFORM
-ARG COMPOSER_VERSION=2.10.2
+ARG COMPOSER_VERSION=2.10.3
 ARG BLACKFIRE_VERSION=1.92.53
 ARG BLACKFIRE_PHP_VERSION=85
 ARG NEWRELIC_VERSION=12.10.0.39
@@ -82,7 +82,8 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     grpc \
     protobuf \
     opentelemetry \
-    imagick"
+    imagick \
+    xlswriter"
 
 ARG CFLAGS="-I/usr/src/php"
 RUN apt update -y \
