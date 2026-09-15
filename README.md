@@ -98,6 +98,14 @@ FROM spryker/php:8.2
 RUN mv /usr/local/etc/php/disabled/tideways.ini /usr/local/etc/php/conf.d/90-tideways.ini
 ```
 
+### Enable XLSX (xlswriter)
+`xlswriter` is built into every image but stays disabled by default. Enable it when the application reads or writes XLSX files.
+```dockerfile
+FROM spryker/php:8.2
+
+RUN mv /usr/local/etc/php/disabled/xlswriter.ini /usr/local/etc/php/conf.d/90-xlswriter.ini
+```
+
 ## PHP extensions
 
 ```
@@ -189,22 +197,24 @@ Disabled extensions
  [ ] pcov 1.0.12
  [ ] tideways 5.42.0-d1af5cc
  [ ] xhprof 2.3.10
+ [ ] xlswriter 3.0.0
 
 INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
-PACKAGE VERSION STATE
-amqp    2.2.0   stable
-apcu    5.1.28  stable
-excimer 1.2.6   stable
-imagick 3.8.1   stable
-pcov    1.0.12  stable
-redis   6.3.0   stable
-xdebug  3.5.3   stable
-xhprof  2.3.10  stable
+PACKAGE   VERSION STATE
+amqp      2.2.0   stable
+apcu      5.1.28  stable
+excimer   1.2.6   stable
+imagick   3.8.1   stable
+pcov      1.0.12  stable
+redis     6.3.0   stable
+xdebug    3.5.3   stable
+xhprof    2.3.10  stable
+xlswriter 3.0.0   stable
 
 Composer
 ====================
-Composer version 2.10.2 2026-07-01 11:24:45
+Composer version 2.10.3 2026-08-27 13:34:23
 ```
 ##### Run the following to get the report
 ```bash
