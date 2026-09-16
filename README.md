@@ -98,6 +98,14 @@ FROM spryker/php:8.2
 RUN mv /usr/local/etc/php/disabled/tideways.ini /usr/local/etc/php/conf.d/90-tideways.ini
 ```
 
+### Enable XSL (XSLT)
+`xsl` is built into every image but stays disabled by default. Enable it when the application transforms XML with `XSLTProcessor`.
+```dockerfile
+FROM spryker/php:8.2
+
+RUN mv /usr/local/etc/php/disabled/xsl.ini /usr/local/etc/php/conf.d/90-xsl.ini
+```
+
 ## PHP extensions
 
 ```
@@ -189,6 +197,7 @@ Disabled extensions
  [ ] pcov 1.0.12
  [ ] tideways 5.42.0-d1af5cc
  [ ] xhprof 2.3.10
+ [ ] xsl 8.3.33
 
 INSTALLED PACKAGES, CHANNEL PECL.PHP.NET:
 =========================================
