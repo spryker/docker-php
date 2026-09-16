@@ -43,6 +43,7 @@ ARG PHP_BUILD_DEPS="\
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
+    libxslt1-dev \
     libzip-dev \
     libssl-dev \
     librabbitmq-dev \
@@ -67,6 +68,9 @@ ARG PHP_EXTENSIONS="\
     soap \
     sockets \
     zip"
+
+ARG ADDITIONAL_PHP_EXTENSIONS="\
+    xsl"
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
@@ -121,11 +125,12 @@ RUN apt update -y \
       --with-jpeg=/usr \
       --with-webp=/usr \
       --with-xpm=/usr \
-    && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
+    && docker-php-ext-install -j5 ${PHP_EXTENSIONS} ${ADDITIONAL_PHP_EXTENSIONS} \
     && \
     set -eux; export MAKEFLAGS="-j$(nproc)"; pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
+    && for ext in ${ADDITIONAL_PHP_EXTENSIONS}; do rm -f /usr/local/etc/php/conf.d/docker-php-ext-${ext}.ini; done \
     && apt remove -y $PHP_BUILD_DEPS \
     && apt clean
 

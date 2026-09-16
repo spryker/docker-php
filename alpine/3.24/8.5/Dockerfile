@@ -42,6 +42,7 @@ ARG PHP_BUILD_DEPS="\
     libwebp-dev \
     libxml2-dev \
     libxpm-dev \
+    libxslt-dev \
     libzip-dev \
     postgresql-dev \
     rabbitmq-c-dev \
@@ -65,6 +66,9 @@ ARG PHP_EXTENSIONS="\
     soap \
     sockets \
     zip"
+
+ARG ADDITIONAL_PHP_EXTENSIONS="\
+    xsl"
 
 ARG PHP_PECL_EXTENSIONS="\
     apcu \
@@ -124,10 +128,11 @@ RUN apk update \
       --with-jpeg=/usr \
       --with-webp=/usr \
       --with-xpm=/usr \
-    && docker-php-ext-install -j5 ${PHP_EXTENSIONS} \
+    && docker-php-ext-install -j5 ${PHP_EXTENSIONS} ${ADDITIONAL_PHP_EXTENSIONS} \
     && pecl install -o -f ${PHP_PECL_EXTENSIONS} ${ADDITIONAL_PHP_PECL_EXTENSIONS} \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable ${PHP_EXTENSIONS} ${PHP_PECL_EXTENSIONS} \
+    && for ext in ${ADDITIONAL_PHP_EXTENSIONS}; do rm -f /usr/local/etc/php/conf.d/docker-php-ext-${ext}.ini; done \
     && apk del --no-cache .php-build-deps
 
 # Related to https://github.com/docker-library/php/issues/240
