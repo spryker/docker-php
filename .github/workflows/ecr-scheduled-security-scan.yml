@@ -110,6 +110,7 @@ jobs:
 
       - name: Fix vulnerability counts
         id: fixed-counts
+        if: ${{ always() && (steps.docker-scan.outcome == 'success' || steps.docker-scan.outcome == 'failure') }}
         run: |
           CRITICAL=${{ steps.docker-scan.outputs.critical }}
           HIGH=${{ steps.docker-scan.outputs.high }}
