@@ -259,6 +259,7 @@ $ docker run -i --rm spryker/php:8.3 bash -s<<'EOF'
 EOF
 ```
 
+
 ## More information
 * [Spryker documentation](https://documentation.spryker.com)
 * [PHP supported versions](http://php.net/supported-versions.php)
