@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-ARG SPRYKER_PHP_VERSION=8.4.26
+ARG SPRYKER_PHP_VERSION=8.4.27
 
 FROM php:${SPRYKER_PHP_VERSION}-fpm-bookworm
 
