@@ -156,6 +156,7 @@ jobs:
       - name: 📥 Download All CVE Diffs
         uses: actions/download-artifact@v4
         with:
+          pattern: diff-*
           path: ./all-diffs
 
       - name: 📣 Get Merged PR Info

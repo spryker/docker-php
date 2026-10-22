@@ -200,10 +200,10 @@ Disabled extensions
  [ ] blackfire 1.92.48~linux-musl-x64-non_zts83
  [ ] excimer 1.2.6
  [ ] imagick 3.8.1
- [ ] newrelic 12.11.0.40
+ [ ] newrelic 12.12.0.41
  [ ] otel 
  [ ] pcov 1.0.12
- [ ] tideways 5.42.0-d1af5cc
+ [ ] tideways 5.47.0-e84e8a5
  [ ] xhprof 2.3.10
  [ ] xlswriter 3.0.0
  [ ] xsl 8.3.36
