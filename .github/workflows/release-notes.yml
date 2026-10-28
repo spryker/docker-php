@@ -27,12 +27,6 @@ jobs:
       fail-fast: false
       matrix:
         image_tag:
-          - "8.2-alpine3.21"
-          - "8.3-alpine3.21"
-          - "8.4-alpine3.21"
-          - "8.2-alpine3.22"
-          - "8.3-alpine3.22"
-          - "8.4-alpine3.22"
           - "8.2-alpine3.23"
           - "8.3-alpine3.23"
           - "8.4-alpine3.23"
