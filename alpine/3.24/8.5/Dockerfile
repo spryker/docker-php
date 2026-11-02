@@ -108,20 +108,16 @@ RUN apk update \
         libstdc++ \
         openssl-dev \
         zlib-dev \
-        scdoc \
         ${PHP_RUN_DEPS} \
     && apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
     && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
     && cd /tmp \
-    && git clone --depth 1 --branch v3.0.0_rc7 https://github.com/alpinelinux/apk-tools.git apk-tools-v3.0.0_rc7 \
-    && cd apk-tools-v3.0.0_rc7 && make LUA=no && make LUA=no install \
-    && cd /tmp \
     && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
     && tar xzf icu4c-74_1-src.tgz \
     && cd icu/source && ./configure --prefix=/usr && make && make install \
     && cd /tmp \
-    && rm -rf /tmp/apk-tools-v3.0.0_rc7 /tmp/icu4c-74_1-src.tgz /tmp/icu \
+    && rm -rf /tmp/icu4c-74_1-src.tgz /tmp/icu \
     && docker-php-ext-configure gd \
       --disable-gd-jis-conv \
       --with-freetype=/usr \
