@@ -195,7 +195,8 @@ Disabled extensions
  [ ] newrelic 12.12.0.41
  [ ] otel 
  [ ] pcov 1.0.12
- [ ] tideways 5.47.0-e84e8a5
+ [ ] protobuf 4.32.1
+ [ ] tideways 5.47.1-4f70631
  [ ] xhprof 2.3.10
  [ ] xlswriter 3.0.0
  [ ] xsl 8.3.36
@@ -215,7 +216,7 @@ xlswriter 3.0.0   stable
 
 Composer
 ====================
-Composer version 2.10.3 2026-08-27 13:34:23
+Composer version 2.11.2 2026-11-10 10:09:37
 ```
 ##### Run the following to get the report
 ```bash
