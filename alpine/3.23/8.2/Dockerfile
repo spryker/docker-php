@@ -17,6 +17,7 @@ ARG PHP_RUN_DEPS="\
     freetype \
     gmp \
     gnu-libiconv \
+    icu-data-full \
     icu-libs \
     libbz2 \
     libc6-compat \
@@ -36,7 +37,6 @@ ARG PHP_BUILD_DEPS="\
     freetype-dev \
     gmp-dev \
     icu-dev \
-    icu-data-full \
     libjpeg-turbo-dev \
     libpng-dev \
     libwebp-dev \
@@ -83,9 +83,6 @@ ARG ADDITIONAL_PHP_PECL_EXTENSIONS="\
     xlswriter \
     protobuf"
 
-ARG GRAPHVIZ_BUILD_DEPS="\
-    expat-dev"
-
 ARG CFLAGS="-I/usr/src/php"
 RUN apk update \
     && apk upgrade \
@@ -93,8 +90,10 @@ RUN apk update \
         bash \
         coreutils \
         curl \
+        font-dejavu \
         g++ \
         git \
+        graphviz \
         make \
         mysql-client \
         netcat-openbsd \
@@ -110,14 +109,7 @@ RUN apk update \
         zlib-dev \
         ${PHP_RUN_DEPS} \
     && apk add --no-cache --virtual .php-build-deps ${PHP_BUILD_DEPS} \
-    && apk add --no-cache --virtual .graphviz-build-deps ${GRAPHVIZ_BUILD_DEPS} \
     && rm -rf /var/lib/apt/lists/ \
-    && cd /tmp \
-    && curl -LO https://github.com/unicode-org/icu/releases/download/release-74-1/icu4c-74_1-src.tgz \
-    && tar xzf icu4c-74_1-src.tgz \
-    && cd icu/source && ./configure --prefix=/usr && make && make install \
-    && cd /tmp \
-    && rm -rf /tmp/icu4c-74_1-src.tgz /tmp/icu \
     && docker-php-ext-configure gd \
         --disable-gd-jis-conv \
         --with-freetype=/usr \
@@ -171,16 +163,6 @@ RUN bash -c 'if [ "${TARGETPLATFORM}" == "linux/arm64" ]; then \
     wget "https://s3-eu-west-1.amazonaws.com/tideways/extension/${TIDEWAYS_VERSION}/tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz" \
     && tar xvzf tideways-php-${TIDEWAYS_VERSION}-alpine-arm64.tar.gz \
     && cp ./tideways-php-${TIDEWAYS_VERSION}/tideways-php-alpine-${TIDEWAYS_PHP_VERSION}.so $(php-config --extension-dir)/tideways.so; fi'
-
-#GraphViz 7.0.5
-RUN cd /tmp && \
-    curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/7.0.5/graphviz-7.0.5.tar.gz | tar -zx && \
-    cd /tmp/graphviz-7.0.5 && \
-    ./configure && \
-    make && \
-    make install && \
-    rm -rf /tmp/graphviz-7.0.5 && \
-    apk del --no-cache .graphviz-build-deps
 
 # Opcache
 RUN /usr/bin/install -d -m 777 /var/run/opcache
